@@ -1,0 +1,8 @@
+[
+    {
+        "name": "test",
+        "type": "MAP",
+        "subtype": "STRING",
+        "description": "foo"
+    }
+]

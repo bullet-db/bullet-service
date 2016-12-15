@@ -1,0 +1,44 @@
+[
+    {
+        "name": "fake_A",
+        "type": "DOUBLE",
+        "description": "fake column A. Contains doubles"
+    },
+    {
+        "name": "fake_B",
+        "type": "STRING",
+        "description": "fake column B. Contains strings"
+    },
+    {
+        "name": "fake_C",
+        "type": "BOOLEAN",
+        "description": "fake column C. Contains booleans"
+    },
+    {
+        "name": "fake_D",
+        "type": "LONG",
+        "description": "fake column D. Contains longs"
+    },
+    {
+        "name": "fake_E",
+        "type": "MAP",
+        "subtype": "STRING",
+        "description": "fake column E. Stores string values.",
+        "enumerations": [
+            {"name": "subfield_A", "description": "description for the subfield A in fake_E"},
+            {"name": "subfield_B", "description": "description for the subfield B in fake_E"}
+        ]
+    },
+    {
+        "name": "fake_F",
+        "type": "LIST",
+        "subtype": "MAP",
+        "description": "fake column F. A List that stores MAP(s) with string values"
+    },
+    {
+        "name": "fake_G",
+        "type": "MAP",
+        "subtype": "BOOLEAN",
+        "description": "fake column E. Stores boolean values."
+    }
+]
