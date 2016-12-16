@@ -1,7 +1,7 @@
 # bullet-service
 The Web-Service layer for Bullet
 
-[![Build Status](https://travis-ci.org/yahoo/bullet-service.svg?branch=master)](https://travis-ci.org/yahoo/bullet-service) [![Coverage Status](https://coveralls.io/repos/github/yahoo/bullet-service/badge.svg?branch=master)](https://coveralls.io/github/yahoo/bullet-service    d?branch=master) [![Download](https://api.bintray.com/packages/yahoo/maven/bullet-service/images/download.svg) ](https://bintray.com/yahoo/maven/bullet-service/_latestVersion)
+[![Build Status](https://travis-ci.org/yahoo/bullet-service.svg?branch=master)](https://travis-ci.org/yahoo/bullet-service) [![Coverage Status](https://coveralls.io/repos/github/yahoo/bullet-service/badge.svg?branch=master)](https://coveralls.io/github/yahoo/bullet-service?branch=master) [![Download](https://api.bintray.com/packages/yahoo/maven/bullet-service/images/download.svg) ](https://bintray.com/yahoo/maven/bullet-service/_latestVersion)
 
 This project builds a war file that you can deploy on a machine to communicate with the Bullet Storm Topology through DRPC. See
 the [bullet-storm](https://github.com/yahoo/bullet-storm) repo.
@@ -17,7 +17,29 @@ rate-limiting, different query formats (e.g. SQL Bullet queries) etc.
 
 ## Installation
 
-Coming once artifacts are deployed!
+You need to deploy the war file to your servlet container. Jetty is recommended. You can get the war file directly from Bintray (or JCenter)
+[here](http://dl.bintray.com/yahoo/maven/com/yahoo/bullet/bullet-service/).
+
+```xml
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-yahoo-maven</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/yahoo/maven</url>
+        </repository>
+    </repositories>
+```
+
+```xml
+    <dependency>
+      <groupId>com.yahoo.bullet</groupId>
+      <artifactId>bullet-service</artifactId>
+      <version>${bullet.version}</version>
+    </dependency>
+```
 
 ## Usage
 
@@ -27,6 +49,8 @@ You can HTTP POST a Bullet query to:
 ```
 http://<HOST>:<PORT>/<contextPath>/api/drpc
 ```
+
+, where contextPath is generally the name of the war in Jetty.
 
 If you provided a schema file, you can also HTTP GET your schema at:
 
@@ -50,7 +74,7 @@ bullet.service.configuration.file=<path to your configuration file>
 For example, if you are using Jetty as your servlet container,
 
 ```
-java -jar -Dbullet.service.configuration.file=/var/bullet-service/context.properties start.jar 
+java -jar -Dbullet.service.configuration.file=/var/bullet-service/context.properties start.jar
 ```
 
 See [src/main/resources/ApplicationContext.xml](src/main/resources/ApplicationContext.xml) for how this is loaded.
