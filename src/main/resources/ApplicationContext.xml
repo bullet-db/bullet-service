@@ -15,7 +15,7 @@
             <list>
                 <value>classpath:default.properties</value>
                 <!-- You can override the defaults with a custom file placed in the env variable below -->
-                <value>file://${bullet.service.configuration.file}</value>
+                <value>file:${bullet.service.configuration.file}</value>
             </list>
         </property>
     </bean>

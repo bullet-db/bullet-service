@@ -1,8 +1,10 @@
 # bullet-service
 The Web-Service layer for Bullet
 
-This project builds a war file that you can deploy on a machine to communicate with the Bullet Storm Topology through DRPC. See 
-the [bullet-storm](https://github.com/yahoo/bullet-storm) repo. 
+[![Build Status](https://travis-ci.org/yahoo/bullet-service.svg?branch=master)](https://travis-ci.org/yahoo/bullet-service) [![Coverage Status](https://coveralls.io/repos/github/yahoo/bullet-service/badge.svg?branch=master)](https://coveralls.io/github/yahoo/bullet-service    d?branch=master) [![Download](https://api.bintray.com/packages/yahoo/maven/bullet-service/images/download.svg) ](https://bintray.com/yahoo/maven/bullet-service/_latestVersion)
+
+This project builds a war file that you can deploy on a machine to communicate with the Bullet Storm Topology through DRPC. See
+the [bullet-storm](https://github.com/yahoo/bullet-storm) repo.
 
 There are two main purposes for this layer at this time:
 
@@ -10,7 +12,7 @@ There are two main purposes for this layer at this time:
 
 2) It proxies a JSON Bullet query to the Bullet Storm topology and wraps errors if the topology is unreachable.
 
-The web-service oto be a point of abstraction for implementing things like security, monitoring, access-control, 
+The web-service oto be a point of abstraction for implementing things like security, monitoring, access-control,
 rate-limiting, different query formats (e.g. SQL Bullet queries) etc.
 
 ## Installation
@@ -40,11 +42,17 @@ can use any JSON API schema specification. You can use [src/main/resources/sampl
 You specify how to talk to your Bullet Storm instance and where to find your schema file through a configuration file. See sample at
 [src/main/resources/bullet_defaults.yaml](src/main/resources/bullet_defaults.yaml).
 
-The values in the defaults file are used for any missing properties. You can specify a path to your custom configuration using the
-environment variable.
+The values in the defaults file are used for any missing properties. You can specify a path to your custom configuration using the property:
 ```
 bullet.service.configuration.file=<path to your configuration file>
 ```
+
+For example, if you are using Jetty as your servlet container,
+
+```
+java -jar -Dbullet.service.configuration.file=/var/bullet-service/context.properties start.jar 
+```
+
 See [src/main/resources/ApplicationContext.xml](src/main/resources/ApplicationContext.xml) for how this is loaded.
 
 Code licensed under the Apache 2 license. See LICENSE file for terms.
