@@ -17,8 +17,9 @@ rate-limiting, different query formats (e.g. SQL Bullet queries) etc.
 
 ## Installation
 
-You need to deploy the war file to your servlet container. Jetty is recommended. You can get the war file directly from Bintray (or JCenter)
-[here](http://dl.bintray.com/yahoo/maven/com/yahoo/bullet/bullet-service/).
+You need to deploy the war file to your servlet container. Jetty is recommended. You can get the war file directly from [JCenter](http://jcenter.bintray.com/com/yahoo/bullet/bullet-service/).
+
+If you need to depend on the source code directly, you need to add the JCenter repository and get the artifact through your dependency management system. Maven is shown below.
 
 ```xml
     <repositories>
@@ -26,9 +27,9 @@ You need to deploy the war file to your servlet container. Jetty is recommended.
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-            <id>bintray-yahoo-maven</id>
+            <id>central</id>
             <name>bintray</name>
-            <url>http://dl.bintray.com/yahoo/maven</url>
+            <url>http://jcenter.bintray.com</url>
         </repository>
     </repositories>
 ```
