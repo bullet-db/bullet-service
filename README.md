@@ -12,7 +12,7 @@ There are two main purposes for this layer at this time:
 
 2) It proxies a JSON Bullet query to the Bullet Storm topology and wraps errors if the topology is unreachable.
 
-The web-service oto be a point of abstraction for implementing things like security, monitoring, access-control,
+The web-service can also be a point of abstraction for implementing things like security, monitoring, access-control,
 rate-limiting, different query formats (e.g. SQL Bullet queries) etc.
 
 ## Installation
