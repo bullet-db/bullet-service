@@ -28,7 +28,7 @@ import static java.util.Arrays.asList;
 @Slf4j
 public class Column {
     public static final Set<Type> TYPES = new HashSet<>(asList(BOOLEAN, DOUBLE, LONG, STRING, MAP, LIST));
-    public static final Set<Type> PRIMITIVES = new HashSet<>(Type.simpleTypes());
+    public static final Set<Type> PRIMITIVES = new HashSet<>(Type.PRIMITIVES);
 
     private String name;
     private Type type;

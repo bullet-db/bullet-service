@@ -16,17 +16,24 @@
         </property>
     </bean>
 
-    <bean id="drpcService" class="com.yahoo.bullet.rest.service.RESTService">
-        <constructor-arg value="${drpc.servers}" />
-        <constructor-arg value="${drpc.port}" />
-        <constructor-arg value="${drpc.path}" />
-        <property name="connectTimeout" value="${drpc.connect.timeout}" />
-        <property name="retryLimit" value="${drpc.retry.limit}" />
-    </bean>
-
     <bean id="columnService" class="com.yahoo.bullet.rest.service.FileSchemaService">
         <constructor-arg value="${columns.schema.version}" />
         <constructor-arg value="${columns.file}" />
     </bean>
 
+
+    <bean id="pubSub" class="com.yahoo.bullet.pubsub.PubSub" factory-method="from">
+        <constructor-arg>
+            <bean id="config" class="com.yahoo.bullet.BulletConfig">
+                <constructor-arg value="${pubsub.config.file}"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="pubSubService" class="com.yahoo.bullet.rest.service.PubSubService">
+        <constructor-arg ref="pubSub" />
+        <constructor-arg value="${pubsub.service.threads}" />
+        <constructor-arg value="${pubsub.publisher.threads}" />
+        <constructor-arg value="${pubsub.thread.sleep.time}" />
+    </bean>
 </beans>
