@@ -6,6 +6,7 @@
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.parsing.Error;
+import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.resource.QueryError;
 import com.yahoo.bullet.rest.service.PubSubService;
 import com.yahoo.bullet.rest.service.HTTPQueryHandler;
@@ -44,12 +45,16 @@ public class QueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testRegisterAndSend() throws Exception {
+        String randomQuery = "bar";
         AsyncResponse asyncResponse = Mockito.mock(AsyncResponse.class);
-        ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
-        String randomQuery = "";
+        ArgumentCaptor<Response> response = ArgumentCaptor.forClass(Response.class);
+        Mockito.when(asyncResponse.resume(response.capture())).thenReturn(false);
         controller.submitQuery(randomQuery, asyncResponse);
+
+        ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
         Mockito.verify(pubSubService).submit(anyString(), eq(randomQuery), argument.capture());
-        Assert.assertEquals(asyncResponse, argument.getValue().getAsyncResponse());
+        argument.getValue().send(new PubSubMessage("", "foo"));
+        Assert.assertEquals(response.getValue().getEntity(), "foo");
     }
 
     @Test
