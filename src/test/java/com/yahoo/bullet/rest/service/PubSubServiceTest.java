@@ -10,7 +10,6 @@ import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.resource.QueryError;
-import com.yahoo.bullet.rest.utils.QueryHandler;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;

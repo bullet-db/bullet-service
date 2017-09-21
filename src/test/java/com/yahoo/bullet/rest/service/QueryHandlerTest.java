@@ -3,7 +3,7 @@
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
-package com.yahoo.bullet.rest.utils;
+package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.rest.MockQueryHandler;
 import com.yahoo.bullet.rest.resource.QueryError;

@@ -7,8 +7,8 @@ package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.resource.QueryError;
 import com.yahoo.bullet.rest.service.PubSubService;
-import com.yahoo.bullet.rest.utils.HTTPQueryHandler;
-import com.yahoo.bullet.rest.utils.QueryHandler;
+import com.yahoo.bullet.rest.service.HTTPQueryHandler;
+import com.yahoo.bullet.rest.service.QueryHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 

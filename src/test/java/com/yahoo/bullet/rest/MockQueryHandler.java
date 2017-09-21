@@ -7,7 +7,7 @@ package com.yahoo.bullet.rest;
 
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.resource.QueryError;
-import com.yahoo.bullet.rest.utils.QueryHandler;
+import com.yahoo.bullet.rest.service.QueryHandler;
 import lombok.Getter;
 
 @Getter

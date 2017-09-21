@@ -6,9 +6,8 @@
 package com.yahoo.bullet.rest.resource;
 
 import lombok.Getter;
-import lombok.Setter;
 
-@Getter @Setter
+@Getter
 public class QueryError {
     public static final QueryError INVALID_QUERY = new QueryError("Query not found.", "Please provide a valid query.");
     public static final QueryError SERVICE_UNAVAILABLE = new QueryError("Service temporarily unavailable", "Please try again later.");

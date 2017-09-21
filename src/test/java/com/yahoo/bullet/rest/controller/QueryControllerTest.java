@@ -8,7 +8,7 @@ package com.yahoo.bullet.rest.controller;
 import com.yahoo.bullet.parsing.Error;
 import com.yahoo.bullet.rest.resource.QueryError;
 import com.yahoo.bullet.rest.service.PubSubService;
-import com.yahoo.bullet.rest.utils.HTTPQueryHandler;
+import com.yahoo.bullet.rest.service.HTTPQueryHandler;
 import com.yahoo.bullet.result.Clip;
 import org.eclipse.jetty.http.HttpStatus;
 import org.mockito.ArgumentCaptor;

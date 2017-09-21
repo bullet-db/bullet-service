@@ -10,8 +10,6 @@ import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.resource.QueryError;
-import com.yahoo.bullet.rest.utils.PubSubReader;
-import com.yahoo.bullet.rest.utils.QueryHandler;
 import com.yahoo.bullet.RandomPool;
 
 import lombok.Getter;
@@ -23,11 +21,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
-@Getter @Service
+@Service
 public class PubSubService {
-    private PubSub pubSub;
     private List<PubSubReader> services;
     private RandomPool<Publisher> publisherRandomPool;
+    @Getter
     private ConcurrentMap<String, QueryHandler> requestQueue;
 
     /**
@@ -40,7 +38,6 @@ public class PubSubService {
      */
     public PubSubService(PubSub pubSub, int numberConsumers, int numberPublishers, int sleepTimeMS) throws PubSubException {
         this.requestQueue = new ConcurrentHashMap<>();
-        this.pubSub = pubSub;
         this.publisherRandomPool = new RandomPool<>(pubSub.getPublishers(numberPublishers));
         // Start threads that read from the PubSub and write to waiting requests.
         List<Subscriber> subscribers = pubSub.getSubscribers(numberConsumers);
