@@ -136,7 +136,6 @@ public class PubSubReaderTest {
         requestQueue.put(randomID, queryHandler);
         PubSubReader reader = new PubSubReader(subscriber, requestQueue, 1);
         Assert.assertEquals(queryHandler.getSentMessage().get(), mockMessage);
-        Assert.assertTrue(queryHandler.isComplete());
     }
 
     @Test(timeOut = 10000)
