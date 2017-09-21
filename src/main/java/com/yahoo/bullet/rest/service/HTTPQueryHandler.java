@@ -12,9 +12,9 @@ import lombok.Getter;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
-@Getter
 public class HTTPQueryHandler extends QueryHandler {
     private String content;
+    @Getter
     private AsyncResponse asyncResponse;
 
     /**

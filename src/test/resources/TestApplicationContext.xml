@@ -32,8 +32,8 @@
 
     <bean id="pubSubService" class="com.yahoo.bullet.rest.service.PubSubService">
         <constructor-arg ref="pubSub" />
-        <constructor-arg value="${pubsub.service.threads}" />
-        <constructor-arg value="${pubsub.publisher.threads}" />
+        <constructor-arg value="${pubsub.number.consumers}" />
+        <constructor-arg value="${pubsub.number.publishers}" />
         <constructor-arg value="${pubsub.thread.sleep.time}" />
     </bean>
 </beans>
