@@ -35,6 +35,7 @@ public class PubSubService {
      * @param numberConsumers The number of threads reading responses from the PubSub.
      * @param numberPublishers The number of Publishers writing queries to the PubSub.
      * @param sleepTimeMS The duration to sleep for if a receive from PubSub is empty.
+     * @throws PubSubException if {@link PubSub#getSubscribers(int)} fails.
      */
     public PubSubService(PubSub pubSub, int numberConsumers, int numberPublishers, int sleepTimeMS) throws PubSubException {
         this.requestQueue = new ConcurrentHashMap<>();
