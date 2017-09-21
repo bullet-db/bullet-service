@@ -6,12 +6,11 @@
 package com.yahoo.bullet.rest.resource;
 
 import lombok.Getter;
-import lombok.Setter;
 
-@Getter @Setter
-public class DRPCError {
-    public static final DRPCError CANNOT_REACH_DRPC = new DRPCError("Cannot reach DRPC server.", "Please try again later.");
-    public static final DRPCError RETRY_LIMIT_EXCEEDED = new DRPCError("Retry limit exceeded.", "Please try again later.");
+@Getter
+public class QueryError {
+    public static final QueryError INVALID_QUERY = new QueryError("Query not found.", "Please provide a valid query.");
+    public static final QueryError SERVICE_UNAVAILABLE = new QueryError("Service temporarily unavailable", "Please try again later.");
 
     private String error;
     private String resolution;
@@ -22,7 +21,7 @@ public class DRPCError {
      * @param error The error message.
      * @param resolution The resolution that can be taken.
      */
-    public DRPCError(String error, String resolution) {
+    public QueryError(String error, String resolution) {
         this.error = error;
         this.resolution = resolution;
     }

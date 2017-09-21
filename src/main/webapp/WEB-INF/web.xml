@@ -12,9 +12,11 @@
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
+
     <filter>
         <filter-name>CorsFilter</filter-name>
         <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
+        <async-supported>true</async-supported>
         <init-param>
             <param-name>allowedMethods</param-name>
             <param-value>GET,POST,HEAD,OPTIONS,PUT</param-value>
@@ -24,6 +26,7 @@
         <filter-name>CorsFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+
     <servlet>
         <servlet-name>Application</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
@@ -32,6 +35,7 @@
             <param-value>com.yahoo.bullet.rest.Application</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
+        <async-supported>true</async-supported>
     </servlet>
     <servlet-mapping>
         <servlet-name>Application</servlet-name>
