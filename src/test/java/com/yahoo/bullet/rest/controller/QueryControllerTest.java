@@ -11,7 +11,6 @@ import com.yahoo.bullet.rest.resource.QueryError;
 import com.yahoo.bullet.rest.service.PubSubService;
 import com.yahoo.bullet.rest.service.HTTPQueryHandler;
 import com.yahoo.bullet.result.Clip;
-import org.eclipse.jetty.http.HttpStatus;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -64,7 +63,7 @@ public class QueryControllerTest extends AbstractTestNGSpringContextTests {
         Mockito.when(asyncResponse.resume(response.capture())).thenReturn(false);
         controller.submitQuery(null, asyncResponse);
 
-        Assert.assertEquals(response.getValue().getStatus(), HttpStatus.INTERNAL_SERVER_ERROR_500);
+        Assert.assertEquals(response.getValue().getStatus(), Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         QueryError cause = QueryError.INVALID_QUERY;
         Clip responseEntity = Clip.of(com.yahoo.bullet.result.Metadata.of(Error.makeError(cause.getError(), cause.getResolution())));
         Assert.assertEquals(response.getValue().getEntity(), responseEntity.asJSON());

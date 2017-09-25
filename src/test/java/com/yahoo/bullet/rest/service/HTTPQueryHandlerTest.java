@@ -10,7 +10,6 @@ import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.resource.QueryError;
 import com.yahoo.bullet.result.Clip;
 import com.yahoo.bullet.result.Metadata;
-import org.eclipse.jetty.http.HttpStatus;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -35,7 +34,7 @@ public class HTTPQueryHandlerTest {
 
         Mockito.verify(asyncResponse).resume(any(Response.class));
         Assert.assertTrue(response.getValue().hasEntity());
-        Assert.assertEquals(response.getValue().getStatus(), HttpStatus.OK_200);
+        Assert.assertEquals(response.getValue().getStatus(), Response.Status.OK.getStatusCode());
         Assert.assertEquals(response.getValue().getEntity(), randomContent);
     }
 
@@ -64,7 +63,7 @@ public class HTTPQueryHandlerTest {
         queryHandler.fail(cause);
 
         Assert.assertNotNull(response.getValue());
-        Assert.assertEquals(response.getValue().getStatus(), HttpStatus.INTERNAL_SERVER_ERROR_500);
+        Assert.assertEquals(response.getValue().getStatus(), Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         Clip responseEntity = Clip.of(Metadata.of(Error.makeError(cause.getError(), cause.getResolution())));
         Assert.assertEquals(response.getValue().getEntity(), responseEntity.asJSON());
     }
@@ -82,7 +81,7 @@ public class HTTPQueryHandlerTest {
 
         Mockito.verify(asyncResponse).resume(any(Response.class));
         Assert.assertTrue(response.getValue().hasEntity());
-        Assert.assertEquals(response.getValue().getStatus(), HttpStatus.OK_200);
+        Assert.assertEquals(response.getValue().getStatus(), Response.Status.OK.getStatusCode());
     }
 
     @Test
