@@ -3,7 +3,7 @@
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
-package com.yahoo.bullet.rest;
+package com.yahoo.bullet.rest.query;
 
 import com.yahoo.bullet.BulletConfig;
 import com.yahoo.bullet.pubsub.PubSub;

@@ -13,14 +13,14 @@
         <property name="ignoreResourceNotFound" value="true"/>
         <property name="locations">
             <list>
-                <value>classpath:default.properties</value>
+                <value>classpath:application.properties</value>
                 <!-- You can override the defaults with a custom file placed in the env variable below -->
                 <value>file:${bullet.service.configuration.file}</value>
             </list>
         </property>
     </bean>
 
-    <bean id="columnService" class="com.yahoo.bullet.rest.service.FileSchemaService">
+    <bean id="columnService" class="com.yahoo.bullet.rest.schema.FileSchemaService">
         <constructor-arg value="${columns.schema.version}" />
         <constructor-arg value="${columns.file}" />
     </bean>
@@ -33,7 +33,7 @@
         </constructor-arg>
     </bean>
 
-    <bean id="pubSubService" class="com.yahoo.bullet.rest.service.PubSubService">
+    <bean id="queryService" class="com.yahoo.bullet.rest.service.QueryService">
         <constructor-arg ref="pubSub" />
         <constructor-arg value="${pubsub.number.consumers}" />
         <constructor-arg value="${pubsub.number.publishers}" />

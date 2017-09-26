@@ -7,9 +7,9 @@ package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.parsing.Error;
 import com.yahoo.bullet.pubsub.PubSubMessage;
-import com.yahoo.bullet.rest.resource.QueryError;
+import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.service.PubSubService;
-import com.yahoo.bullet.rest.service.HTTPQueryHandler;
+import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.result.Clip;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;

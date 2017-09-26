@@ -4,10 +4,11 @@
  *  See the LICENSE file associated with the project for terms.
  */
 
-package com.yahoo.bullet.rest.service;
+package com.yahoo.bullet.rest.query;
 
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Subscriber;
+import com.yahoo.bullet.rest.query.QueryHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

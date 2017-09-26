@@ -1,0 +1,14 @@
+schema:
+  # The fully qualified path to your schema file
+  file: /test_columns.json
+  version: 1.2
+
+pubsub:
+  # The number of threads reading responses from the PubSub
+  consumers: 1
+  # The number of threads publishing queries to the PubSub
+  producers: 1
+  # The file containing settings required by the PubSub implementation being used
+  config: /test_pubsub_defaults.yaml
+  # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
+  sleepTimeMS: 1

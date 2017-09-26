@@ -18,9 +18,9 @@ import org.testng.annotations.Test;
 import java.util.List;
 
 @ContextConfiguration(locations = "/TestApplicationContext.xml")
-public class FileSchemaServiceTest extends AbstractTestNGSpringContextTests {
+public class SchemaServiceTest extends AbstractTestNGSpringContextTests {
     @Autowired
-    FileSchemaService service;
+    SchemaService service;
 
     @Test
     public void testClasspathResource() {
@@ -46,17 +46,17 @@ public class FileSchemaServiceTest extends AbstractTestNGSpringContextTests {
 
     @Test(expectedExceptions = NullPointerException.class)
     public void testBadFile() {
-        new FileSchemaService("0.1", "/does/not/exist");
+        new SchemaService("0.1", "/does/not/exist");
     }
 
     @Test(expectedExceptions = RuntimeException.class)
     public void testBadType() {
-        new FileSchemaService("0.1", "src/test/resources/bad_type.json");
+        new SchemaService("0.1", "src/test/resources/bad_type.json");
     }
 
     @Test
     public void testAllTypesAndOperators() {
-        FileSchemaService testService = new FileSchemaService("0.1", "src/test/resources/all_types.json");
+        SchemaService testService = new SchemaService("0.1", "src/test/resources/all_types.json");
         String json = testService.getSchema();
         JSONAPIDocument document = new GsonBuilder().create().fromJson(json, JSONAPIDocument.class);
 

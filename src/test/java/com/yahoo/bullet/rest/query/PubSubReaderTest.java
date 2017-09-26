@@ -3,12 +3,14 @@
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
-package com.yahoo.bullet.rest.service;
+package com.yahoo.bullet.rest.query;
 
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Subscriber;
-import com.yahoo.bullet.rest.resource.QueryError;
+import com.yahoo.bullet.rest.query.PubSubReader;
+import com.yahoo.bullet.rest.query.QueryHandler;
+import com.yahoo.bullet.rest.query.QueryError;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.mockito.Mockito;

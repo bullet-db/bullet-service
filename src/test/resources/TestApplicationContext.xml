@@ -16,7 +16,7 @@
         </property>
     </bean>
 
-    <bean id="columnService" class="com.yahoo.bullet.rest.service.FileSchemaService">
+    <bean id="columnService" class="com.yahoo.bullet.rest.schema.FileSchemaService">
         <constructor-arg value="${columns.schema.version}" />
         <constructor-arg value="${columns.file}" />
     </bean>

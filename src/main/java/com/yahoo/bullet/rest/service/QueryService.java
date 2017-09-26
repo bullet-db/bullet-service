@@ -5,39 +5,64 @@
  */
 package com.yahoo.bullet.rest.service;
 
+import com.yahoo.bullet.BulletConfig;
+import com.yahoo.bullet.RandomPool;
 import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
-import com.yahoo.bullet.rest.resource.QueryError;
-import com.yahoo.bullet.RandomPool;
-
+import com.yahoo.bullet.rest.query.PubSubReader;
+import com.yahoo.bullet.rest.query.QueryError;
+import com.yahoo.bullet.rest.query.QueryHandler;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 @Service
-public class PubSubService {
-    private List<PubSubReader> services;
-    private RandomPool<Publisher> publisherRandomPool;
+public class QueryService {
     @Getter
     private ConcurrentMap<String, QueryHandler> requestQueue;
 
+    private List<PubSubReader> services;
+    private RandomPool<Publisher> publisherRandomPool;
+
     /**
-     * Creates a PubSubService using a {@link PubSub} and other config parameters.
+     * Creates an instance using a path to config file for creating a {@link PubSub} and other config parameters.
      *
-     * @param pubSub The PubSub used to create {@link Subscriber} and {@link Publisher}.
+     * @param config The path to a config file to create a {@link PubSub} that supplies the {@link Subscriber}
+     *               and {@link Publisher} instances for the particular PubSub instance.
+     * @param numberConsumers The number of threads reading responses from the PubSub.
+     * @param numberPublishers The number of Publishers writing queries to the PubSub.
+     * @param sleepTimeMS The duration to sleep for if a receive from PubSub is empty.
+     * @throws PubSubException if there are any failures.
+     * @throws IOException if there are any issues reading the config file.
+     */
+    @Autowired
+    public QueryService(@Value("${pubsub.config}") String config,
+                        @Value("${pubsub.consumers}") int numberConsumers,
+                        @Value("${pubsub.publishers}") int numberPublishers,
+                        @Value("{pubsub.sleepTimeMS}") int sleepTimeMS) throws PubSubException, IOException {
+        this(PubSub.from(new BulletConfig(config)), numberConsumers, numberPublishers, sleepTimeMS);
+    }
+
+    /**
+     * Creates an instance using a {@link PubSub} instance and other config parameters.
+     *
+     * @param pubSub The {@link PubSub} instance that supplies the {@link Subscriber} and {@link Publisher} instances.
      * @param numberConsumers The number of threads reading responses from the PubSub.
      * @param numberPublishers The number of Publishers writing queries to the PubSub.
      * @param sleepTimeMS The duration to sleep for if a receive from PubSub is empty.
      * @throws PubSubException if there are any failures.
      */
-    public PubSubService(PubSub pubSub, int numberConsumers, int numberPublishers, int sleepTimeMS) throws PubSubException {
+    public QueryService(PubSub pubSub, int numberConsumers, int numberPublishers, int sleepTimeMS) throws PubSubException {
         this.requestQueue = new ConcurrentHashMap<>();
         this.publisherRandomPool = new RandomPool<>(pubSub.getPublishers(numberPublishers));
         // Start threads that read from the PubSub and write to waiting requests.

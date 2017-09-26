@@ -7,15 +7,11 @@ package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.service.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
 @RestController
-@Path("/columns")
 public class SchemaController {
     public static final String JSON_API_HEADER = "application/vnd.api+json";
     @Autowired
@@ -26,8 +22,7 @@ public class SchemaController {
      *
      * @return The JSON API schema.
      */
-    @GET
-    @Produces({ JSON_API_HEADER, MediaType.APPLICATION_JSON })
+    @GetMapping(path = "/columns", produces = { JSON_API_HEADER, MediaType.APPLICATION_JSON_VALUE })
     public String getJSONSchema() {
         return schemaService.getSchema();
     }
