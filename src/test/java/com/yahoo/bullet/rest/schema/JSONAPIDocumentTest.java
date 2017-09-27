@@ -5,8 +5,8 @@
  */
 package com.yahoo.bullet.rest.schema;
 
-import org.junit.Test;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,28 +14,28 @@ import java.util.Map;
 
 public class JSONAPIDocumentTest {
     @Test
-    public void testNoArgsConstructorInjectsNulls() {
+    public void testNoDataConstructor() {
         JSONAPIDocument jsonapiDocument = new JSONAPIDocument();
         Assert.assertNull(jsonapiDocument.getData());
         Assert.assertNull(jsonapiDocument.getMeta());
     }
 
     @Test
-    public void testConstructorInjectsDataAndMeta() {
+    public void testConstructorWithData() {
         Map<String, Object> meta = new HashMap<>();
         meta.put("foo", "bar");
-        JSONAPIDocument jsonapiDocument = new JSONAPIDocument(Collections.EMPTY_LIST, meta);
-        Assert.assertEquals(Collections.EMPTY_LIST, jsonapiDocument.getData());
-        Assert.assertEquals(meta, jsonapiDocument.getMeta());
+        JSONAPIDocument jsonapiDocument = new JSONAPIDocument(Collections.emptyList(), meta);
+        Assert.assertEquals(jsonapiDocument.getData(), Collections.EMPTY_LIST);
+        Assert.assertEquals(jsonapiDocument.getMeta(), meta);
     }
 
     @Test
-    public void testSetterInjectsDataAndMeta() {
+    public void testSettingData() {
         Map<String, Object> meta = new HashMap<>();
         meta.put("foo", "bar");
         JSONAPIDocument jsonapiDocument = new JSONAPIDocument();
         jsonapiDocument.setMeta(meta);
-        Assert.assertEquals(meta, jsonapiDocument.getMeta());
+        Assert.assertEquals(jsonapiDocument.getMeta(), meta);
         Assert.assertNull(jsonapiDocument.getData());
     }
 }

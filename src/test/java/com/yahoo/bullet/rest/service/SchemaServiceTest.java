@@ -6,18 +6,18 @@
 package com.yahoo.bullet.rest.service;
 
 import com.google.gson.GsonBuilder;
-import com.yahoo.bullet.rest.schema.JSONAPIDocument;
 import com.yahoo.bullet.operations.typesystem.Type;
 import com.yahoo.bullet.rest.schema.JSONAPIColumn;
+import com.yahoo.bullet.rest.schema.JSONAPIDocument;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.List;
 
-@ContextConfiguration(locations = "/TestApplicationContext.xml")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class SchemaServiceTest extends AbstractTestNGSpringContextTests {
     @Autowired
     SchemaService service;
@@ -41,7 +41,7 @@ public class SchemaServiceTest extends AbstractTestNGSpringContextTests {
                 "]," +
             "\"meta\":{\"version\":\"1.2\"}" +
             "}";
-        Assert.assertEquals(service.getSchema(), expected);
+        Assert.assertEquals(expected, service.getSchema());
     }
 
     @Test(expectedExceptions = NullPointerException.class)

@@ -29,10 +29,10 @@ public class MockPubSub extends PubSub {
     }
 
     public List<Subscriber> getSubscribers(int n) {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
     public List<Publisher> getPublishers(int n) {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 }

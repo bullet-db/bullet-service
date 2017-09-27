@@ -5,40 +5,29 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
-import com.yahoo.bullet.rest.query.QueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
+import com.yahoo.bullet.rest.query.QueryHandler;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 
 public class QueryServiceTest {
-    @Test(expectedExceptions = IOException.class)
-    public void testBadFile() throws Exception {
-        new QueryService("foo", 1, 1, 1);
-    }
-
     @Test
     public void testClose() throws Exception {
         Publisher publisher = Mockito.mock(Publisher.class);
         Subscriber subscriber = Mockito.mock(Subscriber.class);
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        PubSub pubSub = Mockito.mock(PubSub.class);
-        Mockito.when(pubSub.getPublishers(anyInt())).thenReturn(singletonList(publisher));
-        Mockito.when(pubSub.getSubscribers(anyInt())).thenReturn(singletonList(subscriber));
-        QueryService service = new QueryService(pubSub, 1, 1, 1);
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
         service.submit("", "", queryHandler);
         service.close();
         Mockito.verify(queryHandler).fail();
@@ -51,10 +40,7 @@ public class QueryServiceTest {
         Subscriber subscriber = Mockito.mock(Subscriber.class);
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         doThrow(new PubSubException("")).when(publisher).send(anyString(), anyString());
-        PubSub pubSub = Mockito.mock(PubSub.class);
-        Mockito.when(pubSub.getPublishers(anyInt())).thenReturn(singletonList(publisher));
-        Mockito.when(pubSub.getSubscribers(anyInt())).thenReturn(singletonList(subscriber));
-        QueryService service = new QueryService(pubSub, 1, 1, 1);
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
         service.submit("", "", queryHandler);
         Mockito.verify(queryHandler).fail(any(QueryError.class));
         service.close();
@@ -65,15 +51,12 @@ public class QueryServiceTest {
         Publisher publisher = Mockito.mock(Publisher.class);
         Subscriber subscriber = Mockito.mock(Subscriber.class);
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        PubSub pubSub = Mockito.mock(PubSub.class);
-        Mockito.when(pubSub.getPublishers(anyInt())).thenReturn(singletonList(publisher));
-        Mockito.when(pubSub.getSubscribers(anyInt())).thenReturn(singletonList(subscriber));
-        QueryService service = new QueryService(pubSub, 1, 1, 1);
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
         String randomID = UUID.randomUUID().toString();
         String randomContent = "foo";
         service.submit(randomID, randomContent, queryHandler);
-        Assert.assertEquals(service.getRequestQueue().size(), 1);
-        Assert.assertEquals(service.getRequestQueue().get(randomID), queryHandler);
+        Assert.assertEquals(1, service.getRequestQueue().size());
+        Assert.assertEquals(queryHandler, service.getRequestQueue().get(randomID));
         Mockito.verify(publisher).send(randomID, randomContent);
         service.close();
     }

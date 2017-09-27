@@ -5,7 +5,6 @@
  */
 package com.yahoo.bullet.rest.query;
 
-import com.yahoo.bullet.rest.query.QueryError;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

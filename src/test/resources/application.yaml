@@ -1,14 +1,32 @@
+spring:
+  main:
+    # Need quotes since YAML turns off -> false
+    banner-mode: "off"
+
 schema:
   # The fully qualified path to your schema file
   file: /test_columns.json
   version: 1.2
 
-pubsub:
-  # The number of threads reading responses from the PubSub
-  consumers: 1
-  # The number of threads publishing queries to the PubSub
-  producers: 1
-  # The file containing settings required by the PubSub implementation being used
-  config: /test_pubsub_defaults.yaml
+pubSub:
+  # The number of subscriber instances (each creates a thread to read) reading responses from the PubSub
+  subscribers: 1
+  # The number of publisher publishing queries to the PubSub
+  publishers: 1
+  # The file containing settings required by the PubSub implementation being used. No need to prepend a /
+  config: test_pubsub_defaults.yaml
   # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
   sleepTimeMS: 1
+
+# Configures the ThreadPoolTaskExecutor created for handling all Async annotated methods. Independent of PubSub threading.
+threading:
+  corePoolSize: 2
+  maxPoolSize: 4
+  queueCapacity: 100
+  keepAliveSeconds: 600
+
+logging:
+  level.: WARN
+  level:
+    com.yahoo.bullet: FATAL
+    org.springframework: ERROR

@@ -5,98 +5,74 @@
  */
 package com.yahoo.bullet.rest.query;
 
-import com.yahoo.bullet.parsing.Error;
 import com.yahoo.bullet.pubsub.PubSubMessage;
-import com.yahoo.bullet.rest.query.HTTPQueryHandler;
-import com.yahoo.bullet.rest.query.QueryError;
-import com.yahoo.bullet.result.Clip;
-import com.yahoo.bullet.result.Metadata;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Response;
-import java.util.UUID;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
+import java.util.concurrent.CompletableFuture;
 
 public class HTTPQueryHandlerTest {
     @Test
-    public void testSendCompletesAsyncResponseWithContent() {
-        AsyncResponse asyncResponse = Mockito.mock(AsyncResponse.class);
-        ArgumentCaptor<Response> response = ArgumentCaptor.forClass(Response.class);
-        when(asyncResponse.resume(response.capture())).thenReturn(false);
-        HTTPQueryHandler queryHandler = new HTTPQueryHandler(asyncResponse);
-        String randomContent = UUID.randomUUID().toString();
-        queryHandler.send(new PubSubMessage("", randomContent));
+    public void testCompleteOnSendingOneMessage() throws Exception {
+        HTTPQueryHandler queryHandler = new HTTPQueryHandler();
+        CompletableFuture<String> result = queryHandler.getResult();
+        Assert.assertFalse(result.isDone());
 
-        Mockito.verify(asyncResponse).resume(any(Response.class));
-        Assert.assertTrue(response.getValue().hasEntity());
-        Assert.assertEquals(response.getValue().getStatus(), Response.Status.OK.getStatusCode());
-        Assert.assertEquals(response.getValue().getEntity(), randomContent);
+        queryHandler.send(new PubSubMessage("", "foo"));
+
+        Assert.assertTrue(result.isDone());
+        Assert.assertFalse(result.isCancelled());
+        Assert.assertEquals(result.get(), "foo");
     }
 
     @Test
-    public void testSendIsNoopAfterComplete() {
-        AsyncResponse asyncResponse = Mockito.mock(AsyncResponse.class);
-        ArgumentCaptor<Response> response = ArgumentCaptor.forClass(Response.class);
-        when(asyncResponse.resume(response.capture())).thenReturn(false);
-        HTTPQueryHandler queryHandler = new HTTPQueryHandler(asyncResponse);
-        String randomContent = UUID.randomUUID().toString();
-        queryHandler.send(new PubSubMessage("", randomContent));
+    public void testSendAfterComplete() throws Exception {
+        HTTPQueryHandler queryHandler = new HTTPQueryHandler();
+        CompletableFuture<String> result = queryHandler.getResult();
+        Assert.assertFalse(result.isDone());
+
+        queryHandler.send(new PubSubMessage("", "foo"));
         queryHandler.complete();
-        queryHandler.send(new PubSubMessage("", ""));
+        queryHandler.send(new PubSubMessage("", "bar"));
 
-        Mockito.verify(asyncResponse).resume(any(Response.class));
+        Assert.assertTrue(result.isDone());
+        Assert.assertFalse(result.isCancelled());
+        Assert.assertEquals(result.get(), "foo");
     }
 
     @Test
-    public void testFailCompletesAsyncResponseWithError() {
-        AsyncResponse asyncResponse = Mockito.mock(AsyncResponse.class);
-        ArgumentCaptor<Response> response = ArgumentCaptor.forClass(Response.class);
-        when(asyncResponse.resume(response.capture())).thenReturn(false);
-        HTTPQueryHandler queryHandler = new HTTPQueryHandler(asyncResponse);
-        String randomContent = UUID.randomUUID().toString();
-        QueryError cause = new QueryError(randomContent, randomContent);
+    public void testCompleteOnSendingOneFail() throws Exception {
+        HTTPQueryHandler queryHandler = new HTTPQueryHandler();
+        CompletableFuture<String> result = queryHandler.getResult();
+        Assert.assertFalse(result.isDone());
+
+        QueryError cause = new QueryError("foo", "bar");
         queryHandler.fail(cause);
 
-        Assert.assertNotNull(response.getValue());
-        Assert.assertEquals(response.getValue().getStatus(), Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        Clip responseEntity = Clip.of(Metadata.of(Error.makeError(cause.getError(), cause.getResolution())));
-        Assert.assertEquals(response.getValue().getEntity(), responseEntity.asJSON());
+        Assert.assertTrue(result.isDone());
+        Assert.assertFalse(result.isCancelled());
+        Assert.assertEquals(result.get(), cause.toString());
     }
 
     @Test
-    public void testFailIsNoopAfterComplete() {
-        AsyncResponse asyncResponse = Mockito.mock(AsyncResponse.class);
-        ArgumentCaptor<Response> response = ArgumentCaptor.forClass(Response.class);
-        when(asyncResponse.resume(response.capture())).thenReturn(false);
-        when(asyncResponse.isDone()).thenReturn(false).thenReturn(true);
-        HTTPQueryHandler queryHandler = new HTTPQueryHandler(asyncResponse);
-        queryHandler.send(new PubSubMessage("", ""));
-        queryHandler.complete();
+    public void testFailAfterComplete() throws Exception {
+        HTTPQueryHandler queryHandler = new HTTPQueryHandler();
+        CompletableFuture<String> result = queryHandler.getResult();
+        Assert.assertFalse(result.isDone());
+
         queryHandler.fail(QueryError.INVALID_QUERY);
+        queryHandler.send(new PubSubMessage("", ""));
+        queryHandler.fail(new QueryError("foo", "bar"));
 
-        Mockito.verify(asyncResponse).resume(any(Response.class));
-        Assert.assertTrue(response.getValue().hasEntity());
-        Assert.assertEquals(response.getValue().getStatus(), Response.Status.OK.getStatusCode());
+        Assert.assertTrue(result.isDone());
+        Assert.assertEquals(result.get(), QueryError.INVALID_QUERY.toString());
     }
 
     @Test
-    public void testStaticConstructorInjectsAsyncResponse() {
-        AsyncResponse asyncResponse = Mockito.mock(AsyncResponse.class);
-        HTTPQueryHandler httpQueryHandler = HTTPQueryHandler.of(asyncResponse);
-        Assert.assertEquals(httpQueryHandler.getAsyncResponse(), asyncResponse);
-    }
-
-    @Test
-    public void testNoCallToQueryHandlerOnAcknowledge() {
-        AsyncResponse asyncResponse = Mockito.mock(AsyncResponse.class);
-        HTTPQueryHandler httpQueryHandler = HTTPQueryHandler.of(asyncResponse);
-        httpQueryHandler.acknowledge();
-        Mockito.verifyZeroInteractions(asyncResponse);
+    public void testAcknowledgeDoesNothing() {
+        HTTPQueryHandler queryHandler = new HTTPQueryHandler();
+        queryHandler.acknowledge();
+        CompletableFuture<String> result = queryHandler.getResult();
+        Assert.assertFalse(result.isDone());
     }
 }

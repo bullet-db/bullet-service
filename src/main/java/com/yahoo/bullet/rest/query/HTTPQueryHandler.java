@@ -6,54 +6,40 @@
 package com.yahoo.bullet.rest.query;
 
 import com.yahoo.bullet.pubsub.PubSubMessage;
-import lombok.AccessLevel;
-import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Response;
+import java.util.concurrent.CompletableFuture;
 
+/**
+ * Query handler that implements results for HTTP - one result per query. In other words,
+ * a single {@link #send(PubSubMessage)} or {@link #fail(QueryError)} call is supported. Use
+ * {@link #getResult()} to get a {@link CompletableFuture} that resolves to the single
+ * result or error.
+ */
+@NoArgsConstructor
 public class HTTPQueryHandler extends QueryHandler {
-    private String content;
-    @Getter(AccessLevel.PACKAGE)
-    private AsyncResponse asyncResponse;
-
-    /**
-     * Create a HTTPQueryHandler with an {@link AsyncResponse}.
-     *
-     * @param asyncResponse The AsyncResponse object to respond with.
-     */
-    public HTTPQueryHandler(AsyncResponse asyncResponse) {
-        this.asyncResponse = asyncResponse;
-    }
-
-    /**
-     * Create a HTTPQueryHandler with an {@link AsyncResponse}.
-     *
-     * @param asyncResponse The AsyncResponse object to respond with.
-     * @return a HTTPQueryHandler that responds to asyncResponse.
-     */
-    public static HTTPQueryHandler of(AsyncResponse asyncResponse) {
-        return new HTTPQueryHandler(asyncResponse);
-    }
+    private CompletableFuture<String> result = new CompletableFuture<>();
 
     @Override
     public void send(PubSubMessage message) {
-        if (complete) {
-            return;
+        if (!isComplete()) {
+            result.complete(message.getContent());
         }
-        content = message.getContent();
-        Response httpResponse = Response.status(Response.Status.OK).entity(content).build();
-        asyncResponse.resume(httpResponse);
-    }
-
-    @Override
-    public void acknowledge() {
     }
 
     @Override
     public void fail(QueryError cause) {
-        if (!complete) {
-            asyncResponse.resume(getErrorResponse(cause));
+        if (!isComplete()) {
+            result.complete(cause.toString());
         }
+    }
+
+    /**
+     * Get the single eventual result sent to this handler.
+     *
+     * @return The {@link CompletableFuture} of the single result that will eventually (but not guaranteed) to be added.
+     */
+    public CompletableFuture<String> getResult() {
+        return result;
     }
 }

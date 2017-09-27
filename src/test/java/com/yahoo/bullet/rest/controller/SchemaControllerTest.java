@@ -6,12 +6,13 @@
 package com.yahoo.bullet.rest.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@ContextConfiguration(locations = "/TestApplicationContext.xml")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class SchemaControllerTest extends AbstractTestNGSpringContextTests {
     @Autowired
     SchemaController controller;

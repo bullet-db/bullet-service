@@ -5,19 +5,20 @@
  */
 package com.yahoo.bullet.rest.schema;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public class EnumerationTest {
     @Test
-    public void testNoArgsConstructorInjectsNulls() {
+    public void testNoDataConstructor() {
         Enumeration enumeration = new Enumeration();
         Assert.assertNull(enumeration.getName());
         Assert.assertNull(enumeration.getDescription());
     }
 
     @Test
-    public void testSetterInjectsArgs() {
+    public void testSettersWithData() {
         Enumeration enumeration = new Enumeration();
         enumeration.setDescription("foo");
         enumeration.setName("bar");
