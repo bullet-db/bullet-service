@@ -6,7 +6,6 @@
 package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.RandomPool;
-import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.query.PubSubReader;
@@ -33,7 +32,7 @@ public class QueryService {
     private RandomPool<Publisher> publisherRandomPool;
 
     /**
-     * Creates an instance using a {@link PubSub} instance and other config parameters.
+     * Creates an instance using a List of Publishers and Subscribers.
      *
      * @param publishers The {@link List} of {@link Publisher} instances for writing queries.
      * @param subscribers The {@link List} of {@link Subscriber} instances for reading results.

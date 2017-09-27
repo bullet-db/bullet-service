@@ -24,8 +24,8 @@ threading:
   keepAliveSeconds: 600
 
 logging:
-  level.: WARN
   level:
-    com.yahoo.bullet: FATAL
+    root: WARN
+    com.yahoo.bullet: INFO
     org.springframework: ERROR
 

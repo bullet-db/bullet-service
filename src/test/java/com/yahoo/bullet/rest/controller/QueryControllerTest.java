@@ -31,7 +31,7 @@ public class QueryControllerTest extends AbstractTestNGSpringContextTests {
     @Autowired @InjectMocks
     private QueryController controller;
     @Mock
-    private QueryService queryService;
+    private QueryService service;
 
     @BeforeMethod
     public void setup() {
@@ -44,7 +44,7 @@ public class QueryControllerTest extends AbstractTestNGSpringContextTests {
         CompletableFuture<String> response = controller.submitQuery(query);
 
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
-        verify(queryService).submit(anyString(), eq(query), argument.capture());
+        verify(service).submit(anyString(), eq(query), argument.capture());
         argument.getValue().send(new PubSubMessage("", "bar"));
         Assert.assertEquals(response.get(), "bar");
     }
@@ -53,9 +53,6 @@ public class QueryControllerTest extends AbstractTestNGSpringContextTests {
     public void testIllegalQuery() throws Exception {
         CompletableFuture<String> response = controller.submitQuery(null);
 
-        ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
-        verify(queryService).submit(anyString(), eq("foo"), argument.capture());
-        argument.getValue().send(new PubSubMessage("", "foo"));
         Assert.assertEquals(response.get(), QueryError.INVALID_QUERY.toString());
     }
 }
