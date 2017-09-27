@@ -18,13 +18,6 @@ pubSub:
   # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
   sleepTimeMS: 1
 
-# Configures the ThreadPoolTaskExecutor created for handling all Async annotated methods. Independent of PubSub threading.
-threading:
-  corePoolSize: 2
-  maxPoolSize: 4
-  queueCapacity: 100
-  keepAliveSeconds: 600
-
 logging:
   level:
    root: ERROR

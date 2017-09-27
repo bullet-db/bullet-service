@@ -14,7 +14,6 @@ import com.yahoo.bullet.rest.query.QueryHandler;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 public class QueryService {
     @Getter
-    private ConcurrentMap<String, QueryHandler> requestQueue;
+    private ConcurrentMap<String, QueryHandler> runningQueries;
     private List<PubSubReader> consumers;
     private RandomPool<Publisher> publisherRandomPool;
 
@@ -42,24 +41,23 @@ public class QueryService {
     public QueryService(List<Publisher> publishers, List<Subscriber> subscribers, @Value("${pubSub.sleepTimeMS}") int sleepTimeMS) {
         Objects.requireNonNull(publishers);
         Objects.requireNonNull(subscribers);
-        requestQueue = new ConcurrentHashMap<>();
+        runningQueries = new ConcurrentHashMap<>();
         publisherRandomPool = new RandomPool<>(publishers);
-        consumers = subscribers.stream().map(x -> new PubSubReader(x, requestQueue, sleepTimeMS)).collect(Collectors.toList());
+        consumers = subscribers.stream().map(x -> new PubSubReader(x, runningQueries, sleepTimeMS)).collect(Collectors.toList());
     }
 
     /**
-     * Submit a query to Bullet and register it as a pending request. This is {@link Async}.
+     * Submit a query to Bullet and register it as a pending request.
      *
      * @param queryID The query ID to register request with.
      * @param query The query to register.
-     * @param queryHandler The {@link QueryHandler} object to write responses to.
+     * @param queryHandler The {@link QueryHandler} object that handles the query.
      */
-    @Async
     public void submit(String queryID, String query, QueryHandler queryHandler) {
         Publisher publisher = publisherRandomPool.get();
         try {
             publisher.send(queryID, query);
-            requestQueue.put(queryID, queryHandler);
+            runningQueries.put(queryID, queryHandler);
         } catch (Exception e) {
             queryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
         }
@@ -71,8 +69,8 @@ public class QueryService {
     @PreDestroy
     public void close() {
         consumers.forEach(PubSubReader::close);
-        requestQueue.values().forEach(QueryHandler::fail);
-        requestQueue.clear();
+        runningQueries.values().forEach(QueryHandler::fail);
+        runningQueries.clear();
         publisherRandomPool.clear();
     }
 }

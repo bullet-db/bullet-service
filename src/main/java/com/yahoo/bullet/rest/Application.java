@@ -14,21 +14,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 @SpringBootApplication
-@EnableAsync
 public class Application extends SpringBootServletInitializer {
     /**
      * Main.
@@ -42,17 +37,6 @@ public class Application extends SpringBootServletInitializer {
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
         return builder.sources(Application.class);
-    }
-
-    /**
-     * Configures the Async executor.
-     *
-     * @return A {@link Executor} to use for async annotated code.
-     */
-    @Bean
-    @ConfigurationProperties("threadPool")
-    public Executor asyncExecutor() {
-        return new ThreadPoolTaskExecutor();
     }
 
     /**

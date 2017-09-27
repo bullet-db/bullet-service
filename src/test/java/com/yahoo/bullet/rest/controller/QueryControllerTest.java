@@ -26,7 +26,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class QueryControllerTest extends AbstractTestNGSpringContextTests {
     @Autowired @InjectMocks
     private QueryController controller;

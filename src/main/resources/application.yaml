@@ -16,16 +16,8 @@ pubSub:
 server:
   port: 4080
 
-# Configures the ThreadPoolTaskExecutor created for handling all Async annotated methods. Independent of PubSub threading.
-threading:
-  corePoolSize: 4
-  maxPoolSize: 100
-  queueCapacity: 500
-  keepAliveSeconds: 600
-
 logging:
   level:
     root: WARN
     com.yahoo.bullet: INFO
     org.springframework: ERROR
-

@@ -61,7 +61,7 @@ public class HTTPQueryHandlerTest {
         Assert.assertFalse(result.isDone());
 
         queryHandler.fail(QueryError.INVALID_QUERY);
-        queryHandler.send(new PubSubMessage("", ""));
+        queryHandler.complete();
         queryHandler.fail(new QueryError("foo", "bar"));
 
         Assert.assertTrue(result.isDone());

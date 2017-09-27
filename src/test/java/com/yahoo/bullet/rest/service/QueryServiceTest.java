@@ -31,7 +31,7 @@ public class QueryServiceTest {
         service.submit("", "", queryHandler);
         service.close();
         Mockito.verify(queryHandler).fail();
-        Assert.assertTrue(service.getRequestQueue().isEmpty());
+        Assert.assertTrue(service.getRunningQueries().isEmpty());
     }
 
     @Test
@@ -55,8 +55,8 @@ public class QueryServiceTest {
         String randomID = UUID.randomUUID().toString();
         String randomContent = "foo";
         service.submit(randomID, randomContent, queryHandler);
-        Assert.assertEquals(1, service.getRequestQueue().size());
-        Assert.assertEquals(queryHandler, service.getRequestQueue().get(randomID));
+        Assert.assertEquals(1, service.getRunningQueries().size());
+        Assert.assertEquals(queryHandler, service.getRunningQueries().get(randomID));
         Mockito.verify(publisher).send(randomID, randomContent);
         service.close();
     }

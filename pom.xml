@@ -130,7 +130,6 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <excludes>java/Application.java</excludes>
                             <includeTestSourceDirectory>true</includeTestSourceDirectory>
                             <configLocation>src/main/resources/checkstyle.xml</configLocation>
                         </configuration>
@@ -151,9 +150,6 @@
                 <version>4.0.5</version>
                 <configuration>
                     <licenseLocation>${user.home}/clover.license</licenseLocation>
-                    <excludes>
-                        <exclude>**/Application.java</exclude>
-                    </excludes>
                 </configuration>
             </plugin>
 
@@ -175,11 +171,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <excludes>
-                        <exclude>**/Application.*</exclude>
-                    </excludes>
-                </configuration>
             </plugin>
 
             <plugin>
