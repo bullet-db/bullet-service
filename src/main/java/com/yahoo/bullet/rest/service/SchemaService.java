@@ -131,7 +131,7 @@ public class SchemaService {
         try {
             return new FileReader(new File(path));
         } catch (IOException ioe) {
-            log.warn("Unable to read from file path. Trying classpath instead...", ioe);
+            log.warn("Unable to read schema from file path: {}. Trying classpath instead...", path);
             return new InputStreamReader(getClass().getResourceAsStream(path));
         }
     }

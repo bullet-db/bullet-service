@@ -4,7 +4,6 @@
     <groupId>com.yahoo.bullet</groupId>
     <artifactId>bullet-service</artifactId>
     <version>0.1.1-SNAPSHOT</version>
-    <packaging>war</packaging>
     <name>bullet-service</name>
 
     <scm>
@@ -96,6 +95,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>
@@ -106,6 +111,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <layout>ZIP</layout>
+                </configuration>
             </plugin>
 
             <plugin>
