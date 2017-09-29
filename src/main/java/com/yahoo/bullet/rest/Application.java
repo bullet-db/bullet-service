@@ -63,7 +63,7 @@ public class Application extends SpringBootServletInitializer {
      * @throws PubSubException if there were issues creating the PubSub instance.
      */
     @Bean
-    public PubSub pubSub(@Value("${pubSub.config}") String config) throws IOException, PubSubException {
+    public PubSub pubSub(@Value("${bullet.pubsub.config}") String config) throws IOException, PubSubException {
         return PubSub.from(new BulletConfig(config));
     }
 
@@ -76,7 +76,7 @@ public class Application extends SpringBootServletInitializer {
      * @throws PubSubException if there were issues creating the instances.
      */
     @Bean
-    public List<Publisher> publishers(PubSub pubSub, @Value("${pubSub.publishers}") int publishers) throws PubSubException {
+    public List<Publisher> publishers(PubSub pubSub, @Value("${bullet.pubsub.publishers}") int publishers) throws PubSubException {
         return pubSub.getPublishers(publishers);
     }
 
@@ -89,7 +89,7 @@ public class Application extends SpringBootServletInitializer {
      * @throws PubSubException if there were issues creating the instances.
      */
     @Bean
-    public List<Subscriber> subscribers(PubSub pubSub, @Value("${pubSub.subscribers}") int subscribers) throws PubSubException {
+    public List<Subscriber> subscribers(PubSub pubSub, @Value("${bullet.pubsub.subscribers}") int subscribers) throws PubSubException {
         return pubSub.getSubscribers(subscribers);
     }
 }

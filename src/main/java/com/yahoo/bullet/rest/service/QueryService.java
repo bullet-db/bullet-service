@@ -35,15 +35,15 @@ public class QueryService {
      *
      * @param publishers The {@link List} of {@link Publisher} instances for writing queries.
      * @param subscribers The {@link List} of {@link Subscriber} instances for reading results.
-     * @param sleepTimeMS The duration to sleep for if a receive from PubSub is empty.
+     * @param sleep The duration to sleep for if a receive from PubSub is empty.
      */
     @Autowired
-    public QueryService(List<Publisher> publishers, List<Subscriber> subscribers, @Value("${pubSub.sleepTimeMS}") int sleepTimeMS) {
+    public QueryService(List<Publisher> publishers, List<Subscriber> subscribers, @Value("${bullet.pubsub.sleep-ms}") int sleep) {
         Objects.requireNonNull(publishers);
         Objects.requireNonNull(subscribers);
         runningQueries = new ConcurrentHashMap<>();
         publisherRandomPool = new RandomPool<>(publishers);
-        consumers = subscribers.stream().map(x -> new PubSubReader(x, runningQueries, sleepTimeMS)).collect(Collectors.toList());
+        consumers = subscribers.stream().map(x -> new PubSubReader(x, runningQueries, sleep)).collect(Collectors.toList());
     }
 
     /**

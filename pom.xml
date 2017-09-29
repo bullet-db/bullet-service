@@ -70,9 +70,11 @@
             <version>1.16.4</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Marking this as provided does not remove it in the uber jar. It goes into lib-provided. So building a war
+             will allow the war to be deployed to standard servlet containers as well -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jetty</artifactId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -95,12 +97,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
     </dependencies>
@@ -113,6 +109,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <layout>ZIP</layout>
+                    <classifier>embedded</classifier>
                 </configuration>
             </plugin>
 

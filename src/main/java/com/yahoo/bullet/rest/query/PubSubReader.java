@@ -52,7 +52,7 @@ public class PubSubReader {
         PubSubMessage response;
         activeReaderCount.incrementAndGet();
         log.info("Reader thread started, ID: " + Thread.currentThread().getId());
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!Thread.interrupted()) {
             try {
                 response = subscriber.receive();
                 if (response == null) {

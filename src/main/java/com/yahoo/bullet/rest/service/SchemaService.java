@@ -92,7 +92,7 @@ public class SchemaService {
      * @param filePath The filePath to the file.
      */
     @Autowired
-    public SchemaService(@Value("${schema.version}") String version, @Value("${schema.file}") String filePath) {
+    public SchemaService(@Value("${bullet.schema.version}") String version, @Value("${bullet.schema.file}") String filePath) {
         this.version = version;
         setSchema(getColumns(filePath));
     }
