@@ -6,21 +6,21 @@
 package com.yahoo.bullet.rest.service;
 
 import com.google.gson.GsonBuilder;
-import com.yahoo.bullet.rest.schema.JSONAPIDocument;
 import com.yahoo.bullet.operations.typesystem.Type;
 import com.yahoo.bullet.rest.schema.JSONAPIColumn;
+import com.yahoo.bullet.rest.schema.JSONAPIDocument;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.List;
 
-@ContextConfiguration(locations = "/TestApplicationContext.xml")
-public class FileSchemaServiceTest extends AbstractTestNGSpringContextTests {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+public class SchemaServiceTest extends AbstractTestNGSpringContextTests {
     @Autowired
-    FileSchemaService service;
+    SchemaService service;
 
     @Test
     public void testClasspathResource() {
@@ -41,22 +41,22 @@ public class FileSchemaServiceTest extends AbstractTestNGSpringContextTests {
                 "]," +
             "\"meta\":{\"version\":\"1.2\"}" +
             "}";
-        Assert.assertEquals(service.getSchema(), expected);
+        Assert.assertEquals(expected, service.getSchema());
     }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void testBadFile() {
-        new FileSchemaService("0.1", "/does/not/exist");
+        new SchemaService("0.1", "/does/not/exist");
     }
 
     @Test(expectedExceptions = RuntimeException.class)
     public void testBadType() {
-        new FileSchemaService("0.1", "src/test/resources/bad_type.json");
+        new SchemaService("0.1", "src/test/resources/bad_type.json");
     }
 
     @Test
     public void testAllTypesAndOperators() {
-        FileSchemaService testService = new FileSchemaService("0.1", "src/test/resources/all_types.json");
+        SchemaService testService = new SchemaService("0.1", "src/test/resources/all_types.json");
         String json = testService.getSchema();
         JSONAPIDocument document = new GsonBuilder().create().fromJson(json, JSONAPIDocument.class);
 

@@ -4,24 +4,21 @@
  *  See the LICENSE file associated with the project for terms.
  */
 
-package com.yahoo.bullet.rest.service;
+package com.yahoo.bullet.rest.query;
 
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Subscriber;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class PubSubReader {
-    @Getter
-    private static AtomicInteger activeReaderCount = new AtomicInteger(0);
     private Subscriber subscriber;
     private ConcurrentMap<String, QueryHandler> requestQueue;
     private Thread readerThread;
     private int sleepTimeMS;
+    // TODO: Handle Subscribers that have failed and we have no more readers
 
     /**
      * Create a service with a {@link Subscriber} and a request queue.
@@ -50,9 +47,8 @@ public class PubSubReader {
      */
     public void run() {
         PubSubMessage response;
-        activeReaderCount.incrementAndGet();
         log.info("Reader thread started, ID: " + Thread.currentThread().getId());
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!Thread.interrupted()) {
             try {
                 response = subscriber.receive();
                 if (response == null) {
@@ -83,6 +79,5 @@ public class PubSubReader {
             }
         }
         subscriber.close();
-        activeReaderCount.decrementAndGet();
     }
 }

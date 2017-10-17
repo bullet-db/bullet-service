@@ -5,44 +5,40 @@
  */
 package com.yahoo.bullet.rest.controller;
 
-import com.yahoo.bullet.rest.resource.QueryError;
-import com.yahoo.bullet.rest.service.PubSubService;
-import com.yahoo.bullet.rest.service.HTTPQueryHandler;
-import com.yahoo.bullet.rest.service.QueryHandler;
+import com.yahoo.bullet.rest.query.HTTPQueryHandler;
+import com.yahoo.bullet.rest.query.QueryError;
+import com.yahoo.bullet.rest.service.QueryService;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.MediaType;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
-@Path("/query")
-@Produces(MediaType.APPLICATION_JSON)
 public class QueryController {
-    @Autowired
-    private PubSubService pubSubService;
+    @Autowired @Setter
+    private QueryService queryService;
 
     /**
-     * The method that handles POSTs to this endpoint. Consumes the HTTP request, invokes {@link PubSubService} to
+     * The method that handles POSTs to this endpoint. Consumes the HTTP request, invokes {@link QueryService} to
      * register and transmit the query to Bullet.
      *
      * @param query The JSON query.
-     * @param asyncResponse The {@link AsyncResponse} object to respond to.
+     * @return A {@link CompletableFuture} representing the eventual result.
      */
-    @POST
-    public void submitQuery(String query, @Suspended AsyncResponse asyncResponse) {
-        QueryHandler queryHandler = HTTPQueryHandler.of(asyncResponse);
+    @PostMapping(path = "/query", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    public CompletableFuture<String> submitQuery(@RequestBody String query) {
+        HTTPQueryHandler queryHandler = new HTTPQueryHandler();
         if (query == null) {
             queryHandler.fail(QueryError.INVALID_QUERY);
-            return;
+        } else {
+            String queryID = UUID.randomUUID().toString();
+            queryService.submit(queryID, query, queryHandler);
         }
-        String queryID = UUID.randomUUID().toString();
-        pubSubService.submit(queryID, query, queryHandler);
+        return queryHandler.getResult();
     }
 }

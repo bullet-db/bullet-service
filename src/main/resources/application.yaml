@@ -1,0 +1,50 @@
+####################################################################################################################
+# Bullet Web-Service settings
+####################################################################################################################
+bullet:
+  schema:
+    # The fully qualified path to your schema file
+    file: /sample_columns.json
+    version: 0.1
+  pubsub:
+    # The number of subscriber instances (each creates a thread to read) reading responses from the PubSub
+    subscribers: 1
+    # The number of publisher publishing queries to the PubSub
+    publishers: 1
+    # The file containing settings required by the PubSub implementation being used. No need to prepend a /
+    config: pubsub_defaults.yaml
+    # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
+    sleep-ms: 1
+
+####################################################################################################################
+# Spring Boot settings
+####################################################################################################################
+# See https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html for others
+# When running the embedded jar as a Java app, you can provide properties at runtime using:
+# java -Dloader.path=path/to/pubsub.jar -jar bullet-service-<VERSION>-embedded.jar --bullet.pubsub.config=path/to/pubsub_settings.yaml --server.port=<OVERRIDE> etc.
+# You can also provide a new properties file using --spring.config.location=path/to/new/application.yaml
+####################################################################################################################
+
+spring:
+  mvc:
+    # No timeout
+    async.request-timeout: -1
+
+server:
+  context-path: /api/bullet
+  port: 5555
+
+# To configure SSL, override and change the following settings to your config
+# server:
+#   ssl:
+#     enabled: false
+#     key-store: keystore.p12
+#     key-store-password: mypassword
+#     keyStoreType: PKCS12
+#     keyAlias: spring
+
+logging:
+  level:
+    root: WARN
+    com.yahoo.bullet: INFO
+    org.springframework: ERROR

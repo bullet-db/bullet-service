@@ -1,0 +1,2 @@
+bullet.pubsub.context.name: "QUERY_SUBMISSION"
+bullet.pubsub.class.name: "com.yahoo.bullet.rest.query.MockPubSub"

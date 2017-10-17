@@ -3,12 +3,11 @@
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
-package com.yahoo.bullet.rest.service;
+package com.yahoo.bullet.rest.query;
 
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Subscriber;
-import com.yahoo.bullet.rest.resource.QueryError;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.mockito.Mockito;
@@ -123,10 +122,10 @@ public class PubSubReaderTest {
 
     @Test(timeOut = 10000)
     public void testSubscriberClosedOnError() throws Exception {
-        // When a runtime exception occurs, the reader shuts down and close
-        // is called on the Subscriber.
+        // When a runtime exception occurs, the reader shuts down and close is called on the Subscriber.
         MockFailingSubscriber subscriber = new MockFailingSubscriber();
-        PubSubReader reader = new PubSubReader(subscriber, requestQueue, 1);
+        new PubSubReader(subscriber, requestQueue, 1);
+
         Assert.assertTrue(subscriber.getIsClosed().get());
     }
 
@@ -134,7 +133,8 @@ public class PubSubReaderTest {
     public void testEmptyReceiveIgnored() throws Exception {
         Mockito.when(subscriber.receive()).thenReturn(null).thenReturn(mockMessage);
         requestQueue.put(randomID, queryHandler);
-        PubSubReader reader = new PubSubReader(subscriber, requestQueue, 1);
+        new PubSubReader(subscriber, requestQueue, 1);
+
         Assert.assertEquals(queryHandler.getSentMessage().get(), mockMessage);
     }
 
@@ -146,9 +146,9 @@ public class PubSubReaderTest {
         Mockito.when(subscriber.receive()).thenReturn(completedMessage).thenReturn(mockMessage);
         requestQueue.put(randomID, queryHandler);
         requestQueue.put("completedID", completedQueryHandler);
-        PubSubReader reader = new PubSubReader(subscriber, requestQueue, 1);
-        // Waits for message after completedMessage to get processed and checks that completedQueryHandler send
-        // was not invoked.
+        new PubSubReader(subscriber, requestQueue, 1);
+
+        // Waits for message after completedMessage to get processed and checks that completedQueryHandler send was not invoked.
         Assert.assertEquals(queryHandler.getSentMessage().get(), mockMessage);
         Assert.assertFalse(completedQueryHandler.getSentMessage().isDone());
     }
@@ -156,7 +156,8 @@ public class PubSubReaderTest {
     @Test(timeOut = 10000)
     public void testAbsentQueryHandlerMessageAcked() throws Exception {
         MockSubscriber mockSubscriber = new MockSubscriber(mockMessage);
-        PubSubReader reader = new PubSubReader(mockSubscriber, requestQueue, 1);
+        new PubSubReader(mockSubscriber, requestQueue, 1);
+
         Assert.assertEquals(mockSubscriber.getCommittedID().get(), randomID);
     }
 }
