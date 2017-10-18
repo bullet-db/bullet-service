@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class BulletServiceConfigurationTest extends AbstractTestNGSpringContextTests {
+public class APIConfigurationTest extends AbstractTestNGSpringContextTests {
     @Autowired
     private WebMvcConfigurer corsConfigurer;
     @Autowired
@@ -56,7 +56,7 @@ public class BulletServiceConfigurationTest extends AbstractTestNGSpringContextT
 
         MockPubSub mockPubSub = (MockPubSub) pubSub;
         Assert.assertEquals(mockPubSub.getConfig().get(BulletConfig.PUBSUB_CONTEXT_NAME),
-                PubSub.Context.QUERY_SUBMISSION.name());
+                            PubSub.Context.QUERY_SUBMISSION.name());
 
         Assert.assertEquals(mockPubSub.getPublishersAskedFor().size(), 1);
         Assert.assertEquals(mockPubSub.getPublishersAskedFor().get(0), Integer.valueOf(1));
@@ -66,4 +66,3 @@ public class BulletServiceConfigurationTest extends AbstractTestNGSpringContextT
 
     }
 }
-

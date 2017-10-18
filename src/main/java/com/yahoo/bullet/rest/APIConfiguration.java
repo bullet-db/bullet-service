@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 
 @Configuration
-public class BulletServiceConfiguration {
+public class APIConfiguration {
     /**
      * Enables CORS globally.
      *
