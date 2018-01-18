@@ -11,8 +11,11 @@ import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -21,7 +24,8 @@ import java.io.IOException;
 import java.util.List;
 
 @Configuration
-public class APIConfiguration {
+@EnableOAuth2Sso
+public class APIConfiguration extends WebSecurityConfigurerAdapter {
     /**
      * Enables CORS globally.
      *
@@ -74,5 +78,11 @@ public class APIConfiguration {
     @Bean
     public List<Subscriber> subscribers(PubSub pubSub, @Value("${bullet.pubsub.subscribers}") int subscribers) throws PubSubException {
         return pubSub.getSubscribers(subscribers);
+    }
+
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        // Disable CSRF
+        http.csrf().disable().authorizeRequests().anyRequest().authenticated();
     }
 }

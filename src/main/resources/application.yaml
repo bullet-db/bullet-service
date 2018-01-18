@@ -43,6 +43,22 @@ server:
 #     keyStoreType: PKCS12
 #     keyAlias: spring
 
+# Override the value to "" to enable SSO security
+security.ignored: "/**"
+
+# To configure SSO security, override and change the following settings to your config
+#security:
+#  oauth2:
+#    client:
+#      clientId: myclientid
+#      clientSecret: myclientsecret
+#      accessTokenUri: https://my-access-token-uri
+#      userAuthorizationUri: https://my-user-authorization-uri
+#      clientAuthenticationScheme: form
+#      scope: openid profile email
+#    resource:
+#      userInfoUri: https://my-user-info-uri
+
 logging:
   level:
     root: WARN
