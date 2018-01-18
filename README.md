@@ -5,7 +5,7 @@ The Web-Service layer for Bullet
 
 ## Introduction
 
-This project builds a war file that you can deploy on a machine to communicate with the Bullet backend.
+This project builds a Spring Boot REST API that you can deploy on a machine to communicate with the Bullet backend.
 
 ## Documentation
 
