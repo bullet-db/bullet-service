@@ -21,8 +21,10 @@ public class PubSubService {
         return responseList.size();
     }
 
-    public PubSubMessage readResponse() {
-        return responseList.remove(0);
+    public String readResponse(String input) {
+        //return responseList.isEmpty() ? null : responseList.remove(0);
+        //return new PubSubMessage("88", "{}");
+        return responseList.isEmpty() ? "null" : responseList.remove(0).asJSON();
     }
 
     public Integer writeQuery(String query) {
@@ -30,8 +32,9 @@ public class PubSubService {
         return queryList.size();
     }
 
-    public PubSubMessage readQuery(String query) {
-        return queryList.remove(0);
+    public String readQuery(String input) {
+        return queryList.isEmpty() ? "null" : queryList.remove(0).asJSON();
+        //return queryList.remove(0);
     }
 
 }

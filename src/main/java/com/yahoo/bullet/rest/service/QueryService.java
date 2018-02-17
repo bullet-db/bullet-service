@@ -12,6 +12,7 @@ import com.yahoo.bullet.rest.query.PubSubReader;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.QueryHandler;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,12 +24,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class QueryService {
     @Getter
     private ConcurrentMap<String, QueryHandler> runningQueries;
     private List<PubSubReader> consumers;
-    private RandomPool<Publisher> publisherRandomPool;
+    public RandomPool<Publisher> publisherRandomPool; // FIX THIS (change back to private)
 
     /**
      * Creates an instance using a List of Publishers and Subscribers.
@@ -54,6 +56,7 @@ public class QueryService {
      * @param queryHandler The {@link QueryHandler} object that handles the query.
      */
     public void submit(String queryID, String query, QueryHandler queryHandler) {
+        log.error("Submitting query with id: " + queryID + ", query body: " + query);
         Publisher publisher = publisherRandomPool.get();
         try {
             publisher.send(queryID, query);

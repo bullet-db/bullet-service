@@ -11,9 +11,11 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @RestController
 public class QueryWriterController {
     @Autowired
@@ -21,17 +23,17 @@ public class QueryWriterController {
 
     @PostMapping(path = "/pubsub/read/response", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> readResponse(@RequestBody String input) {
-        PubSubMessage response = pubSubService.readResponse();
+        String response = pubSubService.readResponse(input);
         CompletableFuture<String> result = new CompletableFuture<>();
-        result.complete(response.asJSON());
+        result.complete(response);
         return result;
     }
 
     @PostMapping(path = "/pubsub/read/query", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> readQuery(@RequestBody String input) {
-        PubSubMessage query = pubSubService.readQuery(input);
+        String query = pubSubService.readQuery(input);
         CompletableFuture<String> result = new CompletableFuture<>();
-        result.complete(query.asJSON());
+        result.complete(query);
         return result;
     }
 
