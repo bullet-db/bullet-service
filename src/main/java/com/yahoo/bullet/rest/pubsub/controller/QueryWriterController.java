@@ -3,9 +3,9 @@
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
-package com.yahoo.bullet.rest.pubsub;
+package com.yahoo.bullet.rest.pubsub.controller;
 
-import com.yahoo.bullet.pubsub.PubSubMessage;
+import com.yahoo.bullet.rest.pubsub.service.PubSubService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
