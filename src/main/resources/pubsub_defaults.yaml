@@ -2,4 +2,9 @@
 bullet.pubsub.context.name: "QUERY_SUBMISSION"
 # Path to your PubSub implementation.
 bullet.pubsub.class.name: "full.package.path.to.your.pubsub.class"
+
+############################################ In-Memory pubsub settings ############################################
+# The location of the in-memory pubsub server
+bullet.pubsub.memory.server: "http://localhost:9999"
+
 # Add settings specific to your pubsub.

@@ -32,7 +32,7 @@ public class MemoryQuerySubscriber extends BufferingSubscriber {
     @Override
     public List<PubSubMessage> getMessages() throws PubSubException {
         String url = "http://localhost:9999/api/bullet/pubsub/read/query";
-        log.error("----At the top of getMessages()");
+        //log.error("----At the top of getMessages()");
 
         try {
             HttpClient httpClient = HttpClients.createDefault();
@@ -40,29 +40,29 @@ public class MemoryQuerySubscriber extends BufferingSubscriber {
             httpPost.setHeader("Accept", "application/json");
             httpPost.setHeader("Content-type", "text/plain");
             httpPost.setEntity(new StringEntity("{}")); // Empty for now - this will eventually be some info about which node this is?
-            log.error("------ Calling execute()");
+            //log.error("------ Calling execute()");
             HttpResponse response = httpClient.execute(httpPost);
 
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode != HttpStatus.SC_OK) {
-                log.error(" ----- STATUS CODE NOT OK!!! response: " + response);
+                //log.error(" ----- STATUS CODE NOT OK!!! response: " + response);
             }
 
             String jsonContent = readResponseContent(response);
             if (jsonContent == null) {
-                log.error("In MemoryQuerySubscriber jsonContent is null (not a string) - jsonContent: " + jsonContent);
+                //log.error("In MemoryQuerySubscriber jsonContent is null (not a string) - jsonContent: " + jsonContent);
                 return null;
             } else if (jsonContent.equalsIgnoreCase("null\n")) {
-                log.error("In MemoryResponseSubscriber jsonContent is a String that reads null - jsonContent: " + jsonContent);
+                //log.error("In MemoryResponseSubscriber jsonContent is a String that reads null - jsonContent: " + jsonContent);
                 return null;
             } else {
-                log.error("In MemoryQuerySubscriber - returning a singleton list 88 88 - jsonContent = " + jsonContent + ".  jsonContent.length = " + jsonContent.length());
+                //log.error("In MemoryQuerySubscriber - returning a singleton list 88 88 - jsonContent = " + jsonContent + ".  jsonContent.length = " + jsonContent.length());
                 return Collections.singletonList(PubSubMessage.fromJSON(jsonContent));
             }
         } catch (Exception e) {
             log.error("EXCEPTION CAUGHT!: " + e);
         }
-        log.error("---------- Now at the very bottom of getMessages()");
+        //log.error("---------- Now at the very bottom of getMessages()");
         return null;
     }
 

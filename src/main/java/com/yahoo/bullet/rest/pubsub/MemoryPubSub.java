@@ -19,27 +19,20 @@ public class MemoryPubSub extends PubSub {
 
     public MemoryPubSub(BulletConfig config) throws PubSubException {
         super(config);
-//        queryTopicName = getRequiredConfig(String.class, KafkaConfig.REQUEST_TOPIC_NAME);
-//        responseTopicName  = getRequiredConfig(String.class, KafkaConfig.RESPONSE_TOPIC_NAME);
-//        topic = (context == PubSub.Context.QUERY_PROCESSING) ? queryTopicName : responseTopicName;
-//
-//        queryPartitions = parsePartitionsFor(queryTopicName, KafkaConfig.REQUEST_PARTITIONS);
-//        responsePartitions = parsePartitionsFor(responseTopicName, KafkaConfig.RESPONSE_PARTITIONS);
-//        partitions = (context == PubSub.Context.QUERY_PROCESSING) ? queryPartitions : responsePartitions;
+        //this.config = new MemoryPubSubConfig(config);
     }
 
     @Override
     public Publisher getPublisher() throws PubSubException {
-        //Map<String, Object> properties = getProperties(PRODUCER_NAMESPACE, KAFKA_PRODUCER_PROPERTIES);
-        //KafkaProducer<String, byte[]> producer = new KafkaProducer<>(properties);
+        return new MemoryPublisher(config, context);
+//        if (context == PubSub.Context.QUERY_PROCESSING) {
+//            //return new MemoryPublisher(config, "http://localhost:9999/api/bullet/pubsub/publish/response");
+//            return new MemoryPublisher(config, context);
+//        }
+//
+//        return new MemoryQueryPublisher(config);
 
-        if (context == PubSub.Context.QUERY_PROCESSING) {
-            // We don't need to provide topic-partitions here since they should be in the message metadata
-            //return new MemoryResponsePublisher();
-            return new MemoryPublisher(config, "http://localhost:9999/api/bullet/pubsub/publish/response");
-        }
 
-        return new MemoryQueryPublisher(config);
 
 //        List<TopicPartition> to = (queryPartitions == null) ? getAllPartitions(getDummyProducer(), queryTopicName) : queryPartitions;
 //        List<TopicPartition> from = (responsePartitions == null) ? getAllPartitions(getDummyProducer(), responseTopicName) : responsePartitions;

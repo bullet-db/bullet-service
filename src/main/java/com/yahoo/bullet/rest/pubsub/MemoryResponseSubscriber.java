@@ -49,13 +49,13 @@ public class MemoryResponseSubscriber extends BufferingSubscriber {
 
             String jsonContent = readResponseContent(response);
             if (jsonContent == null) {
-                log.error("In MemoryResponseSubscriber jsonContent is null (not a string) - jsonContent: " + jsonContent);
+                //log.error("In MemoryResponseSubscriber jsonContent is null (not a string) - jsonContent: " + jsonContent);
                 return null;
             } else if (jsonContent.equalsIgnoreCase("null\n")) {
                 //log.error("In MemoryResponseSubscriber jsonContent is a String that reads null - jsonContent: " + jsonContent);
                 return null;
             } else {
-                log.error("In MemoryResponseSubscriber - returning a singleton list 88 88 - jsonContent = " + jsonContent + ".  jsonContent.length = " + jsonContent.length());
+                //log.error("In MemoryResponseSubscriber - returning a singleton list 88 88 - jsonContent = " + jsonContent + ".  jsonContent.length = " + jsonContent.length());
                 return Collections.singletonList(PubSubMessage.fromJSON(jsonContent));
             }
         } catch (Exception e) {
