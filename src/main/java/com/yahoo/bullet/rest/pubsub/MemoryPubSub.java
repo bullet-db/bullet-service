@@ -10,7 +10,6 @@ import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
-import com.yahoo.bullet.pubsub.service.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +36,7 @@ public class MemoryPubSub extends PubSub {
         if (context == PubSub.Context.QUERY_PROCESSING) {
             // We don't need to provide topic-partitions here since they should be in the message metadata
             //return new MemoryResponsePublisher();
-            return new com.yahoo.bullet.pubsub.service.MemoryPublisher(config, "http://localhost:9999/api/bullet/pubsub/publish/response");
+            return new MemoryPublisher(config, "http://localhost:9999/api/bullet/pubsub/publish/response");
         }
 
         return new MemoryQueryPublisher(config);

@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
-public class QueryWriterController {
+public class PubSubController {
     @Autowired
     private PubSubService pubSubService;
 
