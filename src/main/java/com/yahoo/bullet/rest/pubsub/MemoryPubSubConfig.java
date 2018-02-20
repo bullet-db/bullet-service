@@ -8,8 +8,6 @@ package com.yahoo.bullet.rest.pubsub;
 import com.yahoo.bullet.BulletConfig;
 import com.yahoo.bullet.Config;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import javax.servlet.ServletContext;
 
 import java.util.Optional;
 
@@ -18,9 +16,13 @@ public class MemoryPubSubConfig extends BulletConfig {
 
     public static final String PREFIX = "bullet.pubsub.memory.";
     // The servlet context path for the in memory pubsub rest endpoints ("api/bullet" by default)
-    public static final String SERVLET_CONTEXT = PREFIX + "servlet.context";
+    public static final String CONTEXT_PATH = PREFIX + "context.path";
     // The location of the in-memory pubsub server
     public static final String SERVER = PREFIX + "server";
+    // The timeout and retry limits for HTTP connections to in-memory pubsub server
+    public static final String CONNECT_TIMEOUT_MS = PREFIX + "connect.timeout.ms";
+    public static final String CONNECT_RETRY_LIMIT = PREFIX + "connect.retry.limit";
+
 
     public static final String DEFAULT_MEMORY_PUBSUB_CONFIGURATION = "pubsub_defaults.yaml";
 
@@ -44,9 +46,9 @@ public class MemoryPubSubConfig extends BulletConfig {
     public MemoryPubSubConfig(Config other) {
         // Load Bullet and Storm defaults. Then merge the other.
         super(DEFAULT_MEMORY_PUBSUB_CONFIGURATION);
-        log.error("------ in MemoryPubSubConfig constructor - 1");
-        set(SERVLET_CONTEXT, "/api/bullet");
-        log.error("------ in MemoryPubSubConfig constructor - 2");
+//        log.error("------ in MemoryPubSubConfig constructor - 1");
+//        set(CONTEXT_PATH, "/api/bullet"); // Fix this!
+//        log.error("------ in MemoryPubSubConfig constructor - 2");
         merge(other);
         log.info("Merged settings:\n {}", getAll(Optional.empty()));
     }

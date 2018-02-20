@@ -6,5 +6,12 @@ bullet.pubsub.class.name: "full.package.path.to.your.pubsub.class"
 ############################################ In-Memory pubsub settings ############################################
 # The location of the in-memory pubsub server
 bullet.pubsub.memory.server: "http://localhost:9999"
+# The context-path (path root) of the servlet container hosting the in-memory pubsub
+bullet.pubsub.memory.context.path: "/api/bullet"
+# Http connection timout
+bullet.pubsub.memory.connect.timeout.ms: 30000
+# Http connection retry limit
+bullet.pubsub.memory.connect.retry.limit: 10
+
 
 # Add settings specific to your pubsub.

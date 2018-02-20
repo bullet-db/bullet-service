@@ -25,19 +25,6 @@ public class MemoryPubSub extends PubSub {
     @Override
     public Publisher getPublisher() throws PubSubException {
         return new MemoryPublisher(config, context);
-//        if (context == PubSub.Context.QUERY_PROCESSING) {
-//            //return new MemoryPublisher(config, "http://localhost:9999/api/bullet/pubsub/publish/response");
-//            return new MemoryPublisher(config, context);
-//        }
-//
-//        return new MemoryQueryPublisher(config);
-
-
-
-//        List<TopicPartition> to = (queryPartitions == null) ? getAllPartitions(getDummyProducer(), queryTopicName) : queryPartitions;
-//        List<TopicPartition> from = (responsePartitions == null) ? getAllPartitions(getDummyProducer(), responseTopicName) : responsePartitions;
-//
-//        return new KafkaQueryPublisher(producer, to, from);
     }
 
     @Override

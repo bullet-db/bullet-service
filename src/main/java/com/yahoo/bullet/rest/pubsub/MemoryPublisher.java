@@ -28,26 +28,24 @@ public class MemoryPublisher implements Publisher {
     public static final int OK_200 = 200;
     String uri;
 
-    //public MemoryPublisher(BulletConfig config, String url) {
     public MemoryPublisher(BulletConfig config, PubSub.Context context) {
         this.config = new MemoryPubSubConfig(config);
 
         String server = this.config.getAs(MemoryPubSubConfig.SERVER, String.class);
-        String servletContext = this.config.getAs(MemoryPubSubConfig.SERVLET_CONTEXT, String.class);
+        String contextPath = this.config.getAs(MemoryPubSubConfig.CONTEXT_PATH, String.class);
         String path = context == PubSub.Context.QUERY_PROCESSING ?
                       PubSubController.WRITE_RESPONSE_PATH : PubSubController.WRITE_QUERY_PATH;
-        this.uri = server + servletContext + path;
+        this.uri = server + contextPath + path;
 
-        // Get these from the config!!
-        Number connectTimeout = 30000;
-        Number retryLimit = 10;
+        Number connectTimeout = this.config.getAs(MemoryPubSubConfig.CONNECT_TIMEOUT_MS, Number.class);
+        Number retryLimit = this.config.getAs(MemoryPubSubConfig.CONNECT_RETRY_LIMIT, Number.class);
+
         AsyncHttpClientConfig clientConfig = new DefaultAsyncHttpClientConfig.Builder()
                 .setConnectTimeout(connectTimeout.intValue())
                 .setMaxRequestRetry(retryLimit.intValue())
                 .setReadTimeout(NO_TIMEOUT)
                 .setRequestTimeout(NO_TIMEOUT)
                 .build();
-        // This is thread safe
         client = new DefaultAsyncHttpClient(clientConfig);
     }
 
@@ -58,8 +56,6 @@ public class MemoryPublisher implements Publisher {
 
     @Override
     public void send(PubSubMessage message) throws PubSubException {
-        log.error("------ NEW artifact (feb 19) with uri: " + uri);
-        //String url = urls.get();
         String id = message.getId();
         String json = message.asJSON();
         client.preparePost(uri)
@@ -84,18 +80,10 @@ public class MemoryPublisher implements Publisher {
 
     private void handleResponse(String id, Response response) {
         if (response == null || response.getStatusCode() != OK_200) {
-            // Deal with error
-            log.error("----------Error! Response: " + response);
-            //log.error("Handling error for id {} with response {}", id, response);
-            //responses.offer(new PubSubMessage(id, DRPCError.CANNOT_REACH_DRPC.asJSON()));
+            log.error("Failed to write message with id: {}. Couldn't reach memory pubsub server {}. Got response: {}", id, uri, response);
             return;
         }
-        log.error("----------Seems good, just want to see what this is: Response: " + response);
-//        log.info("Received for id {}: {} {}", response.getStatusCode(), id, response.getStatusText());
-//        String body = response.getResponseBody();
-//        PubSubMessage message = PubSubMessage.fromJSON(body);
-//        log.debug("Received for id {}:\n{}", message.getId(), message.getContent());
-//        responses.offer(message);
+        log.info("Successfully wrote message with id {}. Response was: {} {}", id, response.getStatusCode(), response.getStatusText());
     }
 
 }
