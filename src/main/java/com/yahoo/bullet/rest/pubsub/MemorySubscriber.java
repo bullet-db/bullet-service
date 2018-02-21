@@ -28,20 +28,19 @@ import lombok.extern.slf4j.Slf4j;
 public class MemorySubscriber extends BufferingSubscriber {
     MemoryPubSubConfig config;
     String uri;
-    //HttpClient client;
+    HttpClient client;
 
     public MemorySubscriber(BulletConfig config, PubSub.Context context, int maxUncommittedMessages) {
         super(maxUncommittedMessages);
         this.config = new MemoryPubSubConfig(config);
 
         this.uri = getURI(context);
-        //this.uri = "http://localhost:9999/api/bullet/pubsub/read/response";
+        this.client = HttpClients.createDefault();
     }
 
     @Override
     public List<PubSubMessage> getMessages() throws PubSubException {
         try {
-            HttpClient client = HttpClients.createDefault();
             HttpPost post = new HttpPost(uri);
             post.setHeader("Accept", "application/json");
             post.setHeader("Content-type", "text/plain");
