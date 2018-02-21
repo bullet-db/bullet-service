@@ -40,9 +40,7 @@ public class MemorySubscriber extends BufferingSubscriber {
 
     @Override
     public List<PubSubMessage> getMessages() throws PubSubException {
-        log.error("in MemorySubscriber getMessages() - 0");
         try {
-            log.error("in MemorySubscriber getMessages() - 1");
             HttpClient client = HttpClients.createDefault();
             HttpPost post = new HttpPost(uri);
             post.setHeader("Accept", "application/json");
@@ -50,23 +48,20 @@ public class MemorySubscriber extends BufferingSubscriber {
             // This can throw, otherwise I'd put it in constructor
             post.setEntity(new StringEntity("{}")); // Empty for now - this will eventually be some info about which web service this is?
 
-            log.error("in MemorySubscriber getMessages() - 2");
             HttpResponse response = client.execute(post);
             int statusCode = response.getStatusLine().getStatusCode();
 
-            log.error("in MemorySubscriber getMessages() - 3");
             if (statusCode == HttpStatus.SC_NO_CONTENT) {
                 // Status 204 indicates there are no new messages
-                log.error("in MemorySubscriber getMessages() - 4");
                 return null;
             }
             if (statusCode != HttpStatus.SC_OK) {
-                log.error("in MemorySubscriber getMessages() - 5");
                 // Can't throw error here because often times the first few calls return error codes until the service comes up
                 log.error("Http call failed with status code {} and response {}.", statusCode, response);
             }
             return Collections.singletonList(PubSubMessage.fromJSON(readResponseContent(response)));
         } catch (Exception e) {
+            // Can't throw error here because often times the first few calls return error codes until the service comes up
             log.error("Http post failed with error: " + e);
             //throw new PubSubException("Http post failed with error: " + e);
         }
