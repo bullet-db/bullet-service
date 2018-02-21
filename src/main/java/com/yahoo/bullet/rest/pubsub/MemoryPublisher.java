@@ -30,12 +30,7 @@ public class MemoryPublisher implements Publisher {
 
     public MemoryPublisher(BulletConfig config, PubSub.Context context) {
         this.config = new MemoryPubSubConfig(config);
-
-        String server = this.config.getAs(MemoryPubSubConfig.SERVER, String.class);
-        String contextPath = this.config.getAs(MemoryPubSubConfig.CONTEXT_PATH, String.class);
-        String path = context == PubSub.Context.QUERY_PROCESSING ?
-                      PubSubController.WRITE_RESPONSE_PATH : PubSubController.WRITE_QUERY_PATH;
-        this.uri = server + contextPath + path;
+        this.uri = getURI(context);
 
         Number connectTimeout = this.config.getAs(MemoryPubSubConfig.CONNECT_TIMEOUT_MS, Number.class);
         Number retryLimit = this.config.getAs(MemoryPubSubConfig.CONNECT_RETRY_LIMIT, Number.class);
@@ -59,13 +54,13 @@ public class MemoryPublisher implements Publisher {
         String id = message.getId();
         String json = message.asJSON();
         client.preparePost(uri)
-                .setBody(json)
-                .setHeader("Content-Type", "text/plain")
-                .setHeader("Accept", "application/json")
-                .execute()
-                .toCompletableFuture()
-//              .exceptionally(this::handleException)
-                .thenAcceptAsync(createResponseConsumer(id));
+              .setBody(json)
+              .setHeader("Content-Type", "text/plain")
+              .setHeader("Accept", "application/json")
+              .execute()
+              .toCompletableFuture()
+//            .exceptionally(this::handleException)
+              .thenAcceptAsync(createResponseConsumer(id));
     }
 
     @Override
@@ -84,6 +79,14 @@ public class MemoryPublisher implements Publisher {
             return;
         }
         log.info("Successfully wrote message with id {}. Response was: {} {}", id, response.getStatusCode(), response.getStatusText());
+    }
+
+    private String getURI(PubSub.Context context) {
+        String server = this.config.getAs(MemoryPubSubConfig.SERVER, String.class);
+        String contextPath = this.config.getAs(MemoryPubSubConfig.CONTEXT_PATH, String.class);
+        String path = context == PubSub.Context.QUERY_PROCESSING ?
+                      PubSubController.WRITE_RESPONSE_PATH : PubSubController.WRITE_QUERY_PATH;
+        return server + contextPath + path;
     }
 
 }

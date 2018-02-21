@@ -51,7 +51,7 @@ public class MemorySubscriber extends BufferingSubscriber {
             int statusCode = response.getStatusLine().getStatusCode();
 
             if (statusCode == HttpStatus.SC_NO_CONTENT) {
-                // Status 204 indicates there are no new messages
+                // SC_NO_CONTENT status (204) indicates there are no new messages
                 return null;
             }
             if (statusCode != HttpStatus.SC_OK) {
