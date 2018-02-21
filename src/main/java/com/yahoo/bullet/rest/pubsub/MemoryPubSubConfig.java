@@ -22,7 +22,8 @@ public class MemoryPubSubConfig extends BulletConfig {
     // The timeout and retry limits for HTTP connections to in-memory pubsub server
     public static final String CONNECT_TIMEOUT_MS = PREFIX + "connect.timeout.ms";
     public static final String CONNECT_RETRY_LIMIT = PREFIX + "connect.retry.limit";
-
+    // The maxiumum number of allowed uncommitted messages
+    public static final String MAX_UNCOMMITTED_MESSAGES = PREFIX + "subscriber.max.uncommitted.messages";
 
     public static final String DEFAULT_MEMORY_PUBSUB_CONFIGURATION = "pubsub_defaults.yaml";
 

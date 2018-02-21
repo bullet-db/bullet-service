@@ -12,6 +12,6 @@ bullet.pubsub.memory.context.path: "/api/bullet"
 bullet.pubsub.memory.connect.timeout.ms: 30000
 # Http connection retry limit
 bullet.pubsub.memory.connect.retry.limit: 10
-
-
+# Maxiumum number of uncommitted messages allowed before read requests will wait for commits
+bullet.pubsub.memory.subscriber.max.uncommitted.messages: 100
 # Add settings specific to your pubsub.

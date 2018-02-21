@@ -10,16 +10,19 @@ import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
+@Slf4j
 public class MemoryPubSub extends PubSub {
 
     public MemoryPubSub(BulletConfig config) throws PubSubException {
         super(config);
-        //this.config = new MemoryPubSubConfig(config);
+        this.config = new MemoryPubSubConfig(config);
     }
 
     @Override
@@ -35,27 +38,13 @@ public class MemoryPubSub extends PubSub {
 
     @Override
     public Subscriber getSubscriber() throws PubSubException {
-        // return getSubscriber(partitions, topic);
-
-        if (context == Context.QUERY_PROCESSING) {
-            return new MemoryQuerySubscriber();
-        }
-        return new MemoryResponseSubscriber();
+        Number maxUncommittedMessages = config.getAs(MemoryPubSubConfig.MAX_UNCOMMITTED_MESSAGES, Number.class);
+        return new MemorySubscriber(config, context, maxUncommittedMessages.intValue());
     }
 
     @Override
     public List<Subscriber> getSubscribers(int n) throws PubSubException {
-        List<Subscriber> subscribers = new ArrayList<>();
-        if (context == Context.QUERY_PROCESSING) {
-            for (int i = 0; i < n; i++) {
-                subscribers.add(new MemoryQuerySubscriber());
-            }
-        } else {
-            for (int i = 0; i < n; i++) {
-                subscribers.add(new MemoryResponseSubscriber());
-            }
-        }
-        return subscribers;
+        return Collections.nCopies(n, getSubscriber());
     }
 
 }

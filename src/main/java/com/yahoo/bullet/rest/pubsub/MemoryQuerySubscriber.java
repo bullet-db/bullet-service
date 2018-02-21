@@ -32,7 +32,6 @@ public class MemoryQuerySubscriber extends BufferingSubscriber {
     @Override
     public List<PubSubMessage> getMessages() throws PubSubException {
         String url = "http://localhost:9999/api/bullet/pubsub/read/query";
-        //log.error("----At the top of getMessages()");
 
         try {
             HttpClient httpClient = HttpClients.createDefault();
