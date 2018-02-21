@@ -83,10 +83,10 @@ public class MemoryPublisher implements Publisher {
 
     private String getURI(PubSub.Context context) {
         String server = this.config.getAs(MemoryPubSubConfig.SERVER, String.class);
-        String contextPath = this.config.getAs(MemoryPubSubConfig.CONTEXT_PATH, String.class);
         String path = context == PubSub.Context.QUERY_PROCESSING ?
-                      PubSubController.WRITE_RESPONSE_PATH : PubSubController.WRITE_QUERY_PATH;
-        return server + contextPath + path;
+                      this.config.getAs(MemoryPubSubConfig.WRITE_RESPONSE_PATH, String.class) :
+                      this.config.getAs(MemoryPubSubConfig.WRITE_QUERY_PATH, String.class);
+        return server + path;
     }
 
 }

@@ -56,6 +56,7 @@ public class MemorySubscriber extends BufferingSubscriber {
             }
             if (statusCode != HttpStatus.SC_OK) {
                 // Can't throw error here because often times the first few calls return error codes until the service comes up
+                log.error("---- uri: " + this.uri);
                 log.error("Http call failed with status code {} and response {}.", statusCode, response);
             }
             return Collections.singletonList(PubSubMessage.fromJSON(readResponseContent(response)));
@@ -80,10 +81,10 @@ public class MemorySubscriber extends BufferingSubscriber {
 
     private String getURI(PubSub.Context context) {
         String server = this.config.getAs(MemoryPubSubConfig.SERVER, String.class);
-        String contextPath = this.config.getAs(MemoryPubSubConfig.CONTEXT_PATH, String.class);
         String path = context == PubSub.Context.QUERY_PROCESSING ?
-                      PubSubController.READ_QUERY_PATH : PubSubController.READ_RESPONSE_PATH;
-        return server + contextPath + path;
+                      this.config.getAs(MemoryPubSubConfig.READ_QUERY_PATH, String.class) :
+                      this.config.getAs(MemoryPubSubConfig.READ_RESPONSE_PATH, String.class);
+        return server + path;
     }
 
     @Override
