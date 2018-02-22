@@ -27,7 +27,11 @@ public class MemoryPubSub extends PubSub {
 
     @Override
     public Publisher getPublisher() throws PubSubException {
-        return new MemoryPublisher(config, context);
+        if (context == Context.QUERY_PROCESSING) {
+            return new MemoryResponsePublisher(config);
+        } else {
+            return new MemoryQueryPublisher(config); // Fix this (should be MemoryResponsePublisher)
+        }
     }
 
     @Override

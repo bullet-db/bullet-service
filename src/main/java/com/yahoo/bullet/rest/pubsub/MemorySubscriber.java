@@ -56,7 +56,7 @@ public class MemorySubscriber extends BufferingSubscriber {
             }
             if (statusCode != HttpStatus.SC_OK) {
                 // Can't throw error here because often times the first few calls return error codes until the service comes up
-                log.error("---- uri: " + this.uri);
+                log.error("---- writeURI: " + this.uri);
                 log.error("Http call failed with status code {} and response {}.", statusCode, response);
             }
             return Collections.singletonList(PubSubMessage.fromJSON(readResponseContent(response)));

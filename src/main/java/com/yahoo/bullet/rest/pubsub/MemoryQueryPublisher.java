@@ -7,7 +7,6 @@ package com.yahoo.bullet.rest.pubsub;
 
 import com.yahoo.bullet.BulletConfig;
 import com.yahoo.bullet.pubsub.Metadata;
-import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Publisher;
@@ -21,16 +20,18 @@ import org.asynchttpclient.Response;
 import java.util.function.Consumer;
 
 @Slf4j
-public class MemoryPublisher implements Publisher {
+public class MemoryQueryPublisher implements Publisher {
     MemoryPubSubConfig config;
     private AsyncHttpClient client;
     public static final int NO_TIMEOUT = -1;
     public static final int OK_200 = 200;
-    String uri;
+    String writeURI;
+    String respondURI;
 
-    public MemoryPublisher(BulletConfig config, PubSub.Context context) {
+    public MemoryQueryPublisher(BulletConfig config) {
         this.config = new MemoryPubSubConfig(config);
-        this.uri = getURI(context);
+        this.writeURI = getWriteURI();
+        this.respondURI = getRespondURI();
 
         Number connectTimeout = this.config.getAs(MemoryPubSubConfig.CONNECT_TIMEOUT_MS, Number.class);
         Number retryLimit = this.config.getAs(MemoryPubSubConfig.CONNECT_RETRY_LIMIT, Number.class);
@@ -52,8 +53,10 @@ public class MemoryPublisher implements Publisher {
     @Override
     public void send(PubSubMessage message) throws PubSubException {
         String id = message.getId();
-        String json = message.asJSON();
-        client.preparePost(uri)
+        log.error("------ in MemoryQueryPublisher.send() - 1");
+        PubSubMessage newMessage = new PubSubMessage(id, message.getContent(), new Metadata(null, respondURI), message.getSequence());
+        String json = newMessage.asJSON();
+        client.preparePost(writeURI)
               .setBody(json)
               .setHeader("Content-Type", "text/plain")
               .setHeader("Accept", "application/json")
@@ -75,18 +78,23 @@ public class MemoryPublisher implements Publisher {
 
     private void handleResponse(String id, Response response) {
         if (response == null || response.getStatusCode() != OK_200) {
-            log.error("Failed to write message with id: {}. Couldn't reach memory pubsub server {}. Got response: {}", id, uri, response);
+            log.error("Failed to write message with id: {}. Couldn't reach memory pubsub server {}. Got response: {}", id, writeURI, response);
             return;
         }
         log.info("Successfully wrote message with id {}. Response was: {} {}", id, response.getStatusCode(), response.getStatusText());
     }
 
-    private String getURI(PubSub.Context context) {
+    private String getWriteURI() {
         String server = this.config.getAs(MemoryPubSubConfig.SERVER, String.class);
-        String path = context == PubSub.Context.QUERY_PROCESSING ?
-                      this.config.getAs(MemoryPubSubConfig.WRITE_RESPONSE_PATH, String.class) :
-                      this.config.getAs(MemoryPubSubConfig.WRITE_QUERY_PATH, String.class);
-        return server + path;
+        String contextPath = this.config.getAs(MemoryPubSubConfig.CONTEXT_PATH, String.class);
+        String path = PubSubController.WRITE_QUERY_PATH;
+        return server + contextPath + path;
     }
 
+    private String getRespondURI() {
+        String server = this.config.getAs(MemoryPubSubConfig.SERVER, String.class);
+        String contextPath = this.config.getAs(MemoryPubSubConfig.CONTEXT_PATH, String.class);
+        String path = PubSubController.WRITE_RESPONSE_PATH;
+        return server + contextPath + path;
+    }
 }
