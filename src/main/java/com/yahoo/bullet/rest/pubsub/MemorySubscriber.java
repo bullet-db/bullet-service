@@ -80,7 +80,7 @@ public class MemorySubscriber extends BufferingSubscriber {
     }
 
     private String getURI(PubSub.Context context) {
-        String server = this.config.getAs(MemoryPubSubConfig.SERVER, String.class);
+        String server = this.config.getAs(MemoryPubSubConfig.WRITE_SERVER, String.class);
         String path = context == PubSub.Context.QUERY_PROCESSING ?
                       this.config.getAs(MemoryPubSubConfig.READ_QUERY_PATH, String.class) :
                       this.config.getAs(MemoryPubSubConfig.READ_RESPONSE_PATH, String.class);

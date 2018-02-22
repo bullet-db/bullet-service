@@ -4,8 +4,10 @@ bullet.pubsub.context.name: "QUERY_SUBMISSION"
 bullet.pubsub.class.name: "full.package.path.to.your.pubsub.class"
 
 ############################################ In-Memory pubsub settings ############################################
-# The location of the in-memory pubsub server
-bullet.pubsub.memory.server: "http://localhost:9999"
+# The location of the in-memory pubsub server to write to (usually the host and port of this web service)
+bullet.pubsub.memory.write.server: "http://localhost:9999"
+# The locations (comma separated list) of all the in-memory pubsub servers (Bullet backend reads from all pubsub servers)
+bullet.pubsub.memory.read.servers: "http://localhost:9999,http://localhost:9998"
 # The context-path (path root) of the servlet container hosting the in-memory pubsub
 bullet.pubsub.memory.context.path: "/api/bullet"
 # The paths of the services for reading/writing queries/responses

@@ -85,14 +85,14 @@ public class MemoryQueryPublisher implements Publisher {
     }
 
     private String getWriteURI() {
-        String server = this.config.getAs(MemoryPubSubConfig.SERVER, String.class);
+        String server = this.config.getAs(MemoryPubSubConfig.WRITE_SERVER, String.class);
         String contextPath = this.config.getAs(MemoryPubSubConfig.CONTEXT_PATH, String.class);
         String path = PubSubController.WRITE_QUERY_PATH;
         return server + contextPath + path;
     }
 
     private String getRespondURI() {
-        String server = this.config.getAs(MemoryPubSubConfig.SERVER, String.class);
+        String server = this.config.getAs(MemoryPubSubConfig.WRITE_SERVER, String.class);
         String contextPath = this.config.getAs(MemoryPubSubConfig.CONTEXT_PATH, String.class);
         String path = PubSubController.WRITE_RESPONSE_PATH;
         return server + contextPath + path;
