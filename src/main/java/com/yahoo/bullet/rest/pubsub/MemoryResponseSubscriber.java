@@ -19,6 +19,7 @@ public class MemoryResponseSubscriber extends MemorySubscriber {
 
     @Override
     protected List<String> getURIs() {
-        return Collections.singletonList(this.config.getAs(MemoryPubSubConfig.WRITE_SERVER, String.class));
+        String path = this.config.getAs(MemoryPubSubConfig.READ_RESPONSE_PATH, String.class);
+        return Collections.singletonList(this.config.getAs(MemoryPubSubConfig.WRITE_SERVER, String.class) + path);
     }
 }
