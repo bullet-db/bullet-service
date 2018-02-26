@@ -8,6 +8,7 @@ package com.yahoo.bullet.rest.pubsub;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,9 +28,31 @@ public class PubSubController {
     @Autowired
     private PubSubService pubSubService;
 
-    @PostMapping(path = { READ_RESPONSE_PATH }, consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-    public CompletableFuture<String> readResponse(@RequestBody String input, HttpServletResponse response) {
-        String value = pubSubService.readResponse(input);
+//    @GetMapping(path = { READ_RESPONSE_PATH }, produces = { MediaType.APPLICATION_JSON_VALUE })
+//    public CompletableFuture<String> readResponse(@RequestBody String input, HttpServletResponse response) {
+//        String value = pubSubService.readResponse(input);
+//        if (value.equals("null")) {
+//            response.setStatus(HttpStatus.SC_NO_CONTENT);
+//        }
+//        CompletableFuture<String> result = new CompletableFuture<>();
+//        result.complete(value);
+//        return result;
+//    }
+//
+//    @GetMapping(path = { READ_QUERY_PATH }, produces = { MediaType.APPLICATION_JSON_VALUE })
+//    public CompletableFuture<String> readQuery(@RequestBody String input, HttpServletResponse response) {
+//        String query = pubSubService.readQuery(input);
+//        if (query.equals("null")) {
+//            response.setStatus(HttpStatus.SC_NO_CONTENT);
+//        }
+//        CompletableFuture<String> result = new CompletableFuture<>();
+//        result.complete(query);
+//        return result;
+//    }
+
+    @GetMapping(path = { READ_RESPONSE_PATH }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    public CompletableFuture<String> readResponse(HttpServletResponse response) {
+        String value = pubSubService.readResponse();
         if (value.equals("null")) {
             response.setStatus(HttpStatus.SC_NO_CONTENT);
         }
@@ -38,9 +61,9 @@ public class PubSubController {
         return result;
     }
 
-    @PostMapping(path = { READ_QUERY_PATH }, consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-    public CompletableFuture<String> readQuery(@RequestBody String input, HttpServletResponse response) {
-        String query = pubSubService.readQuery(input);
+    @GetMapping(path = { READ_QUERY_PATH }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    public CompletableFuture<String> readQuery(HttpServletResponse response) {
+        String query = pubSubService.readQuery();
         if (query.equals("null")) {
             response.setStatus(HttpStatus.SC_NO_CONTENT);
         }
@@ -48,6 +71,16 @@ public class PubSubController {
         result.complete(query);
         return result;
     }
+
+//    @GetMapping(path = { READ_RESPONSE_PATH }, produces = { MediaType.APPLICATION_JSON_VALUE })
+//    public String readResponse(HttpServletResponse response) {
+//        return "Lady Mormont";
+//    }
+//
+//    @GetMapping(path = { READ_QUERY_PATH }, produces = { MediaType.APPLICATION_JSON_VALUE })
+//    public String readQuery(HttpServletResponse response) {
+//        return "Jon Snow";
+//    }
 
     @PostMapping(path = { WRITE_RESPONSE_PATH }, consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> writeResponse(@RequestBody String response) {

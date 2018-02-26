@@ -16,25 +16,21 @@ public class PubSubService {
     private List<PubSubMessage> queryList = new ArrayList<>();
     private List<PubSubMessage> responseList = new ArrayList<>();
 
+    public String readQuery() {
+        return queryList.isEmpty() ? "null" : queryList.remove(0).asJSON();
+    }
+
+    public String readResponse() {
+        return responseList.isEmpty() ? "null" : responseList.remove(0).asJSON();
+    }
+
     public Integer writeResponse(String response) {
         responseList.add(PubSubMessage.fromJSON(response));
         return responseList.size();
-    }
-
-    public String readResponse(String input) {
-        //return responseList.isEmpty() ? null : responseList.remove(0);
-        //return new PubSubMessage("88", "{}");
-        return responseList.isEmpty() ? "null" : responseList.remove(0).asJSON();
     }
 
     public Integer writeQuery(String query) {
         queryList.add(PubSubMessage.fromJSON(query));
         return queryList.size();
     }
-
-    public String readQuery(String input) {
-        return queryList.isEmpty() ? "null" : queryList.remove(0).asJSON();
-        //return queryList.remove(0);
-    }
-
 }

@@ -11,6 +11,7 @@ import com.yahoo.bullet.pubsub.PubSubMessage;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
@@ -43,8 +44,10 @@ public abstract class MemorySubscriber extends BufferingSubscriber {
         List<PubSubMessage> messages = new ArrayList<>();
         for (String uri : URIs) {
             try {
-                HttpPost post = getPost(uri);
-                HttpResponse response = client.execute(post);
+                //HttpPost post = getPost(uri);
+                HttpGet get = new HttpGet(uri);
+                //HttpResponse response = client.execute(post);
+                HttpResponse response = client.execute(get);
                 int statusCode = response.getStatusLine().getStatusCode();
 
                 if (statusCode == HttpStatus.SC_NO_CONTENT) {
