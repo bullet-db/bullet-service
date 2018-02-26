@@ -62,13 +62,13 @@ public abstract class MemoryPublisher implements Publisher {
      */
     protected void send(String uri, PubSubMessage message) {
         client.preparePost(uri)
-                .setBody(message.asJSON())
-                .setHeader("Content-Type", "text/plain")
-                .setHeader("Accept", "application/json")
-                .execute()
-                .toCompletableFuture()
-                .exceptionally(this::handleException)
-                .thenAcceptAsync(createResponseConsumer(message.getId()));
+              .setBody(message.asJSON())
+              .setHeader("Content-Type", "text/plain")
+              .setHeader("Accept", "application/json")
+              .execute()
+              .toCompletableFuture()
+              .exceptionally(this::handleException)
+              .thenAcceptAsync(createResponseConsumer(message.getId()));
     }
 
     /**

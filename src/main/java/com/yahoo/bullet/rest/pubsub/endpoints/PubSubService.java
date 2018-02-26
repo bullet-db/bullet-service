@@ -24,13 +24,11 @@ public class PubSubService {
         return responseList.isEmpty() ? "null" : responseList.remove(0).asJSON();
     }
 
-    public Integer writeResponse(String response) {
+    public void writeResponse(String response) {
         responseList.add(PubSubMessage.fromJSON(response));
-        return responseList.size();
     }
 
-    public Integer writeQuery(String query) {
+    public void writeQuery(String query) {
         queryList.add(PubSubMessage.fromJSON(query));
-        return queryList.size();
     }
 }

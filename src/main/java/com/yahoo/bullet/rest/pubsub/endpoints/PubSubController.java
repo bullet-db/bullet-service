@@ -53,18 +53,12 @@ public class PubSubController {
     }
 
     @PostMapping(path = { WRITE_RESPONSE_PATH }, consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-    public CompletableFuture<String> writeResponse(@RequestBody String response) {
-        Integer returnValue = pubSubService.writeResponse(response);
-        CompletableFuture<String> result = new CompletableFuture<>();
-        result.complete(returnValue.toString());
-        return result;
+    public void writeResponse(@RequestBody String response) {
+        pubSubService.writeResponse(response);
     }
 
     @PostMapping(path = { WRITE_QUERY_PATH }, consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-    public CompletableFuture<String> writeQuery(@RequestBody String query) {
-        Integer test = pubSubService.writeQuery(query);
-        CompletableFuture<String> result = new CompletableFuture<>();
-        result.complete("This is line 43 of QueryWriterController. writeQuery response: " + test.toString());
-        return result;
+    public void writeQuery(@RequestBody String query) {
+        pubSubService.writeQuery(query);
     }
 }

@@ -24,13 +24,10 @@ public class MemoryPubSubConfig extends BulletConfig {
     // The timeout and retry limits for HTTP connections to in-memory pubsub server
     public static final String CONNECT_TIMEOUT_MS = PREFIX + "connect.timeout.ms";
     public static final String CONNECT_RETRY_LIMIT = PREFIX + "connect.retry.limit";
-    // The maxiumum number of allowed uncommitted messages
+    // The maximum number of allowed uncommitted messages
     public static final String MAX_UNCOMMITTED_MESSAGES = PREFIX + "subscriber.max.uncommitted.messages";
-
+    // The location of the default settings
     public static final String DEFAULT_MEMORY_PUBSUB_CONFIGURATION = "pubsub_defaults.yaml";
-
-//    @Autowired
-//    private ServletContext servletContext;
 
     /**
      * Constructor that loads specific file augmented with defaults.
@@ -47,11 +44,7 @@ public class MemoryPubSubConfig extends BulletConfig {
      * @param other The other config to wrap.
      */
     public MemoryPubSubConfig(Config other) {
-        // Load Bullet and Storm defaults. Then merge the other.
         super(DEFAULT_MEMORY_PUBSUB_CONFIGURATION);
-//        log.error("------ in MemoryPubSubConfig constructor - 1");
-//        set(CONTEXT_PATH, "/api/bullet"); // Fix this!
-//        log.error("------ in MemoryPubSubConfig constructor - 2");
         merge(other);
         log.info("Merged settings:\n {}", getAll(Optional.empty()));
     }
