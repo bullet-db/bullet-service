@@ -7,6 +7,7 @@ package com.yahoo.bullet.rest.pubsub;
 
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
+@ConditionalOnExpression("${bullet.pubsub.memory.pubsub.enabled:false}")
 public class PubSubController {
     public static final String READ_RESPONSE_PATH = "/pubsub/read/response";
     public static final String READ_QUERY_PATH = "/pubsub/read/query";

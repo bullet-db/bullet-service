@@ -15,6 +15,8 @@ bullet:
     config: pubsub_defaults.yaml
     # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
     sleep-ms: 1
+    # Turn this on if you want to expose the additional endpoints for the in-memory pubsub implementation
+    memory.pubsub.enabled: true
 
 ####################################################################################################################
 # Spring Boot settings
