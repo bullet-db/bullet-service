@@ -17,8 +17,8 @@ public class MemoryPubSubConfig extends BulletConfig {
     public static final String PREFIX = "bullet.pubsub.memory.";
     // The servlet context path for the in memory pubsub rest endpoints ("api/bullet" by default)
     public static final String CONTEXT_PATH = PREFIX + "context.path";
-    // The location of the in-memory pubsub server to write to (usually the host and port of this web service)
-    public static final String WRITE_SERVER = PREFIX + "write.server";
+    // The location (host:port) of this in-memory pubsub instance - used for writeQuery, writeResponse and readResponse
+    public static final String SERVER = PREFIX + "server";
     // The locations (comma separated list) of all the in-memory pubsub servers (Bullet backend reads from all pubsub servers)
     public static final String READ_SERVERS = PREFIX + "read.servers";
     // The timeout and retry limits for HTTP connections to in-memory pubsub server

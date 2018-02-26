@@ -26,13 +26,13 @@ public class MemoryQueryPublisher extends MemoryPublisher {
     @Override
     public void send(PubSubMessage message) throws PubSubException {
         // Put responseURI in the metadata so the ResponsePublisher knows to which host to send the response
-        Metadata metadata = new Metadata(null, respondURI);
+        Metadata metadata = new Metadata(message.getMetadata().getSignal(), respondURI);
         PubSubMessage newMessage = new PubSubMessage(message.getId(), message.getContent(), metadata, message.getSequence());
         send(writeURI, newMessage);
     }
 
     private String getHostPath() {
-        String server = this.config.getAs(MemoryPubSubConfig.WRITE_SERVER, String.class);
+        String server = this.config.getAs(MemoryPubSubConfig.SERVER, String.class);
         String contextPath = this.config.getAs(MemoryPubSubConfig.CONTEXT_PATH, String.class);
         return server + contextPath;
     }
