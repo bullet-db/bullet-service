@@ -33,7 +33,7 @@ public class PubSubController {
     @GetMapping(path = { READ_RESPONSE_PATH }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> readResponse(HttpServletResponse response) {
         String value = pubSubService.readResponse();
-        if (value.equals("null")) {
+        if (value == null) {
             response.setStatus(HttpStatus.SC_NO_CONTENT);
         }
         CompletableFuture<String> result = new CompletableFuture<>();
@@ -44,7 +44,7 @@ public class PubSubController {
     @GetMapping(path = { READ_QUERY_PATH }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> readQuery(HttpServletResponse response) {
         String query = pubSubService.readQuery();
-        if (query.equals("null")) {
+        if (query == null) {
             response.setStatus(HttpStatus.SC_NO_CONTENT);
         }
         CompletableFuture<String> result = new CompletableFuture<>();

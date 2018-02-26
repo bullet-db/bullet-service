@@ -8,27 +8,26 @@ package com.yahoo.bullet.rest.pubsub.endpoints;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Service
 public class PubSubService {
-    private List<PubSubMessage> queryList = new ArrayList<>();
-    private List<PubSubMessage> responseList = new ArrayList<>();
+    private ConcurrentLinkedQueue<PubSubMessage> queries = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<PubSubMessage> responses = new ConcurrentLinkedQueue<>();
 
     public String readQuery() {
-        return queryList.isEmpty() ? "null" : queryList.remove(0).asJSON();
+        return queries.isEmpty() ? null : queries.poll().asJSON();
     }
 
     public String readResponse() {
-        return responseList.isEmpty() ? "null" : responseList.remove(0).asJSON();
+        return responses.isEmpty() ? null : responses.poll().asJSON();
     }
 
     public void writeResponse(String response) {
-        responseList.add(PubSubMessage.fromJSON(response));
+        responses.add(PubSubMessage.fromJSON(response));
     }
 
     public void writeQuery(String query) {
-        queryList.add(PubSubMessage.fromJSON(query));
+        queries.add(PubSubMessage.fromJSON(query));
     }
 }
