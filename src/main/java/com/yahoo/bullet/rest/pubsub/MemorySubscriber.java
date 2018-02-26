@@ -12,14 +12,11 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,18 +72,9 @@ public abstract class MemorySubscriber extends BufferingSubscriber {
         String line = null;
         while ((line = rd.readLine()) != null) {
             result.append(line);
-            result.append('\n'); // try to comment this out and see what happens
+            result.append('\n');
         }
         return result.toString();
-    }
-
-    private HttpPost getPost(String uri) throws UnsupportedEncodingException {
-        HttpPost post = new HttpPost(uri);
-        post.setHeader("Accept", "application/json");
-        post.setHeader("Content-type", "text/plain");
-        // Empty for now - Do we need anything here?
-        post.setEntity(new StringEntity("{}"));
-        return post;
     }
 
     /**

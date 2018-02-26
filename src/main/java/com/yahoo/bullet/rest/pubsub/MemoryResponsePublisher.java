@@ -7,11 +7,11 @@ package com.yahoo.bullet.rest.pubsub;
 
 import com.yahoo.bullet.BulletConfig;
 import com.yahoo.bullet.pubsub.Metadata;
-import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Publisher;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.AsyncHttpClientConfig;
 import org.asynchttpclient.DefaultAsyncHttpClient;
@@ -25,8 +25,6 @@ public class MemoryResponsePublisher implements Publisher {
     MemoryPubSubConfig config;
     private AsyncHttpClient client;
     public static final int NO_TIMEOUT = -1;
-    public static final int OK_200 = 200;
-    //String uri;
 
     public MemoryResponsePublisher(BulletConfig config) {
         this.config = new MemoryPubSubConfig(config);
@@ -53,9 +51,13 @@ public class MemoryResponsePublisher implements Publisher {
     public void send(PubSubMessage message) throws PubSubException {
         String id = message.getId();
         String json = message.asJSON();
-        log.error("-------- PULLING the uri out of the metadata!!");
-        String uri = (String) message.getMetadata().getContent();
-        log.error("----- got uri: " + uri);
+        String uri;
+        try {
+            uri = (String) message.getMetadata().getContent();
+        } catch (Throwable e) {
+            log.error("Failed to extract uri from Metadata. Caught: " + e);
+            return;
+        }
         client.preparePost(uri)
               .setBody(json)
               .setHeader("Content-Type", "text/plain")
@@ -77,7 +79,7 @@ public class MemoryResponsePublisher implements Publisher {
     }
 
     private void handleResponse(String id, Response response) {
-        if (response == null || response.getStatusCode() != OK_200) {
+        if (response == null || response.getStatusCode() != HttpStatus.SC_OK) {
             log.error("Failed to write message with id: {}. Couldn't reach memory pubsub server. Got response: {}", id, response);
             return;
         }

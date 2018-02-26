@@ -16,6 +16,7 @@ import org.asynchttpclient.AsyncHttpClientConfig;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import org.asynchttpclient.Response;
+import org.apache.http.HttpStatus;
 
 import java.util.function.Consumer;
 
@@ -24,7 +25,6 @@ public class MemoryQueryPublisher implements Publisher {
     MemoryPubSubConfig config;
     private AsyncHttpClient client;
     public static final int NO_TIMEOUT = -1;
-    public static final int OK_200 = 200;
     String writeURI;
     String respondURI;
 
@@ -53,7 +53,6 @@ public class MemoryQueryPublisher implements Publisher {
     @Override
     public void send(PubSubMessage message) throws PubSubException {
         String id = message.getId();
-        log.error("------ in MemoryQueryPublisher.send() - 1");
         PubSubMessage newMessage = new PubSubMessage(id, message.getContent(), new Metadata(null, respondURI), message.getSequence());
         String json = newMessage.asJSON();
         client.preparePost(writeURI)
@@ -77,7 +76,7 @@ public class MemoryQueryPublisher implements Publisher {
     }
 
     private void handleResponse(String id, Response response) {
-        if (response == null || response.getStatusCode() != OK_200) {
+        if (response == null || response.getStatusCode() != HttpStatus.SC_OK) {
             log.error("Failed to write message with id: {}. Couldn't reach memory pubsub server {}. Got response: {}", id, writeURI, response);
             return;
         }
