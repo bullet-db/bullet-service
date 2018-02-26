@@ -26,11 +26,6 @@ public class MemoryPubSubConfig extends BulletConfig {
     public static final String CONNECT_RETRY_LIMIT = PREFIX + "connect.retry.limit";
     // The maxiumum number of allowed uncommitted messages
     public static final String MAX_UNCOMMITTED_MESSAGES = PREFIX + "subscriber.max.uncommitted.messages";
-    // The paths of the services for reading/writing queries/responses
-    public static final String READ_QUERY_PATH = PREFIX + "read.query.path";
-    public static final String READ_RESPONSE_PATH = PREFIX + "read.response.path";
-    public static final String WRITE_QUERY_PATH = PREFIX + "write.query.path";
-    public static final String WRITE_RESPONSE_PATH = PREFIX + "write.response.path";
 
     public static final String DEFAULT_MEMORY_PUBSUB_CONFIGURATION = "pubsub_defaults.yaml";
 

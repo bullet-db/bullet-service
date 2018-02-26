@@ -6,6 +6,7 @@
 package com.yahoo.bullet.rest.pubsub;
 
 import com.yahoo.bullet.BulletConfig;
+import com.yahoo.bullet.rest.pubsub.endpoints.PubSubController;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +20,9 @@ public class MemoryResponseSubscriber extends MemorySubscriber {
 
     @Override
     protected List<String> getURIs() {
-        String path = this.config.getAs(MemoryPubSubConfig.READ_RESPONSE_PATH, String.class);
-        return Collections.singletonList(this.config.getAs(MemoryPubSubConfig.WRITE_SERVER, String.class) + path);
+        String server = this.config.getAs(MemoryPubSubConfig.WRITE_SERVER, String.class);
+        String contextPath = this.config.getAs(MemoryPubSubConfig.CONTEXT_PATH, String.class);
+        String path = PubSubController.READ_RESPONSE_PATH;
+        return Collections.singletonList(server + contextPath + path);
     }
 }

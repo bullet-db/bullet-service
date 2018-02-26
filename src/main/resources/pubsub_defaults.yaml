@@ -10,11 +10,6 @@ bullet.pubsub.memory.write.server: "http://localhost:9999"
 bullet.pubsub.memory.read.servers: "http://localhost:9999,http://localhost:9998"
 # The context-path (path root) of the servlet container hosting the in-memory pubsub
 bullet.pubsub.memory.context.path: "/api/bullet"
-# The paths of the services for reading/writing queries/responses
-bullet.pubsub.memory.read.query.path: "/api/bullet/pubsub/read/query"
-bullet.pubsub.memory.read.response.path: "/api/bullet/pubsub/read/response"
-bullet.pubsub.memory.write.query.path: "/api/bullet/pubsub/write/query"
-bullet.pubsub.memory.write.response.path: "/api/bullet/pubsub/write/response"
 # Http connection timout
 bullet.pubsub.memory.connect.timeout.ms: 30000
 # Http connection retry limit
