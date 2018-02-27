@@ -30,7 +30,7 @@ public class QueryService {
     @Getter
     private ConcurrentMap<String, QueryHandler> runningQueries;
     private List<PubSubReader> consumers;
-    public RandomPool<Publisher> publisherRandomPool; // FIX THIS (change back to private)
+    private RandomPool<Publisher> publisherRandomPool;
 
     /**
      * Creates an instance using a List of Publishers and Subscribers.
@@ -56,7 +56,6 @@ public class QueryService {
      * @param queryHandler The {@link QueryHandler} object that handles the query.
      */
     public void submit(String queryID, String query, QueryHandler queryHandler) {
-        log.error("Submitting query with id: " + queryID + ", query body: " + query);
         Publisher publisher = publisherRandomPool.get();
         try {
             publisher.send(queryID, query);

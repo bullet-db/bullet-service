@@ -12,10 +12,8 @@ import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 public class MemoryPubSub extends PubSub {
@@ -30,13 +28,12 @@ public class MemoryPubSub extends PubSub {
         if (context == Context.QUERY_PROCESSING) {
             return new MemoryResponsePublisher(config);
         } else {
-            return new MemoryQueryPublisher(config); // Fix this (should be MemoryResponsePublisher)
+            return new MemoryQueryPublisher(config);
         }
     }
 
     @Override
     public List<Publisher> getPublishers(int n) throws PubSubException {
-        // Kafka Publishers are thread safe and can be reused
         return Collections.nCopies(n, getPublisher());
     }
 

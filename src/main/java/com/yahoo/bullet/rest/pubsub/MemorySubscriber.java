@@ -41,26 +41,21 @@ public abstract class MemorySubscriber extends BufferingSubscriber {
         List<PubSubMessage> messages = new ArrayList<>();
         for (String uri : URIs) {
             try {
-                //HttpPost post = getPost(uri);
                 HttpGet get = new HttpGet(uri);
-                //HttpResponse response = client.execute(post);
                 HttpResponse response = client.execute(get);
                 int statusCode = response.getStatusLine().getStatusCode();
 
                 if (statusCode == HttpStatus.SC_NO_CONTENT) {
-                    // SC_NO_CONTENT status (204) indicates there are no new messages
+                    // SC_NO_CONTENT (204) indicates there are no new messages
                     continue;
                 }
                 if (statusCode != HttpStatus.SC_OK) {
-                    // Can't throw error here because often times the first few calls return error codes until the service comes up
                     log.error("Http call failed with status code {} and response {}.", statusCode, response);
                     continue;
                 }
                 messages.add(PubSubMessage.fromJSON(readResponseContent(response)));
             } catch (Exception e){
-                // Can't throw error here because often times the first few calls return error codes until the service comes up
-                log.error("Http post failed with error: " + e);
-                //throw new PubSubException("Http post failed with error: " + e);
+                log.error("Http call failed with error: " + e);
             }
         }
         return messages;
@@ -87,6 +82,5 @@ public abstract class MemorySubscriber extends BufferingSubscriber {
 
     @Override
     public void close() {
-        // Probably do nothing?
     }
 }

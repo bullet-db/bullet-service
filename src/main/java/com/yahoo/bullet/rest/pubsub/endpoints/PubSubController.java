@@ -52,12 +52,12 @@ public class PubSubController {
         return result;
     }
 
-    @PostMapping(path = { WRITE_RESPONSE_PATH }, consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    @PostMapping(path = { WRITE_RESPONSE_PATH }, consumes = { MediaType.TEXT_PLAIN_VALUE })
     public void writeResponse(@RequestBody String response) {
         pubSubService.writeResponse(response);
     }
 
-    @PostMapping(path = { WRITE_QUERY_PATH }, consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    @PostMapping(path = { WRITE_QUERY_PATH }, consumes = { MediaType.TEXT_PLAIN_VALUE })
     public void writeQuery(@RequestBody String query) {
         pubSubService.writeQuery(query);
     }
