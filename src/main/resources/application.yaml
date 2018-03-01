@@ -20,10 +20,8 @@ bullet:
       # Set to true if you want to turn on the http endpoints for the in-memory pubsub
       enabled: true
       # The paths for the endpoints
-      write.query.path: "/pubsub/write/query"
-      write.response.path: "/pubsub/write/response"
-      read.query.path: "/pubsub/read/query"
-      read.response.path: "/pubsub/read/response"
+      query.path: "/pubsub/query"
+      result.path: "/pubsub/result"
 
 ####################################################################################################################
 # Spring Boot settings

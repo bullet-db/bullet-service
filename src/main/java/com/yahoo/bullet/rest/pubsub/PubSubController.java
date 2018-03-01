@@ -25,7 +25,12 @@ public class PubSubController {
     @Autowired
     private PubSubService pubSubService;
 
-    @GetMapping(path = "${bullet.pubsub.memory.pubsub.read.response.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
+    @PostMapping(path = "${bullet.pubsub.memory.pubsub.result.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
+    public void writeResponse(@RequestBody String response) {
+        pubSubService.writeResponse(response);
+    }
+
+    @GetMapping(path = "${bullet.pubsub.memory.pubsub.result.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> readResponse(HttpServletResponse response) {
         String value = pubSubService.readResponse();
         if (value == null) {
@@ -36,7 +41,12 @@ public class PubSubController {
         return result;
     }
 
-    @GetMapping(path = "${bullet.pubsub.memory.pubsub.read.query.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
+    @PostMapping(path = "${bullet.pubsub.memory.pubsub.query.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
+    public void writeQuery(@RequestBody String query) {
+        pubSubService.writeQuery(query);
+    }
+
+    @GetMapping(path = "${bullet.pubsub.memory.pubsub.query.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> readQuery(HttpServletResponse response) {
         String query = pubSubService.readQuery();
         if (query == null) {
@@ -45,15 +55,5 @@ public class PubSubController {
         CompletableFuture<String> result = new CompletableFuture<>();
         result.complete(query);
         return result;
-    }
-
-    @PostMapping(path = "${bullet.pubsub.memory.pubsub.write.response.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
-    public void writeResponse(@RequestBody String response) {
-        pubSubService.writeResponse(response);
-    }
-
-    @PostMapping(path = "${bullet.pubsub.memory.pubsub.write.query.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
-    public void writeQuery(@RequestBody String query) {
-        pubSubService.writeQuery(query);
     }
 }
