@@ -43,7 +43,7 @@ public class PubSubReader {
     }
 
     /**
-     * Read responnds from the Pub/Sub and update requests.
+     * Read responses from the Pub/Sub and update requests.
      */
     public void run() {
         PubSubMessage response;
