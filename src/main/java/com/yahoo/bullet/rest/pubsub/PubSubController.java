@@ -26,13 +26,13 @@ public class PubSubController {
     private PubSubService pubSubService;
 
     @PostMapping(path = "${bullet.pubsub.memory.pubsub.result.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
-    public void writeResponse(@RequestBody String response) {
-        pubSubService.writeResponse(response);
+    public void postResult(@RequestBody String response) {
+        pubSubService.postResult(response);
     }
 
     @GetMapping(path = "${bullet.pubsub.memory.pubsub.result.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
-    public CompletableFuture<String> readResponse(HttpServletResponse response) {
-        String value = pubSubService.readResponse();
+    public CompletableFuture<String> getResult(HttpServletResponse response) {
+        String value = pubSubService.getResult();
         if (value == null) {
             response.setStatus(HttpStatus.SC_NO_CONTENT);
         }
@@ -42,13 +42,13 @@ public class PubSubController {
     }
 
     @PostMapping(path = "${bullet.pubsub.memory.pubsub.query.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
-    public void writeQuery(@RequestBody String query) {
-        pubSubService.writeQuery(query);
+    public void postQuery(@RequestBody String query) {
+        pubSubService.postQuery(query);
     }
 
     @GetMapping(path = "${bullet.pubsub.memory.pubsub.query.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
-    public CompletableFuture<String> readQuery(HttpServletResponse response) {
-        String query = pubSubService.readQuery();
+    public CompletableFuture<String> getQuery(HttpServletResponse response) {
+        String query = pubSubService.getQuery();
         if (query == null) {
             response.setStatus(HttpStatus.SC_NO_CONTENT);
         }

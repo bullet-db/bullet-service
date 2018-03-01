@@ -12,21 +12,21 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Service
 public class PubSubService {
     private ConcurrentLinkedQueue<PubSubMessage> queries = new ConcurrentLinkedQueue<>();
-    private ConcurrentLinkedQueue<PubSubMessage> responses = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<PubSubMessage> results = new ConcurrentLinkedQueue<>();
 
-    public String readQuery() {
+    public String getQuery() {
         return queries.isEmpty() ? null : queries.poll().asJSON();
     }
 
-    public String readResponse() {
-        return responses.isEmpty() ? null : responses.poll().asJSON();
+    public String getResult() {
+        return results.isEmpty() ? null : results.poll().asJSON();
     }
 
-    public void writeResponse(String response) {
-        responses.add(PubSubMessage.fromJSON(response));
+    public void postResult(String response) {
+        results.add(PubSubMessage.fromJSON(response));
     }
 
-    public void writeQuery(String query) {
+    public void postQuery(String query) {
         queries.add(PubSubMessage.fromJSON(query));
     }
 }
