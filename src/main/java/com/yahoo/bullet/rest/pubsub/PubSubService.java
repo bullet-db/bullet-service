@@ -7,7 +7,6 @@ package com.yahoo.bullet.rest.pubsub;
 
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import org.springframework.stereotype.Service;
-
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Service

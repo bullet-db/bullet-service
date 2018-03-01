@@ -3,17 +3,3 @@ bullet.pubsub.context.name: "QUERY_SUBMISSION"
 # Path to your PubSub implementation.
 bullet.pubsub.class.name: "full.package.path.to.your.pubsub.class"
 
-############################################ In-Memory pubsub settings ############################################
-# The location (host:port) of this in-memory pubsub instance - used for writeQuery, writeResponse and readResponse
-bullet.pubsub.memory.server: "http://localhost:9999"
-# The locations (comma separated list) of all the in-memory pubsub servers (the backend reads from all pubsub servers)
-bullet.pubsub.memory.read.servers: "http://localhost:9999,http://localhost:9998"
-# The context-path (path root) of the servlet container hosting the in-memory pubsub
-bullet.pubsub.memory.context.path: "/api/bullet"
-# Http connection timout
-bullet.pubsub.memory.connect.timeout.ms: 30000
-# Http connection retry limit
-bullet.pubsub.memory.connect.retry.limit: 10
-# Maxiumum number of uncommitted messages allowed before read requests will wait for commits
-bullet.pubsub.memory.subscriber.max.uncommitted.messages: 100
-# Add settings specific to your pubsub.

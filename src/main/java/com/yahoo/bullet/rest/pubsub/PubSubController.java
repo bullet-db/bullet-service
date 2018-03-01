@@ -22,15 +22,10 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @ConditionalOnExpression("${bullet.pubsub.memory.pubsub.enabled:false}")
 public class PubSubController {
-    public static final String READ_RESPONSE_PATH = "/pubsub/read/response";
-    public static final String READ_QUERY_PATH = "/pubsub/read/query";
-    public static final String WRITE_RESPONSE_PATH = "/pubsub/write/response";
-    public static final String WRITE_QUERY_PATH = "/pubsub/write/query";
-
     @Autowired
     private PubSubService pubSubService;
 
-    @GetMapping(path = { READ_RESPONSE_PATH }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    @GetMapping(path = "${bullet.pubsub.memory.pubsub.read.response.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> readResponse(HttpServletResponse response) {
         String value = pubSubService.readResponse();
         if (value == null) {
@@ -41,7 +36,7 @@ public class PubSubController {
         return result;
     }
 
-    @GetMapping(path = { READ_QUERY_PATH }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    @GetMapping(path = "${bullet.pubsub.memory.pubsub.read.query.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> readQuery(HttpServletResponse response) {
         String query = pubSubService.readQuery();
         if (query == null) {
@@ -52,12 +47,12 @@ public class PubSubController {
         return result;
     }
 
-    @PostMapping(path = { WRITE_RESPONSE_PATH }, consumes = { MediaType.TEXT_PLAIN_VALUE })
+    @PostMapping(path = "${bullet.pubsub.memory.pubsub.write.response.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
     public void writeResponse(@RequestBody String response) {
         pubSubService.writeResponse(response);
     }
 
-    @PostMapping(path = { WRITE_QUERY_PATH }, consumes = { MediaType.TEXT_PLAIN_VALUE })
+    @PostMapping(path = "${bullet.pubsub.memory.pubsub.write.query.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
     public void writeQuery(@RequestBody String query) {
         pubSubService.writeQuery(query);
     }
