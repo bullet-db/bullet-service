@@ -36,8 +36,7 @@ public class QueryController {
         if (query == null) {
             queryHandler.fail(QueryError.INVALID_QUERY);
         } else {
-            //String queryID = UUID.randomUUID().toString();
-            String queryID = "88";
+            String queryID = UUID.randomUUID().toString();
             queryService.submit(queryID, query, queryHandler);
         }
         return queryHandler.getResult();

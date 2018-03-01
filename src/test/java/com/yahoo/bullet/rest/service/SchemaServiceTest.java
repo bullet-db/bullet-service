@@ -6,7 +6,7 @@
 package com.yahoo.bullet.rest.service;
 
 import com.google.gson.GsonBuilder;
-import com.yahoo.bullet.operations.typesystem.Type;
+import com.yahoo.bullet.typesystem.Type;
 import com.yahoo.bullet.rest.schema.JSONAPIColumn;
 import com.yahoo.bullet.rest.schema.JSONAPIDocument;
 import org.springframework.beans.factory.annotation.Autowired;
