@@ -5,7 +5,7 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.RandomPool;
+import com.yahoo.bullet.common.RandomPool;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.query.PubSubReader;
