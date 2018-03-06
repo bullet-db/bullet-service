@@ -5,9 +5,9 @@
  */
 package com.yahoo.bullet.rest.query;
 
+import com.yahoo.bullet.common.BulletError;
 import com.yahoo.bullet.result.Clip;
-import com.yahoo.bullet.result.Metadata;
-import com.yahoo.bullet.parsing.Error;
+import com.yahoo.bullet.result.Meta;
 import lombok.Getter;
 
 @Getter
@@ -31,6 +31,6 @@ public class QueryError {
 
     @Override
     public String toString() {
-        return Clip.of(Metadata.of(Error.makeError(error, resolution))).asJSON();
+        return Clip.of(Meta.of(BulletError.makeError(error, resolution))).asJSON();
     }
 }

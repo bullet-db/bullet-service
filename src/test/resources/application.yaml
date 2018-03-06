@@ -19,6 +19,8 @@ logging:
   level:
    root: ERROR
 
+security.ignored: "/**"
+
 spring:
   main:
     # Need quotes since YAML turns off -> false
