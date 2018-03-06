@@ -6,6 +6,9 @@
 package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.common.RandomPool;
+import com.yahoo.bullet.pubsub.Metadata;
+import com.yahoo.bullet.pubsub.Metadata.Signal;
+import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.query.PubSubReader;
@@ -60,6 +63,23 @@ public class QueryService {
             runningQueries.put(queryID, queryHandler);
         } catch (Exception e) {
             queryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
+        }
+    }
+
+    /**
+     * Submit a signal query to Bullet.
+     *
+     * @param queryID The query ID to register request with.
+     * @param signal The {@link Signal} to be submitted.
+     */
+    public void submitSignal(String queryID, Signal signal) {
+        Publisher publisher = publisherRandomPool.get();
+        try {
+            Metadata metadata = new Metadata(signal, null);
+            PubSubMessage message = new PubSubMessage(queryID, null, metadata);
+            publisher.send(message);
+        } catch (Exception e) {
+            // Ignore failure.
         }
     }
 

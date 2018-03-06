@@ -6,6 +6,7 @@
 
 package com.yahoo.bullet.rest.query;
 
+import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Subscriber;
 import lombok.extern.slf4j.Slf4j;
@@ -65,10 +66,13 @@ public class PubSubReader {
                         continue;
                     }
                     queryHandler.send(response);
-                    // TODO: Do this when a Signal.COMPLETE is received.
-                    // TODO: Handle Signal.ACKNOWLEDGE messages.
-                    queryHandler.complete();
-                    requestQueue.remove(response.getId());
+
+                    if (isDone(response)) {
+                        queryHandler.complete();
+                    }
+                    if (queryHandler.isComplete()) {
+                        requestQueue.remove(response.getId());
+                    }
                 }
                 subscriber.commit(response.getId());
             } catch (Exception e) {
@@ -79,5 +83,17 @@ public class PubSubReader {
             }
         }
         subscriber.close();
+    }
+
+    private boolean isDone(PubSubMessage response) {
+        boolean done = false;
+        if (response.hasSignal()) {
+            if (response.getMetadata().getSignal() == Metadata.Signal.COMPLETE
+                    || response.getMetadata().getSignal() == Metadata.Signal.KILL
+                    || response.getMetadata().getSignal() == Metadata.Signal.FAIL) {
+                done = true;
+            }
+        }
+        return done;
     }
 }
