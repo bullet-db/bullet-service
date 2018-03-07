@@ -44,7 +44,7 @@ public class QueryController {
         return queryHandler.getResult();
     }
 
-    @PostMapping("/sse")
+    @PostMapping("/streaming")
     public SseEmitter streamingQuery(@RequestBody String query) {
         SseEmitter sseEmitter = new SseEmitter();
         String queryID = UUID.randomUUID().toString();
