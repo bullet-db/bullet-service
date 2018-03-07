@@ -1,3 +1,8 @@
+/*
+ *  Copyright 2018, Yahoo Inc.
+ *  Licensed under the terms of the Apache License, Version 2.0.
+ *  See the LICENSE file associated with the project for terms.
+ */
 package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.pubsub.Metadata;
@@ -45,9 +50,8 @@ public class WebSocketService {
         sessionIDMap.put(sessionId, queryID);
 
         // Send ACK with queryID.
-        WebSocketResponse response = new WebSocketResponse();
-        response.setType(WebSocketResponse.ResponseType.ACK);
-        response.setContent(queryID);
+        WebSocketResponse response =
+                new WebSocketResponse(WebSocketResponse.ResponseType.ACK, queryID);
 
         sendResponse(sessionId, response, headerAccessor);
 

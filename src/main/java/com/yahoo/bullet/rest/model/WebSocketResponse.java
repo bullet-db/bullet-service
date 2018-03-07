@@ -1,10 +1,13 @@
+/*
+ *  Copyright 2018, Yahoo Inc.
+ *  Licensed under the terms of the Apache License, Version 2.0.
+ *  See the LICENSE file associated with the project for terms.
+ */
 package com.yahoo.bullet.rest.model;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 
-@Slf4j
+@Data
 public class WebSocketResponse {
 
     public enum ResponseType {
@@ -13,10 +16,11 @@ public class WebSocketResponse {
         CONTENT
     }
 
-    @Setter
-    @Getter
     private ResponseType type;
-
-    @Setter @Getter
     private String content;
+
+    public WebSocketResponse(ResponseType type, String content) {
+        this.type = type;
+        this.content = content;
+    }
 }

@@ -7,6 +7,7 @@ package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
+import com.yahoo.bullet.rest.query.SseQueryHandler;
 import com.yahoo.bullet.rest.service.QueryService;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -40,5 +42,18 @@ public class QueryController {
             queryService.submit(queryID, query, queryHandler);
         }
         return queryHandler.getResult();
+    }
+
+    @PostMapping("/sse")
+    public SseEmitter streamingQuery(@RequestBody String query) {
+        SseEmitter sseEmitter = new SseEmitter();
+        String queryID = UUID.randomUUID().toString();
+        SseQueryHandler sseQueryHandler = new SseQueryHandler(queryID, sseEmitter, queryService);
+        if (query == null) {
+            sseQueryHandler.fail(QueryError.INVALID_QUERY);
+        } else {
+            queryService.submit(queryID, query, sseQueryHandler);
+        }
+        return sseEmitter;
     }
 }

@@ -1,3 +1,8 @@
+/*
+ *  Copyright 2018, Yahoo Inc.
+ *  Licensed under the terms of the Apache License, Version 2.0.
+ *  See the LICENSE file associated with the project for terms.
+ */
 package com.yahoo.bullet.rest.query;
 
 import com.yahoo.bullet.pubsub.PubSubMessage;
@@ -31,9 +36,8 @@ public class WebSocketQueryHandler extends QueryHandler {
     @Override
     public void send(PubSubMessage response) {
         if (!isComplete()) {
-            WebSocketResponse responseMessage = new WebSocketResponse();
-            responseMessage.setType(WebSocketResponse.ResponseType.CONTENT);
-            responseMessage.setContent(response.asJSON());
+            WebSocketResponse responseMessage =
+                    new WebSocketResponse(WebSocketResponse.ResponseType.CONTENT, response.asJSON());
             webSocketService.sendResponse(sessionID, responseMessage, headerAccessor);
         }
     }
@@ -41,9 +45,8 @@ public class WebSocketQueryHandler extends QueryHandler {
     @Override
     public void fail(QueryError cause) {
         if (!isComplete()) {
-            WebSocketResponse responseMessage = new WebSocketResponse();
-            responseMessage.setType(WebSocketResponse.ResponseType.FAIL);
-            responseMessage.setContent(cause.toString());
+            WebSocketResponse responseMessage =
+                    new WebSocketResponse(WebSocketResponse.ResponseType.FAIL, cause.toString());
             webSocketService.sendResponse(sessionID, responseMessage, headerAccessor);
             complete();
         }

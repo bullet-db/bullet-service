@@ -1,19 +1,17 @@
+/*
+ *  Copyright 2018, Yahoo Inc.
+ *  Licensed under the terms of the Apache License, Version 2.0.
+ *  See the LICENSE file associated with the project for terms.
+ */
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.model.WebSocketRequest;
-import com.yahoo.bullet.rest.model.WebSocketResponse;
-import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
-import com.yahoo.bullet.rest.service.QueryService;
 import com.yahoo.bullet.rest.service.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-
-import java.security.Principal;
-import java.util.UUID;
 
 @Controller
 public class WebSocketController {
