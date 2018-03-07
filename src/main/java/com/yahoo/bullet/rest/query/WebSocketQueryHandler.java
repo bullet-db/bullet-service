@@ -37,7 +37,7 @@ public class WebSocketQueryHandler extends QueryHandler {
     public void send(PubSubMessage response) {
         if (!isComplete()) {
             WebSocketResponse responseMessage =
-                    new WebSocketResponse(WebSocketResponse.ResponseType.CONTENT, response.asJSON());
+                    new WebSocketResponse(WebSocketResponse.ResponseType.CONTENT, response.getContent());
             webSocketService.sendResponse(sessionID, responseMessage, headerAccessor);
         }
     }

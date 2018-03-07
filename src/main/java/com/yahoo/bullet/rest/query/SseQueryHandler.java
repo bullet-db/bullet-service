@@ -28,7 +28,7 @@ public class SseQueryHandler extends QueryHandler {
     public void send(PubSubMessage response) {
         if (!isComplete()) {
             try {
-                emitter.send(response.asJSON());
+                emitter.send(response.getContent());
             } catch (IOException e) {
                 queryService.submitSignal(queryID, Metadata.Signal.KILL);
                 complete();
