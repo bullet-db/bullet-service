@@ -14,6 +14,7 @@ import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.query.PubSubReader;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.QueryHandler;
+import lombok.AccessLevel;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +29,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class QueryService {
-    @Getter
+    // Exposed for testing only.
+    @Getter(AccessLevel.PACKAGE)
     private ConcurrentMap<String, QueryHandler> runningQueries;
     private List<PubSubReader> consumers;
     private RandomPool<Publisher> publisherRandomPool;

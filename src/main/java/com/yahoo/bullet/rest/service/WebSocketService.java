@@ -8,6 +8,7 @@ package com.yahoo.bullet.rest.service;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
+import lombok.AccessLevel;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -27,7 +28,8 @@ public class WebSocketService {
     @Autowired
     private QueryService queryService;
 
-    @Getter
+    // Exposed for testing only.
+    @Getter(AccessLevel.PACKAGE)
     private Map<String, String> sessionIDMap = new ConcurrentHashMap<>();
 
     /**
