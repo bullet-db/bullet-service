@@ -5,6 +5,7 @@
  */
 package com.yahoo.bullet.rest.query;
 
+import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Subscriber;
@@ -31,10 +32,17 @@ public class PubSubReaderTest {
     @Getter @NoArgsConstructor
     private class MockQueryHandler extends QueryHandler {
         private CompletableFuture<PubSubMessage> sentMessage = new CompletableFuture<>();
+        private CompletableFuture<Boolean> isCompleted = new CompletableFuture<>();
 
         @Override
         public void send(PubSubMessage message) {
             sentMessage.complete(message);
+        }
+
+        @Override
+        public void complete() {
+            super.complete();
+            isCompleted.complete(true);
         }
 
         @Override
@@ -109,6 +117,17 @@ public class PubSubReaderTest {
         requestQueue.put(randomID, queryHandler);
         PubSubReader reader = new PubSubReader(subscriber, requestQueue, 1);
         Assert.assertEquals(queryHandler.getSentMessage().get(), mockMessage);
+        reader.close();
+    }
+
+    @Test(timeOut = 10000)
+    public void testQueryCompletedOnReceiveFailMessage() throws Exception {
+        PubSubMessage failMessage = new PubSubMessage("failID", "", Metadata.Signal.FAIL);
+        Mockito.when(subscriber.receive()).thenReturn(failMessage);
+        requestQueue.put("failID", queryHandler);
+        PubSubReader reader = new PubSubReader(subscriber, requestQueue, 1);
+        Assert.assertTrue(queryHandler.getIsCompleted().get());
+        Assert.assertEquals(queryHandler.getSentMessage().get(), failMessage);
         reader.close();
     }
 

@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
+@NoArgsConstructor @Getter @Setter
 public class WebSocketRequest {
 
     public enum RequestType {
@@ -17,13 +17,6 @@ public class WebSocketRequest {
         KILL_QUERY
     }
 
-    @Getter @Setter
     private RequestType type;
-    @Getter @Setter
     private String content;
-
-    public WebSocketRequest(RequestType type, String content) {
-        this.type = type;
-        this.content = content;
-    }
 }

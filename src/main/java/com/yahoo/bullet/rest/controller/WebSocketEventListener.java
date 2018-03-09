@@ -1,3 +1,8 @@
+/*
+ *  Copyright 2018, Yahoo Inc.
+ *  Licensed under the terms of the Apache License, Version 2.0.
+ *  See the LICENSE file associated with the project for terms.
+ */
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.service.WebSocketService;
@@ -12,6 +17,11 @@ public class WebSocketEventListener {
     @Autowired
     private WebSocketService webSocketService;
 
+    /**
+     * This method is the handler when receiving websocket disconnect events.
+     *
+     * @param event The websocket disconnect event.
+     */
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());

@@ -44,16 +44,20 @@ public class QueryController {
         return queryHandler.getResult();
     }
 
+    /**
+     * The method that handles SSE POSTs to this endpoint. Consumes the HTTP request, invokes {@link QueryService} to
+     * register and transmit the query to Bullet.
+     *
+     * @param query The JSON query.
+     * @return A {@link SseEmitter} to send streaming results.
+     */
     @PostMapping("/streaming")
     public SseEmitter streamingQuery(@RequestBody String query) {
         SseEmitter sseEmitter = new SseEmitter();
         String queryID = UUID.randomUUID().toString();
         SseQueryHandler sseQueryHandler = new SseQueryHandler(queryID, sseEmitter, queryService);
-        if (query == null) {
-            sseQueryHandler.fail(QueryError.INVALID_QUERY);
-        } else {
-            queryService.submit(queryID, query, sseQueryHandler);
-        }
+        // query should not be null at this point. If the post body is null, Springframework will return 400 directly.
+        queryService.submit(queryID, query, sseQueryHandler);
         return sseEmitter;
     }
 }

@@ -5,7 +5,9 @@
  */
 package com.yahoo.bullet.rest.service;
 
+import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubException;
+import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.query.QueryError;
@@ -58,6 +60,35 @@ public class QueryServiceTest {
         Assert.assertEquals(1, service.getRunningQueries().size());
         Assert.assertEquals(queryHandler, service.getRunningQueries().get(randomID));
         Mockito.verify(publisher).send(randomID, randomContent);
+        service.close();
+    }
+
+    @Test
+    public void testSubmitSignal() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = Mockito.mock(Subscriber.class);
+        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+        service.getRunningQueries().put("id", queryHandler);
+
+        service.submitSignal("id", Metadata.Signal.KILL);
+        Assert.assertEquals(0, service.getRunningQueries().size());
+        Mockito.verify(publisher).send(
+                new PubSubMessage("id", null, new Metadata(Metadata.Signal.KILL, null)));
+        service.close();
+    }
+
+    @Test
+    public void testSubmitSignalWhenPublisherFails() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = Mockito.mock(Subscriber.class);
+        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+        service.getRunningQueries().put("id", queryHandler);
+
+        doThrow(new PubSubException("")).when(publisher).send(any());
+        service.submitSignal("id", Metadata.Signal.KILL);
+        Assert.assertEquals(0, service.getRunningQueries().size());
         service.close();
     }
 }

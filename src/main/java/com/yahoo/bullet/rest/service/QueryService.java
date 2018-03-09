@@ -81,6 +81,7 @@ public class QueryService {
         } catch (Exception e) {
             // Ignore failure.
         }
+        runningQueries.remove(queryID);
     }
 
     /**

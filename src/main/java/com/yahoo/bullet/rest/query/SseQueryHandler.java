@@ -1,22 +1,26 @@
+/*
+ *  Copyright 2018, Yahoo Inc.
+ *  Licensed under the terms of the Apache License, Version 2.0.
+ *  See the LICENSE file associated with the project for terms.
+ */
 package com.yahoo.bullet.rest.query;
 
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.service.QueryService;
+import lombok.AllArgsConstructor;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 
+/**
+ * Query handler that implements results for SSE - multiple results per query.
+ */
+@AllArgsConstructor
 public class SseQueryHandler extends QueryHandler {
-    private SseEmitter emitter;
     private String queryID;
+    private SseEmitter emitter;
     private QueryService queryService;
-
-    public SseQueryHandler(String queryID, SseEmitter emitter, QueryService queryService) {
-        this.queryID = queryID;
-        this.emitter = emitter;
-        this.queryService = queryService;
-    }
 
     @Override
     public void complete() {

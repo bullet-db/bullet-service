@@ -85,7 +85,7 @@ public class PubSubReader {
         subscriber.close();
     }
 
-    private boolean isDone(PubSubMessage response) {
+    private static boolean isDone(PubSubMessage response) {
         boolean done = false;
         if (response.hasSignal()) {
             if (response.getMetadata().getSignal() == Metadata.Signal.COMPLETE

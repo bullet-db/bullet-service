@@ -5,9 +5,10 @@
  */
 package com.yahoo.bullet.rest.model;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@Data
+@AllArgsConstructor @Getter
 public class WebSocketResponse {
 
     public enum ResponseType {
@@ -18,9 +19,4 @@ public class WebSocketResponse {
 
     private ResponseType type;
     private String content;
-
-    public WebSocketResponse(ResponseType type, String content) {
-        this.type = type;
-        this.content = content;
-    }
 }

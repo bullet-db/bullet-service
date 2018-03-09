@@ -19,6 +19,12 @@ public class WebSocketQueryHandler extends QueryHandler {
     private String sessionID;
     private SimpMessageHeaderAccessor headerAccessor;
 
+    /**
+     * Constructor method.
+     *
+     * @param webSocketService The {@link WebSocketService} to handle websocket messages.
+     * @param sessionID TThe session id to represent the client.
+     */
     public WebSocketQueryHandler(WebSocketService webSocketService, String sessionID) {
         this.webSocketService = webSocketService;
         this.sessionID = sessionID;

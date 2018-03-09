@@ -18,6 +18,12 @@ public class WebSocketController {
     @Autowired
     private WebSocketService webSocketService;
 
+    /**
+     * The method that handles websocket messages to this endpoint.
+     *
+     * @param request The {@link WebSocketRequest} object.
+     * @param headerAccessor The {@link SimpMessageHeaderAccessor} headers associated with the message.
+     */
     @MessageMapping("/submit.request")
     public void submitRequest(@Payload WebSocketRequest request,
                               SimpMessageHeaderAccessor headerAccessor) {

@@ -8,14 +8,15 @@ package com.yahoo.bullet.rest.service;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 @Service
 public class WebSocketService {
@@ -26,12 +27,14 @@ public class WebSocketService {
     @Autowired
     private QueryService queryService;
 
-    private ConcurrentMap<String, String> sessionIDMap;
+    @Getter
+    private Map<String, String> sessionIDMap = new ConcurrentHashMap<>();
 
-    public WebSocketService() {
-        sessionIDMap = new ConcurrentHashMap<>();
-    }
-
+    /**
+     * Send a KILL signal to the backend.
+     *
+     * @param sessionID The session id to represent the client.
+     */
     public void sendKillSignal(String sessionID) {
         if (sessionIDMap.containsKey(sessionID)) {
             String queryID = sessionIDMap.get(sessionID);
@@ -40,10 +43,21 @@ public class WebSocketService {
         }
     }
 
+    /**
+     * Remove a session id from the session id map.
+     *
+     * @param sessionID The session id to be removed.
+     */
     public void removeSessionID(String sessionID) {
         sessionIDMap.remove(sessionID);
     }
 
+    /**
+     * Submit a query to {@link QueryService} and send a ACK to the client by websocket connection.
+     *
+     * @param queryString The String version of the query.
+     * @param headerAccessor The {@link SimpMessageHeaderAccessor} headers.
+     */
     public void submitQuery(String queryString, SimpMessageHeaderAccessor headerAccessor) {
         String queryID = UUID.randomUUID().toString();
         String sessionId = headerAccessor.getSessionId();
@@ -59,6 +73,13 @@ public class WebSocketService {
         queryService.submit(queryID, queryString, queryHandler);
     }
 
+    /**
+     * Send a response to the client by websocket connection.
+     *
+     * @param sessionID The session id to represent the client.
+     * @param response The {@link WebSocketResponse} response to be sent.
+     * @param headerAccessor The {@link SimpMessageHeaderAccessor} headers to be associated with the response message.
+     */
     public void sendResponse(String sessionID, WebSocketResponse response, SimpMessageHeaderAccessor headerAccessor) {
         simpMessagingTemplate.convertAndSendToUser(
                 sessionID, DESTINATION, response, headerAccessor.getMessageHeaders());
