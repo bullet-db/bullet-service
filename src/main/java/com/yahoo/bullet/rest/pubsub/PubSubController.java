@@ -5,7 +5,6 @@
  */
 package com.yahoo.bullet.rest.pubsub;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.MediaType;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
+import com.yahoo.bullet.pubsub.memory.MemoryPubSub;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.concurrent.CompletableFuture;
@@ -34,7 +34,7 @@ public class PubSubController {
     public CompletableFuture<String> getResult(HttpServletResponse response) {
         String value = pubSubService.getResult();
         if (value == null) {
-            response.setStatus(HttpStatus.NO_CONTENT.value());
+            response.setStatus(MemoryPubSub.NO_CONTENT_204);
         }
         CompletableFuture<String> result = new CompletableFuture<>();
         result.complete(value);
@@ -50,7 +50,7 @@ public class PubSubController {
     public CompletableFuture<String> getQuery(HttpServletResponse response) {
         String query = pubSubService.getQuery();
         if (query == null) {
-            response.setStatus(HttpStatus.NO_CONTENT.value());
+            response.setStatus(MemoryPubSub.NO_CONTENT_204);
         }
         CompletableFuture<String> result = new CompletableFuture<>();
         result.complete(query);
