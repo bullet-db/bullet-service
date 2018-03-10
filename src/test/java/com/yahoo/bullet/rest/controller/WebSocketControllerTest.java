@@ -19,7 +19,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -44,5 +46,18 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
         webSocketController.submitRequest(request, headerAccessor);
 
         verify(webSocketService).submitQuery(eq("foo"), eq(headerAccessor));
+    }
+
+    @Test
+    public void testSubmitKillQuery() {
+        WebSocketRequest request = new WebSocketRequest();
+        request.setType(WebSocketRequest.RequestType.KILL_QUERY);
+        request.setContent("queryID");
+        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
+        when(headerAccessor.getSessionId()).thenReturn("sessionID");
+
+        webSocketController.submitRequest(request, headerAccessor);
+
+        verify(webSocketService).sendKillSignal(eq("sessionID"), eq("queryID"));
     }
 }

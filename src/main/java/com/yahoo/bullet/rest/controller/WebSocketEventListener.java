@@ -25,7 +25,7 @@ public class WebSocketEventListener {
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        webSocketService.sendKillSignal(headerAccessor.getSessionId());
+        webSocketService.sendKillSignal(headerAccessor.getSessionId(), null);
     }
 }
 

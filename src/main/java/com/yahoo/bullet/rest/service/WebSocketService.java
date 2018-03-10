@@ -36,12 +36,14 @@ public class WebSocketService {
      * Send a KILL signal to the backend.
      *
      * @param sessionID The session id to represent the client.
+     * @param queryID The query id of the query to be killed or null to kill the query associated with the session.
      */
-    public void sendKillSignal(String sessionID) {
+    public void sendKillSignal(String sessionID, String queryID) {
         if (sessionIDMap.containsKey(sessionID)) {
-            String queryID = sessionIDMap.get(sessionID);
-            queryService.submitSignal(queryID, Metadata.Signal.KILL);
-            removeSessionID(sessionID);
+            if (queryID == null || queryID.equals(sessionIDMap.get(sessionID))) {
+                queryService.submitSignal(sessionIDMap.get(sessionID), Metadata.Signal.KILL);
+                removeSessionID(sessionID);
+            }
         }
     }
 

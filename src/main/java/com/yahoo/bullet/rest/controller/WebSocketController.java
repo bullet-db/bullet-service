@@ -27,8 +27,11 @@ public class WebSocketController {
     @MessageMapping("/submit.request")
     public void submitRequest(@Payload WebSocketRequest request,
                               SimpMessageHeaderAccessor headerAccessor) {
-        if (request.getType() == WebSocketRequest.RequestType.NEW_QUERY) {
+        WebSocketRequest.RequestType type = request.getType();
+        if (type == WebSocketRequest.RequestType.NEW_QUERY) {
             webSocketService.submitQuery(request.getContent(), headerAccessor);
+        } else if (type == WebSocketRequest.RequestType.KILL_QUERY) {
+            webSocketService.sendKillSignal(headerAccessor.getSessionId(), request.getContent());
         }
     }
 }
