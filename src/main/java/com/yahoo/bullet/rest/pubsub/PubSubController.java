@@ -25,11 +25,24 @@ public class PubSubController {
     @Autowired
     private PubSubService pubSubService;
 
+    /**
+     * The method that handles adding results to the result queue. Clients should POST to this endpoint to write results
+     * to the queue. Invokes {@link PubSubService} to add the result to the queue.
+     *
+     * @param result
+     */
     @PostMapping(path = "${bullet.pubsub.memory.pubsub.result.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
-    public void postResult(@RequestBody String response) {
-        pubSubService.postResult(response);
+    public void postResult(@RequestBody String result) {
+        pubSubService.postResult(result);
     }
 
+    /**
+     * The method that handles reading a result. Clients should GET from this endpoint to read a result. Returns
+     * NO_CONTENT (204) if there are no results to read. Results are dropped after being read once.
+     *
+     * @param response The {@link HttpServletResponse} that will be used to set the response status code.
+     * @return A {@link CompletableFuture} representing the result.
+     */
     @GetMapping(path = "${bullet.pubsub.memory.pubsub.result.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> getResult(HttpServletResponse response) {
         String value = pubSubService.getResult();
@@ -41,11 +54,24 @@ public class PubSubController {
         return result;
     }
 
+    /**
+     * The method that handles adding queries to the query queue. Clients should POST to this endpoint to write queries
+     * to the queue. Invokes {@link PubSubService} to add the query to the queue.
+     *
+     * @param query
+     */
     @PostMapping(path = "${bullet.pubsub.memory.pubsub.query.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
     public void postQuery(@RequestBody String query) {
         pubSubService.postQuery(query);
     }
 
+    /**
+     * The method that handles reading a query. Clients should GET from this endpoint to read a query. Returns
+     * NO_CONTENT (204) if there are no queries to read. Queries are dropped after being read once.
+     *
+     * @param response The {@link HttpServletResponse} that will be used to set the response status code.
+     * @return A {@link CompletableFuture} representing the query.
+     */
     @GetMapping(path = "${bullet.pubsub.memory.pubsub.query.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> getQuery(HttpServletResponse response) {
         String query = pubSubService.getQuery();
