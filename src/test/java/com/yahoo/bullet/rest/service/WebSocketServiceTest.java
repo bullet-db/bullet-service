@@ -44,10 +44,10 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSendKillSignalWithNonExistingSessionID() {
-      webSocketService.getSessionIDMap().clear();
-      webSocketService.sendKillSignal("sessionID", null);
+        webSocketService.getSessionIDMap().clear();
+        webSocketService.sendKillSignal("sessionID", null);
 
-      verify(queryService, never()).submitSignal(any(), any());
+        verify(queryService, never()).submitSignal(any(), any());
     }
 
     @Test
@@ -70,7 +70,7 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
         webSocketService.submitQuery("foo",  headerAccessor);
 
         verify(simpMessagingTemplate).convertAndSendToUser(
-                eq("sessionID"), eq("/response/private"), argument.capture(), eq((MessageHeaders)null));
+                eq("sessionID"), eq("/response/private"), argument.capture(), eq((MessageHeaders) null));
         String queryID = argument.getValue().getContent();
         verify(queryService).submit(eq(queryID), eq("foo"), any());
         Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.ResponseType.ACK);
