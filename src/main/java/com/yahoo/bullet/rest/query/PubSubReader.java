@@ -50,7 +50,6 @@ public class PubSubReader {
         log.info("Reader thread started, ID: " + Thread.currentThread().getId());
         while (!Thread.interrupted()) {
             try {
-                Thread.sleep(1000 * 1); // Added for testing so we don't overload WS endpoint - remove later!
                 response = subscriber.receive();
                 if (response == null) {
                     Thread.sleep(sleepTimeMS);
