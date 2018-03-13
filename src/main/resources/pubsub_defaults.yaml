@@ -1,6 +1,5 @@
 # Context is always QUERY_SUBMISSION in the webservice.
 bullet.pubsub.context.name: "QUERY_SUBMISSION"
 # Path to your PubSub implementation.
-bullet.pubsub.class.name: "com.yahoo.bullet.kafka.KafkaPubSub"
+bullet.pubsub.class.name: "full.package.path.to.your.pubsub.class"
 # Add settings specific to your pubsub.
-bullet.pubsub.kafka.bootstrap.servers: "localhost:9092"
