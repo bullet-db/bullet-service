@@ -10,6 +10,7 @@ import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.service.QueryService;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.testng.Assert;
@@ -24,7 +25,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-public class SseQueryHandlerTest extends AbstractTestNGSpringContextTests {
+public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
     @Mock
     private QueryService queryService;
     @Mock
@@ -39,10 +40,10 @@ public class SseQueryHandlerTest extends AbstractTestNGSpringContextTests {
     public void testSendOnMessage() throws Exception {
         PubSubMessage message = new PubSubMessage("id", "foo");
 
-        SseQueryHandler sseQueryHandler = new SseQueryHandler("id", sseEmitter, queryService);
+        SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.send(message);
 
-        verify(sseEmitter).send(eq("foo"));
+        verify(sseEmitter).send(eq("foo"), eq(MediaType.APPLICATION_JSON));
         Assert.assertFalse(sseQueryHandler.isComplete());
     }
 
@@ -50,8 +51,8 @@ public class SseQueryHandlerTest extends AbstractTestNGSpringContextTests {
     public void testSendOnException() throws Exception {
         PubSubMessage message = new PubSubMessage("id", "foo");
 
-        doThrow(new IOException()).when(sseEmitter).send(message.getContent());
-        SseQueryHandler sseQueryHandler = new SseQueryHandler("id", sseEmitter, queryService);
+        doThrow(new IOException()).when(sseEmitter).send(message.getContent(), MediaType.APPLICATION_JSON);
+        SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.send(message);
 
         verify(queryService).submitSignal("id", Metadata.Signal.KILL);
@@ -60,28 +61,28 @@ public class SseQueryHandlerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSendAfterComplete() throws Exception {
-        SseQueryHandler sseQueryHandler = new SseQueryHandler("id", sseEmitter, queryService);
+        SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.complete();
         sseQueryHandler.send(new PubSubMessage("id", "foo"));
 
-        verify(sseEmitter, never()).send(any());
+        verify(sseEmitter, never()).send(any(), any());
         verify(queryService, never()).submitSignal(any(), any());
         Assert.assertTrue(sseQueryHandler.isComplete());
     }
 
     @Test
     public void testFailOnCause() throws Exception {
-        SseQueryHandler sseQueryHandler = new SseQueryHandler("id", sseEmitter, queryService);
+        SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.fail(QueryError.INVALID_QUERY);
 
-        verify(sseEmitter).send(eq(QueryError.INVALID_QUERY.toString()));
+        verify(sseEmitter).send(eq(QueryError.INVALID_QUERY.toString()), eq(MediaType.APPLICATION_JSON));
         Assert.assertTrue(sseQueryHandler.isComplete());
     }
 
     @Test
     public void testFailOnException() throws Exception {
-        doThrow(new IOException()).when(sseEmitter).send(QueryError.INVALID_QUERY.toString());
-        SseQueryHandler sseQueryHandler = new SseQueryHandler("id", sseEmitter, queryService);
+        doThrow(new IOException()).when(sseEmitter).send(QueryError.INVALID_QUERY.toString(), MediaType.APPLICATION_JSON);
+        SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.fail(QueryError.INVALID_QUERY);
 
         verify(queryService).submitSignal("id", Metadata.Signal.KILL);
@@ -90,11 +91,11 @@ public class SseQueryHandlerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testFailAfterComplete() throws Exception {
-        SseQueryHandler sseQueryHandler = new SseQueryHandler("id", sseEmitter, queryService);
+        SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.complete();
         sseQueryHandler.fail(QueryError.INVALID_QUERY);
 
-        verify(sseEmitter, never()).send(any());
+        verify(sseEmitter, never()).send(any(), any());
         verify(queryService, never()).submitSignal(any(), any());
         Assert.assertTrue(sseQueryHandler.isComplete());
     }

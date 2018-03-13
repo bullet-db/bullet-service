@@ -18,9 +18,9 @@ public class WebSocketEventListener {
     private WebSocketService webSocketService;
 
     /**
-     * This method is the handler when receiving websocket disconnect events.
+     * This method is the handler when receiving WebSocket disconnect events.
      *
-     * @param event The websocket disconnect event.
+     * @param event The WebSocket disconnect event.
      */
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {

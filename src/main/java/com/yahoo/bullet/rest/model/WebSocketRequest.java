@@ -11,7 +11,6 @@ import lombok.Setter;
 
 @NoArgsConstructor @Getter @Setter
 public class WebSocketRequest {
-
     public enum RequestType {
         NEW_QUERY,
         KILL_QUERY

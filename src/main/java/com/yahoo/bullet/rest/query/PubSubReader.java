@@ -11,6 +11,9 @@ import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Subscriber;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
@@ -19,6 +22,8 @@ public class PubSubReader {
     private ConcurrentMap<String, QueryHandler> requestQueue;
     private Thread readerThread;
     private int sleepTimeMS;
+    private static final Set<Metadata.Signal> FINISHED = new HashSet<>(
+            Arrays.asList(Metadata.Signal.KILL, Metadata.Signal.COMPLETE, Metadata.Signal.FAIL));
     // TODO: Handle Subscribers that have failed and we have no more readers
 
     /**
@@ -86,14 +91,6 @@ public class PubSubReader {
     }
 
     private static boolean isDone(PubSubMessage response) {
-        boolean done = false;
-        if (response.hasSignal()) {
-            Metadata.Signal signal = response.getMetadata().getSignal();
-            if (signal == Metadata.Signal.COMPLETE || signal == Metadata.Signal.KILL
-                    || signal == Metadata.Signal.FAIL) {
-                done = true;
-            }
-        }
-        return done;
+        return response.hasSignal() && FINISHED.contains(response.getMetadata().getSignal());
     }
 }

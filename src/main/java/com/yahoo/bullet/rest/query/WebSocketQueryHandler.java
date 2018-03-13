@@ -12,7 +12,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 
 /**
- * Query handler that implements results for Websocket - multiple results per query.
+ * Query handler that implements results for WebSocket - multiple results per query.
  */
 public class WebSocketQueryHandler extends QueryHandler {
     private WebSocketService webSocketService;
@@ -42,8 +42,7 @@ public class WebSocketQueryHandler extends QueryHandler {
     @Override
     public void send(PubSubMessage response) {
         if (!isComplete()) {
-            WebSocketResponse responseMessage =
-                    new WebSocketResponse(WebSocketResponse.ResponseType.CONTENT, response.getContent());
+            WebSocketResponse responseMessage = new WebSocketResponse(WebSocketResponse.ResponseType.CONTENT, response.getContent());
             webSocketService.sendResponse(sessionID, responseMessage, headerAccessor);
         }
     }

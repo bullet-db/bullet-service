@@ -16,7 +16,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -57,20 +56,18 @@ public class WebSocketService {
     }
 
     /**
-     * Submit a query to {@link QueryService} and send a ACK to the client by websocket connection.
+     * Submit a query to {@link QueryService} and send a ACK to the client by WebSocket connection.
      *
+     * @param queryID The query ID to register request with.
      * @param queryString The String version of the query.
      * @param headerAccessor The {@link SimpMessageHeaderAccessor} headers.
      */
-    public void submitQuery(String queryString, SimpMessageHeaderAccessor headerAccessor) {
-        String queryID = UUID.randomUUID().toString();
+    public void submitQuery(String queryID, String queryString, SimpMessageHeaderAccessor headerAccessor) {
         String sessionId = headerAccessor.getSessionId();
         sessionIDMap.put(sessionId, queryID);
 
         // Send ACK with queryID.
-        WebSocketResponse response =
-                new WebSocketResponse(WebSocketResponse.ResponseType.ACK, queryID);
-
+        WebSocketResponse response = new WebSocketResponse(WebSocketResponse.ResponseType.ACK, queryID);
         sendResponse(sessionId, response, headerAccessor);
 
         WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(this, sessionId);
@@ -78,14 +75,13 @@ public class WebSocketService {
     }
 
     /**
-     * Send a response to the client by websocket connection.
+     * Send a response to the client by WebSocket connection.
      *
      * @param sessionID The session id to represent the client.
      * @param response The {@link WebSocketResponse} response to be sent.
      * @param headerAccessor The {@link SimpMessageHeaderAccessor} headers to be associated with the response message.
      */
     public void sendResponse(String sessionID, WebSocketResponse response, SimpMessageHeaderAccessor headerAccessor) {
-        simpMessagingTemplate.convertAndSendToUser(
-                sessionID, DESTINATION, response, headerAccessor.getMessageHeaders());
+        simpMessagingTemplate.convertAndSendToUser(sessionID, DESTINATION, response, headerAccessor.getMessageHeaders());
     }
 }

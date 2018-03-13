@@ -9,15 +9,14 @@ import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.service.QueryService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.io.IOException;
 
 /**
  * Query handler that implements results for SSE - multiple results per query.
  */
 @AllArgsConstructor
-public class SseQueryHandler extends QueryHandler {
+public class SSEQueryHandler extends QueryHandler {
     private String queryID;
     private SseEmitter emitter;
     private QueryService queryService;
@@ -32,8 +31,8 @@ public class SseQueryHandler extends QueryHandler {
     public void send(PubSubMessage response) {
         if (!isComplete()) {
             try {
-                emitter.send(response.getContent());
-            } catch (IOException e) {
+                emitter.send(response.getContent(), MediaType.APPLICATION_JSON);
+            } catch (Exception e) {
                 queryService.submitSignal(queryID, Metadata.Signal.KILL);
                 complete();
             }
@@ -44,8 +43,8 @@ public class SseQueryHandler extends QueryHandler {
     public void fail(QueryError cause) {
         if (!isComplete()) {
             try {
-                emitter.send(cause.toString());
-            } catch (IOException e) {
+                emitter.send(cause.toString(), MediaType.APPLICATION_JSON);
+            } catch (Exception e) {
                 queryService.submitSignal(queryID, Metadata.Signal.KILL);
             }
             complete();
