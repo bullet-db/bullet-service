@@ -7,7 +7,6 @@ package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
