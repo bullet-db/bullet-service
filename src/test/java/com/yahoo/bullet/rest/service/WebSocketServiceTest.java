@@ -64,18 +64,21 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
         String sessionID = "sessionID";
         String queryID = "queryID";
         webSocketService.getSessionIDMap().clear();
+        webSocketService.submitQuery(queryID, sessionID, "foo");
+
+        verify(queryService).submit(eq(queryID), eq("foo"), any());
+        Assert.assertTrue(webSocketService.getSessionIDMap().containsKey(sessionID));
+    }
+
+    @Test void testSendResponse() {
+        String sessionID = "sessionID";
         SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
         when(headerAccessor.getSessionId()).thenReturn(sessionID);
         when(headerAccessor.getMessageHeaders()).thenReturn(null);
-        ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
 
-        webSocketService.submitQuery(queryID, "foo", headerAccessor);
+        WebSocketResponse response = new WebSocketResponse(WebSocketResponse.ResponseType.ACK, "foo");
+        webSocketService.sendResponse(sessionID, response, headerAccessor);
 
-        verify(simpMessagingTemplate).convertAndSendToUser(
-                eq(sessionID), eq("/response/private"), argument.capture(), eq((MessageHeaders) null));
-        verify(queryService).submit(eq(queryID), eq("foo"), any());
-        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.ResponseType.ACK);
-        Assert.assertEquals(argument.getValue().getContent(), queryID);
-        Assert.assertTrue(webSocketService.getSessionIDMap().containsKey(sessionID));
+        verify(simpMessagingTemplate).convertAndSendToUser("sessionID", "/response/private", response, (MessageHeaders) null);
     }
 }

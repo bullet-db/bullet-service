@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -95,5 +96,14 @@ public class QueryService {
         runningQueries.values().forEach(QueryHandler::fail);
         runningQueries.clear();
         publisherRandomPool.clear();
+    }
+
+    /**
+     * Get a new unique query ID.
+     *
+     * @return A new unique query ID.
+     */
+    public static String getNewQueryID() {
+        return UUID.randomUUID().toString();
     }
 }

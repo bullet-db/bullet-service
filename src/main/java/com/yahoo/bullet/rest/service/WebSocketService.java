@@ -56,26 +56,20 @@ public class WebSocketService {
     }
 
     /**
-     * Submit a query to {@link QueryService} and send a ACK to the client by WebSocket connection.
+     * Submit a query by {@link QueryService}.
      *
      * @param queryID The query ID to register request with.
+     * @param sessionID The session id to represent the client.
      * @param queryString The String version of the query.
-     * @param headerAccessor The {@link SimpMessageHeaderAccessor} headers.
      */
-    public void submitQuery(String queryID, String queryString, SimpMessageHeaderAccessor headerAccessor) {
-        String sessionId = headerAccessor.getSessionId();
-        sessionIDMap.put(sessionId, queryID);
-
-        // Send ACK with queryID.
-        WebSocketResponse response = new WebSocketResponse(WebSocketResponse.ResponseType.ACK, queryID);
-        sendResponse(sessionId, response, headerAccessor);
-
-        WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(this, sessionId);
+    public void submitQuery(String queryID, String sessionID, String queryString) {
+        sessionIDMap.put(sessionID, queryID);
+        WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(this, sessionID);
         queryService.submit(queryID, queryString, queryHandler);
     }
 
     /**
-     * Send a response to the client by WebSocket connection.
+     * Send a response to the client through WebSocket connection.
      *
      * @param sessionID The session id to represent the client.
      * @param response The {@link WebSocketResponse} response to be sent.

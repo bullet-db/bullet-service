@@ -6,12 +6,10 @@
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.pubsub.PubSubMessage;
-import com.yahoo.bullet.rest.model.WebSocketRequest;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
 import com.yahoo.bullet.rest.service.QueryService;
-import com.yahoo.bullet.rest.service.WebSocketService;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -19,8 +17,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -34,19 +30,15 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class QueryControllerTest extends AbstractTestNGSpringContextTests {
+public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     @Autowired @InjectMocks
-    private QueryController controller;
+    private HTTPQueryController controller;
     @Mock
     private QueryService service;
-    @Mock
-    private WebSocketService webSocketService;
     @Autowired
     private WebApplicationContext context;
     private MockMvc mockMvc;
@@ -92,30 +84,5 @@ public class QueryControllerTest extends AbstractTestNGSpringContextTests {
 
         argument.getValue().send(new PubSubMessage("", "baz"));
         Assert.assertEquals(result.getResponse().getContentAsString(), "data:bar\n\ndata:baz\n\n");
-    }
-
-    @Test
-    public void testSubmitNewQueryByWebSocket() {
-        WebSocketRequest request = new WebSocketRequest();
-        request.setType(WebSocketRequest.RequestType.NEW_QUERY);
-        request.setContent("foo");
-        SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
-
-        controller.submitWebsocketQuery(request, headerAccessor);
-
-        verify(webSocketService).submitQuery(anyString(), eq("foo"), eq(headerAccessor));
-    }
-
-    @Test
-    public void testSubmitKillQueryByWebSocket() {
-        WebSocketRequest request = new WebSocketRequest();
-        request.setType(WebSocketRequest.RequestType.KILL_QUERY);
-        request.setContent("queryID");
-        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
-        when(headerAccessor.getSessionId()).thenReturn("sessionID");
-
-        controller.submitWebsocketQuery(request, headerAccessor);
-
-        verify(webSocketService).sendKillSignal(eq("sessionID"), eq("queryID"));
     }
 }
