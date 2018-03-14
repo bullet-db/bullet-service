@@ -136,6 +136,7 @@
                         <classpathDependencyExcludes>org.apache.logging.log4j:log4j-slf4j-impl</classpathDependencyExcludes>
                     </classpathDependencyExcludes>
                     <argLine>-Xmx2048m -Xms512m</argLine>
+                    <threadCount>1</threadCount>
                 </configuration>
             </plugin>
 
