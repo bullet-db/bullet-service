@@ -38,7 +38,7 @@ spring:
     async.request-timeout: -1
 
 server:
-  context-path: /bullet/api
+  context-path: /api/bullet
   port: 5555
 
 # To configure SSL, override and change the following settings to your config
