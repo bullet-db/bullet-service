@@ -33,13 +33,16 @@ public class QueryServiceTest {
         }
 
         @Override
-        public void close() {}
+        public void close() {
+        }
 
         @Override
-        public void commit(String s, int i) {}
+        public void commit(String s, int i) {
+        }
 
         @Override
-        public void fail(String s, int i) {}
+        public void fail(String s, int i) {
+        }
     }
 
     @Test
