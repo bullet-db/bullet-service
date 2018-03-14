@@ -31,7 +31,7 @@ public class PubSubController {
      *
      * @param result
      */
-    @PostMapping(path = "${bullet.pubsub.memory.pubsub.result.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
+    @PostMapping(path = "${bullet.pubsub.rest.pubsub.result.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
     public void postResult(@RequestBody String result) {
         pubSubService.postResult(result);
     }
@@ -43,7 +43,7 @@ public class PubSubController {
      * @param response The {@link HttpServletResponse} that will be used to set the response status code.
      * @return A {@link CompletableFuture} representing the result.
      */
-    @GetMapping(path = "${bullet.pubsub.memory.pubsub.result.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
+    @GetMapping(path = "${bullet.pubsub.rest.pubsub.result.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> getResult(HttpServletResponse response) {
         String value = pubSubService.getResult();
         if (value == null) {
@@ -60,7 +60,7 @@ public class PubSubController {
      *
      * @param query
      */
-    @PostMapping(path = "${bullet.pubsub.memory.pubsub.query.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
+    @PostMapping(path = "${bullet.pubsub.rest.pubsub.query.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
     public void postQuery(@RequestBody String query) {
         pubSubService.postQuery(query);
     }
@@ -72,7 +72,7 @@ public class PubSubController {
      * @param response The {@link HttpServletResponse} that will be used to set the response status code.
      * @return A {@link CompletableFuture} representing the query.
      */
-    @GetMapping(path = "${bullet.pubsub.memory.pubsub.query.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
+    @GetMapping(path = "${bullet.pubsub.rest.pubsub.query.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> getQuery(HttpServletResponse response) {
         String query = pubSubService.getQuery();
         if (query == null) {
