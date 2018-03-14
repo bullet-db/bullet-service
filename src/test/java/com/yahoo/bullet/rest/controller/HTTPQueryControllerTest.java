@@ -72,7 +72,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         String query = "foo";
 
         MvcResult result = mockMvc.perform(
-                post("/querySSE")
+                post("/sse-query")
                         .contentType(MediaType.TEXT_PLAIN)
                         .content(query)
         ).andReturn();
