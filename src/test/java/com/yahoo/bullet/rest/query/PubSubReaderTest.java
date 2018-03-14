@@ -67,7 +67,7 @@ public class PubSubReaderTest {
 
         @Override
         public PubSubMessage receive() throws PubSubException {
-            return messageList == null ? null : messageList.remove(0);
+            return messageList == null || messageList.isEmpty() ? null : messageList.remove(0);
         }
 
         @Override
