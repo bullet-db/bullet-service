@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
-@ConditionalOnExpression("${bullet.pubsub.memory.pubsub.enabled:false}")
+@ConditionalOnExpression("${bullet.pubsub.rest.pubsub.enabled:false}")
 public class PubSubController {
     @Autowired
     private PubSubService pubSubService;
