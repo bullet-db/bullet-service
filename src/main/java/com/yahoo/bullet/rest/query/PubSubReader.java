@@ -22,8 +22,8 @@ public class PubSubReader {
     private ConcurrentMap<String, QueryHandler> requestQueue;
     private Thread readerThread;
     private int sleepTimeMS;
-    private static final Set<Metadata.Signal> FINISHED = new HashSet<>(
-            Arrays.asList(Metadata.Signal.KILL, Metadata.Signal.COMPLETE, Metadata.Signal.FAIL));
+    private static final Set<Metadata.Signal> FINISHED =
+            new HashSet<>(Arrays.asList(Metadata.Signal.KILL, Metadata.Signal.COMPLETE, Metadata.Signal.FAIL));
     // TODO: Handle Subscribers that have failed and we have no more readers
 
     /**

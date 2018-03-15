@@ -11,6 +11,7 @@ import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -20,10 +21,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class WebSocketService {
-    private static final String DESTINATION =  "/response/private";
+    @Value("${bullet.websocket.destination-prefix}")
+    private String destinationPrefix;
+    @Value("${bullet.websocket.destination}")
+    private String destination;
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
-
     @Autowired
     private QueryService queryService;
 
@@ -34,22 +37,21 @@ public class WebSocketService {
     /**
      * Send a KILL signal to the backend.
      *
-     * @param sessionID The session id to represent the client.
-     * @param queryID The query id of the query to be killed or null to kill the query associated with the session.
+     * @param sessionID The session ID to represent the client.
+     * @param queryID The query ID of the query to be killed or null to kill the query associated with the session.
      */
     public void sendKillSignal(String sessionID, String queryID) {
-        if (sessionIDMap.containsKey(sessionID)) {
-            if (queryID == null || queryID.equals(sessionIDMap.get(sessionID))) {
-                queryService.submitSignal(sessionIDMap.get(sessionID), Metadata.Signal.KILL);
-                removeSessionID(sessionID);
-            }
+        String queryForSession = sessionIDMap.get(sessionID);
+        if (queryForSession != null && (queryID == null || queryID.equals(queryForSession))) {
+            queryService.submitSignal(queryForSession, Metadata.Signal.KILL);
+            removeSessionID(sessionID);
         }
     }
 
     /**
-     * Remove a session id from the session id map.
+     * Remove a session ID from the session id map.
      *
-     * @param sessionID The session id to be removed.
+     * @param sessionID The session ID to be removed.
      */
     public void removeSessionID(String sessionID) {
         sessionIDMap.remove(sessionID);
@@ -59,23 +61,25 @@ public class WebSocketService {
      * Submit a query by {@link QueryService}.
      *
      * @param queryID The query ID to register request with.
-     * @param sessionID The session id to represent the client.
+     * @param sessionID The session ID to represent the client.
      * @param queryString The String version of the query.
      */
     public void submitQuery(String queryID, String sessionID, String queryString) {
         sessionIDMap.put(sessionID, queryID);
-        WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(this, sessionID);
+        WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(this, sessionID, queryID);
         queryService.submit(queryID, queryString, queryHandler);
+        queryHandler.acknowledge();
     }
 
     /**
      * Send a response to the client through WebSocket connection.
      *
-     * @param sessionID The session id to represent the client.
+     * @param sessionID The session ID to represent the client.
      * @param response The {@link WebSocketResponse} response to be sent.
      * @param headerAccessor The {@link SimpMessageHeaderAccessor} headers to be associated with the response message.
      */
     public void sendResponse(String sessionID, WebSocketResponse response, SimpMessageHeaderAccessor headerAccessor) {
-        simpMessagingTemplate.convertAndSendToUser(sessionID, DESTINATION, response, headerAccessor.getMessageHeaders());
+        String fullDestination = destinationPrefix + destination;
+        simpMessagingTemplate.convertAndSendToUser(sessionID, fullDestination, response, headerAccessor.getMessageHeaders());
     }
 }

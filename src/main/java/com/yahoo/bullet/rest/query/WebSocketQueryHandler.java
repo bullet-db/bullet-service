@@ -17,20 +17,22 @@ import org.springframework.messaging.simp.SimpMessageType;
 public class WebSocketQueryHandler extends QueryHandler {
     private WebSocketService webSocketService;
     private String sessionID;
+    private String queryID;
     private SimpMessageHeaderAccessor headerAccessor;
 
     /**
      * Constructor method.
      *
      * @param webSocketService The {@link WebSocketService} to handle websocket messages.
-     * @param sessionID TThe session id to represent the client.
+     * @param sessionID TThe session ID to represent the client.
+     * @param queryID The query ID.
      */
-    public WebSocketQueryHandler(WebSocketService webSocketService, String sessionID) {
+    public WebSocketQueryHandler(WebSocketService webSocketService, String sessionID, String queryID) {
         this.webSocketService = webSocketService;
         this.sessionID = sessionID;
+        this.queryID = queryID;
         headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
         headerAccessor.setSessionId(sessionID);
-        headerAccessor.setLeaveMutable(true);
     }
 
     @Override
@@ -42,7 +44,7 @@ public class WebSocketQueryHandler extends QueryHandler {
     @Override
     public void send(PubSubMessage response) {
         if (!isComplete()) {
-            WebSocketResponse responseMessage = new WebSocketResponse(WebSocketResponse.ResponseType.CONTENT, response.getContent());
+            WebSocketResponse responseMessage = new WebSocketResponse(WebSocketResponse.Type.CONTENT, response.getContent());
             webSocketService.sendResponse(sessionID, responseMessage, headerAccessor);
         }
     }
@@ -51,10 +53,16 @@ public class WebSocketQueryHandler extends QueryHandler {
     public void fail(QueryError cause) {
         if (!isComplete()) {
             WebSocketResponse responseMessage =
-                    new WebSocketResponse(WebSocketResponse.ResponseType.FAIL, cause.toString());
+                    new WebSocketResponse(WebSocketResponse.Type.FAIL, cause.toString());
             webSocketService.sendResponse(sessionID, responseMessage, headerAccessor);
             complete();
         }
+    }
+
+    @Override
+    public void acknowledge() {
+        WebSocketResponse response = new WebSocketResponse(WebSocketResponse.Type.ACK, queryID);
+        webSocketService.sendResponse(sessionID, response, headerAccessor);
     }
 }
 

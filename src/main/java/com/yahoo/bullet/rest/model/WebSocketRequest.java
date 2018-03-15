@@ -11,11 +11,11 @@ import lombok.Setter;
 
 @NoArgsConstructor @Getter @Setter
 public class WebSocketRequest {
-    public enum RequestType {
+    public enum Type {
         NEW_QUERY,
         KILL_QUERY
     }
 
-    private RequestType type;
+    private Type type;
     private String content;
 }

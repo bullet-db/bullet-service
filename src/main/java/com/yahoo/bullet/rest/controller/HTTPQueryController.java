@@ -6,7 +6,6 @@
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
-import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
 import com.yahoo.bullet.rest.service.QueryService;
 import lombok.Setter;
@@ -32,14 +31,10 @@ public class HTTPQueryController {
      * @return A {@link CompletableFuture} representing the eventual result.
      */
     @PostMapping(path = "/http-query", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-    public CompletableFuture<String> submitQuery(@RequestBody String query) {
+    public CompletableFuture<String> submitHTTPQuery(@RequestBody String query) {
         HTTPQueryHandler queryHandler = new HTTPQueryHandler();
-        if (query == null) {
-            queryHandler.fail(QueryError.INVALID_QUERY);
-        } else {
-            String queryID = QueryService.getNewQueryID();
-            queryService.submit(queryID, query, queryHandler);
-        }
+        String queryID = QueryService.getNewQueryID();
+        queryService.submit(queryID, query, queryHandler);
         return queryHandler.getResult();
     }
 

@@ -10,12 +10,12 @@ import lombok.Getter;
 
 @AllArgsConstructor @Getter
 public class WebSocketResponse {
-    public enum ResponseType {
+    public enum Type {
         ACK,
         FAIL,
         CONTENT
     }
 
-    private ResponseType type;
+    private Type type;
     private String content;
 }

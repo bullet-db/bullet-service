@@ -6,7 +6,6 @@
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.model.WebSocketRequest;
-import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.service.QueryService;
 import com.yahoo.bullet.rest.service.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +40,6 @@ public class WebSocketController {
     private void handleNewQuery(WebSocketRequest request, SimpMessageHeaderAccessor headerAccessor) {
         String queryID = QueryService.getNewQueryID();
         String sessionID = headerAccessor.getSessionId();
-        // Send ACK with queryID.
-        WebSocketResponse response = new WebSocketResponse(WebSocketResponse.ResponseType.ACK, queryID);
-        webSocketService.sendResponse(sessionID, response, headerAccessor);
-        // Submit the query.
         webSocketService.submitQuery(queryID, sessionID, request.getContent());
     }
 

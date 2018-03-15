@@ -34,12 +34,12 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
     public void testSendOnMessage() {
         PubSubMessage message = new PubSubMessage("id", "foo");
 
-        WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id");
+        WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
         webSocketQueryHandler.send(message);
 
         ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
         verify(webSocketService).sendResponse(eq("id"), argument.capture(), any());
-        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.ResponseType.CONTENT);
+        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.CONTENT);
         Assert.assertEquals(argument.getValue().getContent(), message.getContent());
         Assert.assertFalse(webSocketQueryHandler.isComplete());
     }
@@ -49,7 +49,7 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
     public void testSendAfterComplete() {
         PubSubMessage message = new PubSubMessage("id", "foo");
 
-        WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id");
+        WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
         webSocketQueryHandler.complete();
         webSocketQueryHandler.send(message);
 
@@ -59,12 +59,12 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
 
     @Test
     public void testFailOnCause() {
-        WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id");
+        WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
         webSocketQueryHandler.fail(QueryError.INVALID_QUERY);
 
         ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
         verify(webSocketService).sendResponse(eq("id"), argument.capture(), any());
-        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.ResponseType.FAIL);
+        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.FAIL);
         Assert.assertEquals(argument.getValue().getContent(), QueryError.INVALID_QUERY.toString());
         Assert.assertTrue(webSocketQueryHandler.isComplete());
     }
@@ -72,7 +72,7 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
 
     @Test
     public void testFailAfterComplete() {
-        WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id");
+        WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
         webSocketQueryHandler.complete();
         webSocketQueryHandler.fail(QueryError.INVALID_QUERY);
 

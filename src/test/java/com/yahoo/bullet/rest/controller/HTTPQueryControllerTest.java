@@ -7,7 +7,6 @@ package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
-import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
 import com.yahoo.bullet.rest.service.QueryService;
 import org.mockito.ArgumentCaptor;
@@ -35,24 +34,25 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
-    @Autowired @InjectMocks
+    @Autowired
+    @InjectMocks
     private HTTPQueryController controller;
     @Mock
     private QueryService service;
     @Autowired
     private WebApplicationContext context;
-    private MockMvc mockMvc;
+    private MockMvc mockMVC;
 
     @BeforeMethod
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+        mockMVC = MockMvcBuilders.webAppContextSetup(context).build();
     }
 
     @Test
-    public void testSendByHTTP() throws Exception {
+    public void testSendHTTPQuery() throws Exception {
         String query = "foo";
-        CompletableFuture<String> response = controller.submitQuery(query);
+        CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
         verify(service).submit(anyString(), eq(query), argument.capture());
@@ -61,17 +61,10 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testIllegalQueryByHTTP() throws Exception {
-        CompletableFuture<String> response = controller.submitQuery(null);
-
-        Assert.assertEquals(response.get(), QueryError.INVALID_QUERY.toString());
-    }
-
-    @Test
     public void testSSEQuery() throws Exception {
         String query = "foo";
 
-        MvcResult result = mockMvc.perform(
+        MvcResult result = mockMVC.perform(
                 post("/sse-query")
                         .contentType(MediaType.TEXT_PLAIN)
                         .content(query)

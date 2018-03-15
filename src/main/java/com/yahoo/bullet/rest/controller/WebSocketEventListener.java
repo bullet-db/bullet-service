@@ -28,4 +28,3 @@ public class WebSocketEventListener {
         webSocketService.sendKillSignal(headerAccessor.getSessionId(), null);
     }
 }
-

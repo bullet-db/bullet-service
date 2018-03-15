@@ -94,8 +94,8 @@ public class QueryServiceTest {
 
         service.submitSignal("id", Metadata.Signal.KILL);
         Assert.assertEquals(0, service.getRunningQueries().size());
-        Mockito.verify(publisher).send(
-                new PubSubMessage("id", null, new Metadata(Metadata.Signal.KILL, null)));
+        Mockito.verify(publisher)
+                .send(new PubSubMessage("id", null, new Metadata(Metadata.Signal.KILL, null)));
         service.close();
     }
 
