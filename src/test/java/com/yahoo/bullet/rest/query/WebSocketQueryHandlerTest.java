@@ -79,4 +79,16 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
         verify(webSocketService, never()).sendResponse(any(), any(), any());
         Assert.assertTrue(webSocketQueryHandler.isComplete());
     }
+
+    @Test
+    public void testAcknowledge() {
+        WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
+        webSocketQueryHandler.acknowledge();
+
+        ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
+        verify(webSocketService).sendResponse(eq("id"), argument.capture(), any());
+        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.ACK);
+        Assert.assertEquals(argument.getValue().getContent(), "foo");
+        Assert.assertFalse(webSocketQueryHandler.isComplete());
+    }
 }
