@@ -24,7 +24,7 @@ public class WebSocketQueryHandler extends QueryHandler {
      * Constructor method.
      *
      * @param webSocketService The {@link WebSocketService} to handle websocket messages.
-     * @param sessionID TThe session ID to represent the client.
+     * @param sessionID The session ID to represent the client.
      * @param queryID The query ID.
      */
     public WebSocketQueryHandler(WebSocketService webSocketService, String sessionID, String queryID) {

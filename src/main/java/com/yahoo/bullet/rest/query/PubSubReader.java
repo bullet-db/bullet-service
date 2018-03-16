@@ -68,6 +68,7 @@ public class PubSubReader {
                 }
                 synchronized (queryHandler) {
                     if (queryHandler.isComplete()) {
+                        subscriber.commit(response.getId());
                         continue;
                     }
                     queryHandler.send(response);
