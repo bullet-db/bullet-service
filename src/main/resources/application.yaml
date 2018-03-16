@@ -24,6 +24,10 @@ bullet:
     user-destination-prefix: /client
      # The destination for server(broker) to send message to clients.
     destination: /private
+  endpoint:
+    http: /http-query
+    sse: /sse-query
+    websocket: /ws-query
 
 ####################################################################################################################
 # Spring Boot settings

@@ -30,7 +30,7 @@ public class HTTPQueryController {
      * @param query The JSON query.
      * @return A {@link CompletableFuture} representing the eventual result.
      */
-    @PostMapping(path = "/http-query", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    @PostMapping(path = "${bullet.endpoint.http}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> submitHTTPQuery(@RequestBody String query) {
         HTTPQueryHandler queryHandler = new HTTPQueryHandler();
         String queryID = QueryService.getNewQueryID();
@@ -45,7 +45,7 @@ public class HTTPQueryController {
      * @param query The JSON query.
      * @return A {@link SseEmitter} to send streaming results.
      */
-    @PostMapping("/sse-query")
+    @PostMapping("${bullet.endpoint.sse}")
     public SseEmitter submitSSEQuery(@RequestBody String query) {
         SseEmitter sseEmitter = new SseEmitter();
         String queryID = QueryService.getNewQueryID();
