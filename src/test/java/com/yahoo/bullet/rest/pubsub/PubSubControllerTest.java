@@ -5,7 +5,7 @@
  */
 package com.yahoo.bullet.rest.pubsub;
 
-import com.yahoo.bullet.rest.Mocks.MockHttpServletResponse;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -20,23 +20,23 @@ public class PubSubControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testPostAndGetQuery() throws Exception {
-        HttpServletResponse response = new MockHttpServletResponse();
+        HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
         controller.postQuery("{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
         String result = controller.getQuery(response);
-        Assert.assertEquals(response.getStatus(), 200);
+        Mockito.verify(response, Mockito.never()).setStatus(Mockito.anyInt());
         Assert.assertEquals(result, "{\"id\":\"88\",\"sequence\":-1,\"content\":\"foo\",\"metadata\":null}");
         controller.getQuery(response);
-        Assert.assertEquals(response.getStatus(), 204);
+        Mockito.verify(response).setStatus(204);
     }
 
     @Test
     public void testPostAndGetResult() throws Exception {
-        HttpServletResponse response = new MockHttpServletResponse();
+        HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
         controller.postResult("{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
         String result = controller.getResult(response);
-        Assert.assertEquals(response.getStatus(), 200);
+        Mockito.verify(response, Mockito.never()).setStatus(Mockito.anyInt());
         Assert.assertEquals(result, "{\"id\":\"88\",\"sequence\":-1,\"content\":\"foo\",\"metadata\":null}");
-        controller.getQuery(response);
-        Assert.assertEquals(response.getStatus(), 204);
+        controller.getResult(response);
+        Mockito.verify(response).setStatus(204);
     }
 }
