@@ -44,13 +44,11 @@ public class PubSubController {
      * @return A {@link CompletableFuture} representing the result.
      */
     @GetMapping(path = "${bullet.pubsub.rest.pubsub.result.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
-    public CompletableFuture<String> getResult(HttpServletResponse response) {
-        String value = pubSubService.getResult();
-        if (value == null) {
+    public String getResult(HttpServletResponse response) {
+        String result = pubSubService.getResult();
+        if (result == null) {
             response.setStatus(RESTPubSub.NO_CONTENT_204);
         }
-        CompletableFuture<String> result = new CompletableFuture<>();
-        result.complete(value);
         return result;
     }
 
@@ -73,13 +71,11 @@ public class PubSubController {
      * @return A {@link CompletableFuture} representing the query.
      */
     @GetMapping(path = "${bullet.pubsub.rest.pubsub.query.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
-    public CompletableFuture<String> getQuery(HttpServletResponse response) {
+    public String getQuery(HttpServletResponse response) {
         String query = pubSubService.getQuery();
         if (query == null) {
             response.setStatus(RESTPubSub.NO_CONTENT_204);
         }
-        CompletableFuture<String> result = new CompletableFuture<>();
-        result.complete(query);
-        return result;
+        return query;
     }
 }
