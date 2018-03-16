@@ -17,10 +17,10 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     @Value("${bullet.endpoint.websocket}")
     private String endpoint;
-    @Value("${bullet.websocket.application-destination-prefix}")
-    private String applicationDestinationPrefix;
-    @Value("${bullet.websocket.destination-prefix}")
-    private String destinationPrefix;
+    @Value("${bullet.websocket.server-destination-prefix}")
+    private String serverDestinationPrefix;
+    @Value("${bullet.websocket.client-destination}")
+    private String clientDestination;
     @Value("${bullet.websocket.user-destination-prefix}")
     private String userDestinationPrefix;
 
@@ -31,8 +31,8 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.setApplicationDestinationPrefixes(applicationDestinationPrefix);
-        registry.enableSimpleBroker(destinationPrefix);
+        registry.setApplicationDestinationPrefixes(serverDestinationPrefix);
+        registry.enableSimpleBroker(clientDestination);
         registry.setUserDestinationPrefix(userDestinationPrefix);
     }
 }

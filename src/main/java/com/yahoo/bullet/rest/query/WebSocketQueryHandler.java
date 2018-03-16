@@ -5,11 +5,15 @@
  */
 package com.yahoo.bullet.rest.query;
 
+import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.service.WebSocketService;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Query handler that implements results for WebSocket - multiple results per query.
@@ -19,6 +23,12 @@ public class WebSocketQueryHandler extends QueryHandler {
     private String sessionID;
     private String queryID;
     private SimpMessageHeaderAccessor headerAccessor;
+
+    private static final Map<Metadata.Signal, WebSocketResponse.Type> MESSAGE_TYPE_MAP = new HashMap<>();
+    static {
+        MESSAGE_TYPE_MAP.put(Metadata.Signal.FAIL, WebSocketResponse.Type.FAIL);
+        MESSAGE_TYPE_MAP.put(Metadata.Signal.COMPLETE, WebSocketResponse.Type.COMPLETE);
+    }
 
     /**
      * Constructor method.
@@ -44,7 +54,7 @@ public class WebSocketQueryHandler extends QueryHandler {
     @Override
     public void send(PubSubMessage response) {
         if (!isComplete()) {
-            WebSocketResponse responseMessage = new WebSocketResponse(WebSocketResponse.Type.CONTENT, response.getContent());
+            WebSocketResponse responseMessage = new WebSocketResponse(getType(response), response.getContent());
             webSocketService.sendResponse(sessionID, responseMessage, headerAccessor);
         }
     }
@@ -63,6 +73,13 @@ public class WebSocketQueryHandler extends QueryHandler {
     public void acknowledge() {
         WebSocketResponse response = new WebSocketResponse(WebSocketResponse.Type.ACK, queryID);
         webSocketService.sendResponse(sessionID, response, headerAccessor);
+    }
+
+    private WebSocketResponse.Type getType(PubSubMessage message) {
+        if (message.hasSignal()) {
+            return MESSAGE_TYPE_MAP.getOrDefault(message.getMetadata().getSignal(), WebSocketResponse.Type.MESSAGE);
+        }
+        return WebSocketResponse.Type.MESSAGE;
     }
 }
 

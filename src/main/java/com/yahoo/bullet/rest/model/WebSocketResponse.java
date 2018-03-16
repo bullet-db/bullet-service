@@ -13,7 +13,8 @@ public class WebSocketResponse {
     public enum Type {
         ACK,
         FAIL,
-        CONTENT
+        COMPLETE,
+        MESSAGE
     }
 
     private Type type;

@@ -5,6 +5,7 @@
  */
 package com.yahoo.bullet.rest.query;
 
+import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.service.WebSocketService;
@@ -39,11 +40,38 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
 
         ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
         verify(webSocketService).sendResponse(eq("id"), argument.capture(), any());
-        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.CONTENT);
+        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.MESSAGE);
         Assert.assertEquals(argument.getValue().getContent(), message.getContent());
         Assert.assertFalse(webSocketQueryHandler.isComplete());
     }
 
+    @Test
+    public void testSendOnMessageWithFailSignal() {
+        PubSubMessage message = new PubSubMessage("id", "foo", new Metadata(Metadata.Signal.FAIL, null));
+
+        WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
+        webSocketQueryHandler.send(message);
+
+        ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
+        verify(webSocketService).sendResponse(eq("id"), argument.capture(), any());
+        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.FAIL);
+        Assert.assertEquals(argument.getValue().getContent(), message.getContent());
+        Assert.assertFalse(webSocketQueryHandler.isComplete());
+    }
+
+    @Test
+    public void testSendOnMessageWithCompleteSignal() {
+        PubSubMessage message = new PubSubMessage("id", "foo", new Metadata(Metadata.Signal.COMPLETE, null));
+
+        WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
+        webSocketQueryHandler.send(message);
+
+        ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
+        verify(webSocketService).sendResponse(eq("id"), argument.capture(), any());
+        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.COMPLETE);
+        Assert.assertEquals(argument.getValue().getContent(), message.getContent());
+        Assert.assertFalse(webSocketQueryHandler.isComplete());
+    }
 
     @Test
     public void testSendAfterComplete() {

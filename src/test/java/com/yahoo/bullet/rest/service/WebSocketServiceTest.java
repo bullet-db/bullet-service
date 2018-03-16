@@ -78,6 +78,6 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
         WebSocketResponse response = new WebSocketResponse(WebSocketResponse.Type.ACK, "foo");
         webSocketService.sendResponse(sessionID, response, headerAccessor);
 
-        verify(simpMessagingTemplate).convertAndSendToUser("sessionID", "/response/private", response, (MessageHeaders) null);
+        verify(simpMessagingTemplate).convertAndSendToUser("sessionID", "/response", response, (MessageHeaders) null);
     }
 }

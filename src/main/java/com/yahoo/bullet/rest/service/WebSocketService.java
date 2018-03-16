@@ -21,10 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class WebSocketService {
-    @Value("${bullet.websocket.destination-prefix}")
-    private String destinationPrefix;
-    @Value("${bullet.websocket.destination}")
-    private String destination;
+    @Value("${bullet.websocket.client-destination}")
+    private String clientDestination;
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
     @Autowired
@@ -79,7 +77,6 @@ public class WebSocketService {
      * @param headerAccessor The {@link SimpMessageHeaderAccessor} headers to be associated with the response message.
      */
     public void sendResponse(String sessionID, WebSocketResponse response, SimpMessageHeaderAccessor headerAccessor) {
-        String fullDestination = destinationPrefix + destination;
-        simpMessagingTemplate.convertAndSendToUser(sessionID, fullDestination, response, headerAccessor.getMessageHeaders());
+        simpMessagingTemplate.convertAndSendToUser(sessionID, clientDestination, response, headerAccessor.getMessageHeaders());
     }
 }
