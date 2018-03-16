@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import com.yahoo.bullet.pubsub.rest.RESTPubSub;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
@@ -29,7 +28,7 @@ public class PubSubController {
      * The method that handles adding results to the result queue. Clients should POST to this endpoint to write results
      * to the queue. Invokes {@link PubSubService} to add the result to the queue.
      *
-     * @param result
+     * @param result The result to add to the queue.
      */
     @PostMapping(path = "${bullet.pubsub.rest.pubsub.result.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
     public void postResult(@RequestBody String result) {
@@ -41,7 +40,7 @@ public class PubSubController {
      * NO_CONTENT (204) if there are no results to read. Results are dropped after being read once.
      *
      * @param response The {@link HttpServletResponse} that will be used to set the response status code.
-     * @return A {@link CompletableFuture} representing the result.
+     * @return A String representing the result.
      */
     @GetMapping(path = "${bullet.pubsub.rest.pubsub.result.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public String getResult(HttpServletResponse response) {
@@ -56,7 +55,7 @@ public class PubSubController {
      * The method that handles adding queries to the query queue. Clients should POST to this endpoint to write queries
      * to the queue. Invokes {@link PubSubService} to add the query to the queue.
      *
-     * @param query
+     * @param query The query to add to the queue.
      */
     @PostMapping(path = "${bullet.pubsub.rest.pubsub.query.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
     public void postQuery(@RequestBody String query) {
@@ -68,7 +67,7 @@ public class PubSubController {
      * NO_CONTENT (204) if there are no queries to read. Queries are dropped after being read once.
      *
      * @param response The {@link HttpServletResponse} that will be used to set the response status code.
-     * @return A {@link CompletableFuture} representing the query.
+     * @return A String representing the query.
      */
     @GetMapping(path = "${bullet.pubsub.rest.pubsub.query.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public String getQuery(HttpServletResponse response) {

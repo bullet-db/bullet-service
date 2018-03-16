@@ -11,10 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
 import javax.servlet.http.HttpServletResponse;
-import java.util.concurrent.CompletableFuture;
-
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class PubSubControllerTest extends AbstractTestNGSpringContextTests {
@@ -25,9 +22,9 @@ public class PubSubControllerTest extends AbstractTestNGSpringContextTests {
     public void testPostAndGetQuery() throws Exception {
         HttpServletResponse response = new MockHttpServletResponse();
         controller.postQuery("{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
-        CompletableFuture<String> result = controller.getQuery(response);
+        String result = controller.getQuery(response);
         Assert.assertEquals(response.getStatus(), 200);
-        Assert.assertEquals(result.get(), "{\"id\":\"88\",\"sequence\":-1,\"content\":\"foo\",\"metadata\":null}");
+        Assert.assertEquals(result, "{\"id\":\"88\",\"sequence\":-1,\"content\":\"foo\",\"metadata\":null}");
         controller.getQuery(response);
         Assert.assertEquals(response.getStatus(), 204);
     }
@@ -36,9 +33,9 @@ public class PubSubControllerTest extends AbstractTestNGSpringContextTests {
     public void testPostAndGetResult() throws Exception {
         HttpServletResponse response = new MockHttpServletResponse();
         controller.postResult("{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
-        CompletableFuture<String> result = controller.getResult(response);
+        String result = controller.getResult(response);
         Assert.assertEquals(response.getStatus(), 200);
-        Assert.assertEquals(result.get(), "{\"id\":\"88\",\"sequence\":-1,\"content\":\"foo\",\"metadata\":null}");
+        Assert.assertEquals(result, "{\"id\":\"88\",\"sequence\":-1,\"content\":\"foo\",\"metadata\":null}");
         controller.getQuery(response);
         Assert.assertEquals(response.getStatus(), 204);
     }
