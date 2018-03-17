@@ -64,6 +64,7 @@ public class QueryService {
         try {
             publisher.send(queryID, query);
             runningQueries.put(queryID, queryHandler);
+            queryHandler.acknowledge();
         } catch (Exception e) {
             queryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
         }

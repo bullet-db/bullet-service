@@ -73,17 +73,17 @@ public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testFailOnCause() throws Exception {
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
-        sseQueryHandler.fail(QueryError.INVALID_QUERY);
+        sseQueryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
 
-        verify(sseEmitter).send(eq(QueryError.INVALID_QUERY.toString()), eq(MediaType.APPLICATION_JSON));
+        verify(sseEmitter).send(eq(QueryError.SERVICE_UNAVAILABLE.toString()), eq(MediaType.APPLICATION_JSON));
         Assert.assertTrue(sseQueryHandler.isComplete());
     }
 
     @Test
     public void testFailOnException() throws Exception {
-        doThrow(new IOException()).when(sseEmitter).send(QueryError.INVALID_QUERY.toString(), MediaType.APPLICATION_JSON);
+        doThrow(new IOException()).when(sseEmitter).send(QueryError.SERVICE_UNAVAILABLE.toString(), MediaType.APPLICATION_JSON);
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
-        sseQueryHandler.fail(QueryError.INVALID_QUERY);
+        sseQueryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
 
         verify(queryService).submitSignal("id", Metadata.Signal.KILL);
         Assert.assertTrue(sseQueryHandler.isComplete());
@@ -93,7 +93,7 @@ public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
     public void testFailAfterComplete() throws Exception {
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.complete();
-        sseQueryHandler.fail(QueryError.INVALID_QUERY);
+        sseQueryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
 
         verify(sseEmitter, never()).send(any(), any());
         verify(queryService, never()).submitSignal(any(), any());

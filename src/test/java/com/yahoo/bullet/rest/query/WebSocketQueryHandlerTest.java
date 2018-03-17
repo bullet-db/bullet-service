@@ -88,12 +88,12 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
     @Test
     public void testFailOnCause() {
         WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
-        webSocketQueryHandler.fail(QueryError.INVALID_QUERY);
+        webSocketQueryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
 
         ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
         verify(webSocketService).sendResponse(eq("id"), argument.capture(), any());
         Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.FAIL);
-        Assert.assertEquals(argument.getValue().getContent(), QueryError.INVALID_QUERY.toString());
+        Assert.assertEquals(argument.getValue().getContent(), QueryError.SERVICE_UNAVAILABLE.toString());
         Assert.assertTrue(webSocketQueryHandler.isComplete());
     }
 
@@ -102,7 +102,7 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
     public void testFailAfterComplete() {
         WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
         webSocketQueryHandler.complete();
-        webSocketQueryHandler.fail(QueryError.INVALID_QUERY);
+        webSocketQueryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
 
         verify(webSocketService, never()).sendResponse(any(), any(), any());
         Assert.assertTrue(webSocketQueryHandler.isComplete());

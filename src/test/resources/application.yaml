@@ -13,16 +13,15 @@ bullet:
     # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
     sleep-ms: 1
   websocket:
-    # The prefix of server destination. It's used for client to send message to server(broker).
-    server-destination-prefix: /app
-    # The client destination for server(broker) to send message to clients.
-    client-destination: /response
-    # The prefix to be added before client-destination for server(broker) to send message to specific client.
-    user-destination-prefix: /client
+    server.destination.prefix: /app
+    client.destination: /response
+    user.destination.prefix: /client
+    allow.origins: "*"
   endpoint:
     http: /http-query
     sse: /sse-query
     websocket: /ws-query
+    message: /submit
 
 # Spring Boot settings
 

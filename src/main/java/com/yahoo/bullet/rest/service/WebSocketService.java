@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class WebSocketService {
-    @Value("${bullet.websocket.client-destination}")
+    @Value("${bullet.websocket.client.destination}")
     private String clientDestination;
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
@@ -33,7 +33,7 @@ public class WebSocketService {
     private Map<String, String> sessionIDMap = new ConcurrentHashMap<>();
 
     /**
-     * Send a KILL signal to the backend.
+     * Sends a KILL signal to the backend.
      *
      * @param sessionID The session ID to represent the client.
      * @param queryID The query ID of the query to be killed or null to kill the query associated with the session.
@@ -42,21 +42,21 @@ public class WebSocketService {
         String queryForSession = sessionIDMap.get(sessionID);
         if (queryForSession != null && (queryID == null || queryID.equals(queryForSession))) {
             queryService.submitSignal(queryForSession, Metadata.Signal.KILL);
-            removeSessionID(sessionID);
+            deleteSession(sessionID);
         }
     }
 
     /**
-     * Remove a session ID from the session id map.
+     * Deletes a session from the session id map.
      *
-     * @param sessionID The session ID to be removed.
+     * @param sessionID The session ID to be deleted.
      */
-    public void removeSessionID(String sessionID) {
+    public void deleteSession(String sessionID) {
         sessionIDMap.remove(sessionID);
     }
 
     /**
-     * Submit a query by {@link QueryService}.
+     * Submits a query by {@link QueryService}.
      *
      * @param queryID The query ID to register request with.
      * @param sessionID The session ID to represent the client.
@@ -66,11 +66,10 @@ public class WebSocketService {
         sessionIDMap.put(sessionID, queryID);
         WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(this, sessionID, queryID);
         queryService.submit(queryID, queryString, queryHandler);
-        queryHandler.acknowledge();
     }
 
     /**
-     * Send a response to the client through WebSocket connection.
+     * Sends a response to the client through WebSocket connection.
      *
      * @param sessionID The session ID to represent the client.
      * @param response The {@link WebSocketResponse} response to be sent.

@@ -64,11 +64,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     public void testSSEQuery() throws Exception {
         String query = "foo";
 
-        MvcResult result = mockMVC.perform(
-                post("/sse-query")
-                        .contentType(MediaType.TEXT_PLAIN)
-                        .content(query)
-        ).andReturn();
+        MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
 
         ArgumentCaptor<SSEQueryHandler> argument = ArgumentCaptor.forClass(SSEQueryHandler.class);
         verify(service).submit(anyString(), eq(query), argument.capture());

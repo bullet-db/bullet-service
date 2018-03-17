@@ -48,7 +48,7 @@ public class WebSocketQueryHandler extends QueryHandler {
     @Override
     public void complete() {
         super.complete();
-        webSocketService.removeSessionID(sessionID);
+        webSocketService.deleteSession(sessionID);
     }
 
     @Override
