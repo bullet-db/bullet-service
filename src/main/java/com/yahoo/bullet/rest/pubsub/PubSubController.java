@@ -30,7 +30,7 @@ public class PubSubController {
      *
      * @param result The result to add to the queue.
      */
-    @PostMapping(path = "${bullet.pubsub.rest.pubsub.result.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
+    @PostMapping(path = "${bullet.pubsub.rest.pubsub.result.path}", consumes = { MediaType.APPLICATION_JSON_VALUE })
     public void postResult(@RequestBody String result) {
         pubSubService.postResult(result);
     }
@@ -57,7 +57,7 @@ public class PubSubController {
      *
      * @param query The query to add to the queue.
      */
-    @PostMapping(path = "${bullet.pubsub.rest.pubsub.query.path}", consumes = { MediaType.TEXT_PLAIN_VALUE })
+    @PostMapping(path = "${bullet.pubsub.rest.pubsub.query.path}", consumes = { MediaType.APPLICATION_JSON_VALUE })
     public void postQuery(@RequestBody String query) {
         pubSubService.postQuery(query);
     }
