@@ -13,7 +13,6 @@ import com.yahoo.bullet.rest.query.SSEQueryHandler;
 import com.yahoo.bullet.rest.service.QueryService;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,17 +32,17 @@ public class HTTPQueryController {
      * The method that handles POSTs to this endpoint. Consumes the HTTP request, invokes {@link QueryService} to
      * register and transmit the query to Bullet.
      *
-     * @param queryString The JSON query.
+     * @param query The JSON query.
      * @return A {@link CompletableFuture} representing the eventual result.
      */
-    @PostMapping(path = "${bullet.endpoint.http}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    @PostMapping("${bullet.endpoint.http}")
     @SuppressWarnings("unchecked")
-    public CompletableFuture<String> submitHTTPQuery(@RequestBody String queryString) {
+    public CompletableFuture<String> submitHTTPQuery(@RequestBody String query) {
         HTTPQueryHandler queryHandler = new HTTPQueryHandler();
         String queryID = QueryService.getNewQueryID();
         // Remove window information from queryString since we don't support windowing for this endpoint.
         try {
-            Map<String, Object> queryContent = GSON.fromJson(queryString, Map.class);
+            Map<String, Object> queryContent = GSON.fromJson(query, Map.class);
             queryContent.remove(WINDOW_KEY_STRING);
             queryService.submit(queryID, GSON.toJson(queryContent), queryHandler);
         } catch (Exception e) {

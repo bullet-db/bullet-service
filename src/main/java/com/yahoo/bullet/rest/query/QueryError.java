@@ -12,7 +12,7 @@ import lombok.Getter;
 
 @Getter
 public class QueryError {
-    public static final QueryError INVALID_QUERY = new QueryError("Failed to parser query.", "Please provide a valid query.");
+    public static final QueryError INVALID_QUERY = new QueryError("Failed to parse query.", "Please provide a valid query.");
     public static final QueryError SERVICE_UNAVAILABLE = new QueryError("Service temporarily unavailable", "Please try again later.");
 
     private String error;
