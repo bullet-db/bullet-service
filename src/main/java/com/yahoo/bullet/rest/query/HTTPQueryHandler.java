@@ -24,6 +24,7 @@ public class HTTPQueryHandler extends QueryHandler {
     public void send(PubSubMessage message) {
         if (!isComplete()) {
             result.complete(message.getContent());
+            complete();
         }
     }
 
@@ -31,6 +32,7 @@ public class HTTPQueryHandler extends QueryHandler {
     public void fail(QueryError cause) {
         if (!isComplete()) {
             result.complete(cause.toString());
+            complete();
         }
     }
 

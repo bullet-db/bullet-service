@@ -5,14 +5,13 @@
  */
 package com.yahoo.bullet.rest.query;
 
+import com.yahoo.bullet.common.BulletError;
 import com.yahoo.bullet.result.Clip;
-import com.yahoo.bullet.result.Metadata;
-import com.yahoo.bullet.parsing.Error;
+import com.yahoo.bullet.result.Meta;
 import lombok.Getter;
 
 @Getter
 public class QueryError {
-    public static final QueryError INVALID_QUERY = new QueryError("Query not found.", "Please provide a valid query.");
     public static final QueryError SERVICE_UNAVAILABLE = new QueryError("Service temporarily unavailable", "Please try again later.");
 
     private String error;
@@ -31,6 +30,6 @@ public class QueryError {
 
     @Override
     public String toString() {
-        return Clip.of(Metadata.of(Error.makeError(error, resolution))).asJSON();
+        return Clip.of(Meta.of(BulletError.makeError(error, resolution))).asJSON();
     }
 }

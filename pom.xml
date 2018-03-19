@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.bullet</groupId>
     <artifactId>bullet-service</artifactId>
-    <version>0.1.2-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <name>bullet-service</name>
 
     <scm>
@@ -34,7 +34,7 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <bullet.core.version>0.2.5</bullet.core.version>
+        <bullet.core.version>0.3.0</bullet.core.version>
         <spring.security.oauth2>2.2.0.RELEASE</spring.security.oauth2>
     </properties>
 
@@ -107,6 +107,10 @@
             <groupId>org.springframework.security.oauth</groupId>
             <artifactId>spring-security-oauth2</artifactId>
             <version>${spring.security.oauth2}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
     </dependencies>

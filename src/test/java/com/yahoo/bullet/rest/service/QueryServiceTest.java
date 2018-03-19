@@ -5,11 +5,14 @@
  */
 package com.yahoo.bullet.rest.service;
 
+import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubException;
+import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.QueryHandler;
+import lombok.NoArgsConstructor;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -22,10 +25,30 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 
 public class QueryServiceTest {
+    @NoArgsConstructor
+    private class MockSubscriber implements Subscriber {
+        @Override
+        public PubSubMessage receive() throws PubSubException {
+            return null;
+        }
+
+        @Override
+        public void close() {
+        }
+
+        @Override
+        public void commit(String s, int i) {
+        }
+
+        @Override
+        public void fail(String s, int i) {
+        }
+    }
+
     @Test
-    public void testClose() throws Exception {
+    public void testClose() {
         Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = Mockito.mock(Subscriber.class);
+        Subscriber subscriber = new MockSubscriber();
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
         service.submit("", "", queryHandler);
@@ -37,7 +60,7 @@ public class QueryServiceTest {
     @Test
     public void testSubmitWhenPublisherFails() throws Exception {
         Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = Mockito.mock(Subscriber.class);
+        Subscriber subscriber = new MockSubscriber();
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         doThrow(new PubSubException("")).when(publisher).send(anyString(), anyString());
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
@@ -49,7 +72,7 @@ public class QueryServiceTest {
     @Test
     public void testSubmit() throws Exception {
         Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = Mockito.mock(Subscriber.class);
+        Subscriber subscriber = new MockSubscriber();
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
         String randomID = UUID.randomUUID().toString();
@@ -58,6 +81,34 @@ public class QueryServiceTest {
         Assert.assertEquals(1, service.getRunningQueries().size());
         Assert.assertEquals(queryHandler, service.getRunningQueries().get(randomID));
         Mockito.verify(publisher).send(randomID, randomContent);
+        service.close();
+    }
+
+    @Test
+    public void testSubmitSignal() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = new MockSubscriber();
+        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+        service.getRunningQueries().put("id", queryHandler);
+
+        service.submitSignal("id", Metadata.Signal.KILL);
+        Assert.assertEquals(0, service.getRunningQueries().size());
+        Mockito.verify(publisher).send(new PubSubMessage("id", null, new Metadata(Metadata.Signal.KILL, null)));
+        service.close();
+    }
+
+    @Test
+    public void testSubmitSignalWhenPublisherFails() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = new MockSubscriber();
+        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+        service.getRunningQueries().put("id", queryHandler);
+
+        doThrow(new PubSubException("")).when(publisher).send(any());
+        service.submitSignal("id", Metadata.Signal.KILL);
+        Assert.assertEquals(0, service.getRunningQueries().size());
         service.close();
     }
 }

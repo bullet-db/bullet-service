@@ -19,11 +19,23 @@ bullet:
       # The paths for the endpoints
       query.path: "/pubsub/query"
       result.path: "/pubsub/result"
+  websocket:
+    server.destination.prefix: /app
+    client.destination: /response
+    user.destination.prefix: /client
+  endpoint:
+    http: /http-query
+    sse: /sse-query
+    websocket: /ws-query
+    message: /submit
+
 # Spring Boot settings
 
 logging:
   level:
    root: ERROR
+
+security.ignored: "/**"
 
 spring:
   main:
