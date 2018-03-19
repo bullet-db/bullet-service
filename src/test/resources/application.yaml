@@ -16,7 +16,6 @@ bullet:
     server.destination.prefix: /app
     client.destination: /response
     user.destination.prefix: /client
-    allow.origins: "*"
   endpoint:
     http: /http-query
     sse: /sse-query

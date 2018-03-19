@@ -26,6 +26,7 @@ import java.util.List;
 @Configuration
 @EnableOAuth2Sso
 public class APIConfiguration extends WebSecurityConfigurerAdapter {
+    private static final String CORS_MAPPING = "/**";
     /**
      * Enables CORS globally.
      *
@@ -36,7 +37,7 @@ public class APIConfiguration extends WebSecurityConfigurerAdapter {
         return new WebMvcConfigurerAdapter() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**");
+                registry.addMapping(CORS_MAPPING);
             }
         };
     }

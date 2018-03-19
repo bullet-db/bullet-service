@@ -22,8 +22,6 @@ bullet:
     client.destination: /response
     # The prefix to be added as a part of client destination for server(broker) to send messages to specific clients.
     user.destination.prefix: /client
-    # The origins which are allowed to access WebSocket endpoint.
-    allow.origins: "*"
   endpoint:
     http: /http-query
     sse: /sse-query

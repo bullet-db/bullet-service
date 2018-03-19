@@ -15,6 +15,8 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
+    private static final String ALLOW_ORIGINS = "*";
+
     @Value("${bullet.endpoint.websocket}")
     private String endpoint;
     @Value("${bullet.websocket.server.destination.prefix}")
@@ -23,12 +25,10 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     private String clientDestination;
     @Value("${bullet.websocket.user.destination.prefix}")
     private String userDestinationPrefix;
-    @Value("${bullet.websocket.allow.origins}")
-    private String allowOrigins;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint(endpoint).setAllowedOrigins(allowOrigins).withSockJS();
+        registry.addEndpoint(endpoint).setAllowedOrigins(ALLOW_ORIGINS).withSockJS();
     }
 
     @Override
