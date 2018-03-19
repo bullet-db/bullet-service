@@ -13,6 +13,7 @@ import com.yahoo.bullet.rest.query.SSEQueryHandler;
 import com.yahoo.bullet.rest.service.QueryService;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,7 +36,7 @@ public class HTTPQueryController {
      * @param query The JSON query.
      * @return A {@link CompletableFuture} representing the eventual result.
      */
-    @PostMapping("${bullet.endpoint.http}")
+    @PostMapping(path = "${bullet.endpoint.http}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     @SuppressWarnings("unchecked")
     public CompletableFuture<String> submitHTTPQuery(@RequestBody String query) {
         HTTPQueryHandler queryHandler = new HTTPQueryHandler();
