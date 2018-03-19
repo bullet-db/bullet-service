@@ -5,7 +5,6 @@
  */
 package com.yahoo.bullet.rest.controller;
 
-
 import com.yahoo.bullet.rest.service.WebSocketService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
