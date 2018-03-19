@@ -59,7 +59,7 @@ public class HTTPQueryController {
      * @param query The JSON query.
      * @return A {@link SseEmitter} to send streaming results.
      */
-    @PostMapping("${bullet.endpoint.sse}")
+    @PostMapping(value = "${bullet.endpoint.sse}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public SseEmitter submitSSEQuery(@RequestBody String query) {
         SseEmitter sseEmitter = new SseEmitter();
         String queryID = QueryService.getNewQueryID();
