@@ -11,7 +11,6 @@ import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
 import com.yahoo.bullet.rest.service.QueryService;
-import com.yahoo.bullet.result.JSONFormatter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -46,7 +45,7 @@ public class HTTPQueryController {
         try {
             Map<String, Object> queryContent = GSON.fromJson(queryString, Map.class);
             queryContent.remove(WINDOW_KEY_STRING);
-            queryService.submit(queryID, JSONFormatter.asJSON(queryContent), queryHandler);
+            queryService.submit(queryID, GSON.toJson(queryContent), queryHandler);
         } catch (Exception e) {
             queryHandler.fail(QueryError.INVALID_QUERY);
         }
