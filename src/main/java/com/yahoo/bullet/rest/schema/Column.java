@@ -5,6 +5,7 @@
  */
 package com.yahoo.bullet.rest.schema;
 
+import com.yahoo.bullet.operations.typesystem.Type;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,13 +15,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.yahoo.bullet.typesystem.Type;
-import static com.yahoo.bullet.typesystem.Type.BOOLEAN;
-import static com.yahoo.bullet.typesystem.Type.DOUBLE;
-import static com.yahoo.bullet.typesystem.Type.LIST;
-import static com.yahoo.bullet.typesystem.Type.LONG;
-import static com.yahoo.bullet.typesystem.Type.MAP;
-import static com.yahoo.bullet.typesystem.Type.STRING;
+import static com.yahoo.bullet.operations.typesystem.Type.BOOLEAN;
+import static com.yahoo.bullet.operations.typesystem.Type.DOUBLE;
+import static com.yahoo.bullet.operations.typesystem.Type.LIST;
+import static com.yahoo.bullet.operations.typesystem.Type.LONG;
+import static com.yahoo.bullet.operations.typesystem.Type.MAP;
+import static com.yahoo.bullet.operations.typesystem.Type.STRING;
 import static java.util.Arrays.asList;
 
 @NoArgsConstructor

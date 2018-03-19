@@ -5,7 +5,7 @@
  */
 package com.yahoo.bullet.rest.schema;
 
-import com.yahoo.bullet.typesystem.Type;
+import com.yahoo.bullet.operations.typesystem.Type;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
