@@ -62,8 +62,7 @@ public class WebSocketQueryHandler extends QueryHandler {
     @Override
     public void fail(QueryError cause) {
         if (!isComplete()) {
-            WebSocketResponse responseMessage =
-                    new WebSocketResponse(WebSocketResponse.Type.FAIL, cause.toString());
+            WebSocketResponse responseMessage = new WebSocketResponse(WebSocketResponse.Type.FAIL, cause.toString());
             webSocketService.sendResponse(sessionID, responseMessage, headerAccessor);
             complete();
         }
