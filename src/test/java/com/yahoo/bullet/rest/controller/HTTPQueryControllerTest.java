@@ -52,7 +52,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSendHTTPQueryWithoutWindow() throws Exception {
-        String query = "{\"aggregation\":{\"type\":\"RAW\"}}";
+        String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
@@ -63,12 +63,11 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSendHTTPQueryWithWindow() throws Exception {
-        String query = "{\"aggregation\":{\"type\":\"RAW\"}, \"window\":{}}";
-        String queryAfterRemovingWindow = "{\"aggregation\":{\"type\":\"RAW\"}}";
+        String query = "{\"window\":{}}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
-        verify(service).submit(anyString(), eq(queryAfterRemovingWindow), argument.capture());
+        verify(service).submit(anyString(), eq("{}"), argument.capture());
         argument.getValue().send(new PubSubMessage("", "bar"));
         Assert.assertEquals(response.get(), "bar");
     }
