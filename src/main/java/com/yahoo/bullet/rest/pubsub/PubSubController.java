@@ -37,7 +37,7 @@ public class PubSubController {
 
     /**
      * The method that handles reading a result. Clients should GET from this endpoint to read a result. Returns
-     * NO_CONTENT (204) if there are no results to read. Results are dropped after being read once.
+     * NO_CONTENT (204) if there are no results to read.
      *
      * @param response The {@link HttpServletResponse} that will be used to set the response status code.
      * @return A String representing the result.
@@ -64,7 +64,7 @@ public class PubSubController {
 
     /**
      * The method that handles reading a query. Clients should GET from this endpoint to read a query. Returns
-     * NO_CONTENT (204) if there are no queries to read. Queries are dropped after being read once.
+     * NO_CONTENT (204) if there are no queries to read.
      *
      * @param response The {@link HttpServletResponse} that will be used to set the response status code.
      * @return A String representing the query.
