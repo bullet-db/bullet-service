@@ -5,12 +5,12 @@
  */
 package com.yahoo.bullet.rest.query;
 
+import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Subscriber;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PubSubReaderTest {
     private ConcurrentHashMap<String, QueryHandler> requestQueue;
-    private Subscriber subscriber;
     private String randomID;
     private MockQueryHandler queryHandler;
     private PubSubMessage mockMessage;
@@ -31,10 +30,17 @@ public class PubSubReaderTest {
     @Getter @NoArgsConstructor
     private class MockQueryHandler extends QueryHandler {
         private CompletableFuture<PubSubMessage> sentMessage = new CompletableFuture<>();
+        private CompletableFuture<Boolean> isCompleted = new CompletableFuture<>();
 
         @Override
         public void send(PubSubMessage message) {
             sentMessage.complete(message);
+        }
+
+        @Override
+        public void complete() {
+            super.complete();
+            isCompleted.complete(true);
         }
 
         @Override
@@ -61,7 +67,7 @@ public class PubSubReaderTest {
 
         @Override
         public PubSubMessage receive() throws PubSubException {
-            return messageList == null ? null : messageList.remove(0);
+            return messageList == null || messageList.isEmpty() ? null : messageList.remove(0);
         }
 
         @Override
@@ -95,8 +101,7 @@ public class PubSubReaderTest {
     }
 
     @BeforeMethod
-    public void setup() throws Exception {
-        subscriber = Mockito.mock(Subscriber.class);
+    public void setup() {
         requestQueue = new ConcurrentHashMap<>();
         randomID = UUID.randomUUID().toString();
         queryHandler = new MockQueryHandler();
@@ -105,10 +110,21 @@ public class PubSubReaderTest {
 
     @Test(timeOut = 10000)
     public void testQueryCompletedOnReceive() throws Exception {
-        Mockito.when(subscriber.receive()).thenReturn(mockMessage);
+        Subscriber subscriber = new MockSubscriber(mockMessage);
         requestQueue.put(randomID, queryHandler);
         PubSubReader reader = new PubSubReader(subscriber, requestQueue, 1);
         Assert.assertEquals(queryHandler.getSentMessage().get(), mockMessage);
+        reader.close();
+    }
+
+    @Test(timeOut = 10000)
+    public void testQueryCompletedOnReceiveFailMessage() throws Exception {
+        PubSubMessage failMessage = new PubSubMessage("failID", "", Metadata.Signal.FAIL);
+        Subscriber subscriber = new MockSubscriber(failMessage);
+        requestQueue.put("failID", queryHandler);
+        PubSubReader reader = new PubSubReader(subscriber, requestQueue, 1);
+        Assert.assertTrue(queryHandler.getIsCompleted().get());
+        Assert.assertEquals(queryHandler.getSentMessage().get(), failMessage);
         reader.close();
     }
 
@@ -131,7 +147,7 @@ public class PubSubReaderTest {
 
     @Test(timeOut = 10000)
     public void testEmptyReceiveIgnored() throws Exception {
-        Mockito.when(subscriber.receive()).thenReturn(null).thenReturn(mockMessage);
+        Subscriber subscriber = new MockSubscriber(null, mockMessage);
         requestQueue.put(randomID, queryHandler);
         new PubSubReader(subscriber, requestQueue, 1);
 
@@ -143,7 +159,7 @@ public class PubSubReaderTest {
         PubSubMessage completedMessage = new PubSubMessage("completedID", "");
         MockQueryHandler completedQueryHandler = new MockQueryHandler();
         completedQueryHandler.complete();
-        Mockito.when(subscriber.receive()).thenReturn(completedMessage).thenReturn(mockMessage);
+        Subscriber subscriber = new MockSubscriber(completedMessage, mockMessage);
         requestQueue.put(randomID, queryHandler);
         requestQueue.put("completedID", completedQueryHandler);
         new PubSubReader(subscriber, requestQueue, 1);

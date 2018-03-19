@@ -60,12 +60,12 @@ public class HTTPQueryHandlerTest {
         CompletableFuture<String> result = queryHandler.getResult();
         Assert.assertFalse(result.isDone());
 
-        queryHandler.fail(QueryError.INVALID_QUERY);
+        queryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
         queryHandler.complete();
         queryHandler.fail(new QueryError("foo", "bar"));
 
         Assert.assertTrue(result.isDone());
-        Assert.assertEquals(result.get(), QueryError.INVALID_QUERY.toString());
+        Assert.assertEquals(result.get(), QueryError.SERVICE_UNAVAILABLE.toString());
     }
 
     @Test

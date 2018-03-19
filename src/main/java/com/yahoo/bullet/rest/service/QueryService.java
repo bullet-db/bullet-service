@@ -6,11 +6,15 @@
 package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.common.RandomPool;
+import com.yahoo.bullet.pubsub.Metadata;
+import com.yahoo.bullet.pubsub.Metadata.Signal;
+import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.query.PubSubReader;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.QueryHandler;
+import lombok.AccessLevel;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,13 +23,15 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 @Service
 public class QueryService {
-    @Getter
+    // Exposed for testing only.
+    @Getter(AccessLevel.PACKAGE)
     private ConcurrentMap<String, QueryHandler> runningQueries;
     private List<PubSubReader> consumers;
     private RandomPool<Publisher> publisherRandomPool;
@@ -58,9 +64,28 @@ public class QueryService {
         try {
             publisher.send(queryID, query);
             runningQueries.put(queryID, queryHandler);
+            queryHandler.acknowledge();
         } catch (Exception e) {
             queryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
         }
+    }
+
+    /**
+     * Submit a signal query to Bullet.
+     *
+     * @param queryID The query ID to register request with.
+     * @param signal The {@link Signal} to be submitted.
+     */
+    public void submitSignal(String queryID, Signal signal) {
+        Publisher publisher = publisherRandomPool.get();
+        try {
+            Metadata metadata = new Metadata(signal, null);
+            PubSubMessage message = new PubSubMessage(queryID, null, metadata);
+            publisher.send(message);
+        } catch (Exception e) {
+            // Ignore failure.
+        }
+        runningQueries.remove(queryID);
     }
 
     /**
@@ -72,5 +97,14 @@ public class QueryService {
         runningQueries.values().forEach(QueryHandler::fail);
         runningQueries.clear();
         publisherRandomPool.clear();
+    }
+
+    /**
+     * Get a new unique query ID.
+     *
+     * @return A new unique query ID.
+     */
+    public static String getNewQueryID() {
+        return UUID.randomUUID().toString();
     }
 }

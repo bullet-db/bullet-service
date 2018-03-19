@@ -24,7 +24,7 @@ public abstract class QueryHandler {
      */
     public void complete() {
         complete = true;
-    };
+    }
 
     /**
      * Fail the query.

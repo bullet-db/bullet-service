@@ -15,6 +15,18 @@ bullet:
     config: pubsub_defaults.yaml
     # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
     sleep-ms: 1
+  websocket:
+    # The prefix of server destination. It's used for clients to send messages to server(broker).
+    server.destination.prefix: /app
+    # The client destination for server(broker) to send messages to clients.
+    client.destination: /response
+    # The prefix to be added as a part of client destination for server(broker) to send messages to specific clients.
+    user.destination.prefix: /client
+  endpoint:
+    http: /http-query
+    sse: /sse-query
+    websocket: /ws-query
+    message: /submit
 
 ####################################################################################################################
 # Spring Boot settings

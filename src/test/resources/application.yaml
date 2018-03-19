@@ -12,6 +12,15 @@ bullet:
     config: test_pubsub_defaults.yaml
     # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
     sleep-ms: 1
+  websocket:
+    server.destination.prefix: /app
+    client.destination: /response
+    user.destination.prefix: /client
+  endpoint:
+    http: /http-query
+    sse: /sse-query
+    websocket: /ws-query
+    message: /submit
 
 # Spring Boot settings
 
