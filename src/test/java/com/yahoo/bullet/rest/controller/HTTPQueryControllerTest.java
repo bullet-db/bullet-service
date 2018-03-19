@@ -71,8 +71,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         argument.getValue().send(new PubSubMessage("", "bar"));
         Assert.assertEquals(response.get(), "bar");
     }
-
-
+    
     @Test
     public void testInvalidQuery() throws Exception {
         String query = "invalid query";
