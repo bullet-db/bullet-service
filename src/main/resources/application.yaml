@@ -16,9 +16,9 @@ bullet:
     # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
     sleep-ms: 1
     # In-memory pubsub settings
-    rest.pubsub:
+    builtin.rest:
       # Set to true if you want to turn on the http endpoints for the in-memory pubsub
-      enabled: false
+      enabled: true
       # The paths for the endpoints
       query.path: "/pubsub/query"
       result.path: "/pubsub/result"

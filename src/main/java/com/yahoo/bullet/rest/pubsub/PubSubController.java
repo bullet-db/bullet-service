@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
 @RestController
-@ConditionalOnExpression("${bullet.pubsub.rest.pubsub.enabled:false}")
+@ConditionalOnExpression("${bullet.pubsub.builtin.rest.enabled:false}")
 public class PubSubController {
     @Autowired
     private PubSubService pubSubService;
@@ -30,7 +30,7 @@ public class PubSubController {
      *
      * @param result The result to add to the queue.
      */
-    @PostMapping(path = "${bullet.pubsub.rest.pubsub.result.path}", consumes = { MediaType.APPLICATION_JSON_VALUE })
+    @PostMapping(path = "${bullet.pubsub.builtin.rest.result.path}", consumes = { MediaType.APPLICATION_JSON_VALUE })
     public void postResult(@RequestBody String result) {
         pubSubService.postResult(result);
     }
@@ -42,7 +42,7 @@ public class PubSubController {
      * @param response The {@link HttpServletResponse} that will be used to set the response status code.
      * @return A String representing the result.
      */
-    @GetMapping(path = "${bullet.pubsub.rest.pubsub.result.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
+    @GetMapping(path = "${bullet.pubsub.builtin.rest.result.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public String getResult(HttpServletResponse response) {
         String result = pubSubService.getResult();
         if (result == null) {
@@ -57,7 +57,7 @@ public class PubSubController {
      *
      * @param query The query to add to the queue.
      */
-    @PostMapping(path = "${bullet.pubsub.rest.pubsub.query.path}", consumes = { MediaType.APPLICATION_JSON_VALUE })
+    @PostMapping(path = "${bullet.pubsub.builtin.rest.query.path}", consumes = { MediaType.APPLICATION_JSON_VALUE })
     public void postQuery(@RequestBody String query) {
         pubSubService.postQuery(query);
     }
@@ -69,7 +69,7 @@ public class PubSubController {
      * @param response The {@link HttpServletResponse} that will be used to set the response status code.
      * @return A String representing the query.
      */
-    @GetMapping(path = "${bullet.pubsub.rest.pubsub.query.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
+    @GetMapping(path = "${bullet.pubsub.builtin.rest.query.path}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public String getQuery(HttpServletResponse response) {
         String query = pubSubService.getQuery();
         if (query == null) {

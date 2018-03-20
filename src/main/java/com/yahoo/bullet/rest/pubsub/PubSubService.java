@@ -20,7 +20,7 @@ public class PubSubService {
      * @return The next query.
      */
     public String getQuery() {
-        return queries.isEmpty() ? null : queries.poll().asJSON();
+        return getFromQueue(queries);
     }
 
     /**
@@ -29,7 +29,7 @@ public class PubSubService {
      * @return the next result.
      */
     public String getResult() {
-        return results.isEmpty() ? null : results.poll().asJSON();
+        return getFromQueue(results);
     }
 
     /**
@@ -38,7 +38,7 @@ public class PubSubService {
      * @param result The result to add to the result queue.
      */
     public void postResult(String result) {
-        results.add(PubSubMessage.fromJSON(result));
+        addToQueue(results, result);
     }
 
     /**
@@ -47,6 +47,14 @@ public class PubSubService {
      * @param query The query to add to the queue.
      */
     public void postQuery(String query) {
-        queries.add(PubSubMessage.fromJSON(query));
+        addToQueue(queries, query);
+    }
+
+    private String getFromQueue(ConcurrentLinkedQueue<PubSubMessage> queue) {
+        return queue.isEmpty() ? null : queue.poll().asJSON();
+    }
+
+    private void addToQueue(ConcurrentLinkedQueue<PubSubMessage> queue, String message) {
+        queue.add(PubSubMessage.fromJSON(message));
     }
 }
