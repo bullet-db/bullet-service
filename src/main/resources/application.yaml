@@ -51,7 +51,7 @@ spring:
 
 server:
   context-path: /api/bullet
-  port: 5555
+  port: 9901
 
 # To configure SSL, override and change the following settings to your config
 # server:
