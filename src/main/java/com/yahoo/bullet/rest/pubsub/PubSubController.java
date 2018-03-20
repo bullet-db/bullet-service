@@ -1,5 +1,5 @@
 /*
- *  Copyright 2017, Yahoo Inc.
+ *  Copyright 2018, Yahoo Inc.
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
@@ -12,12 +12,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import lombok.extern.slf4j.Slf4j;
 import com.yahoo.bullet.pubsub.rest.RESTPubSub;
 
 import javax.servlet.http.HttpServletResponse;
 
-@Slf4j
 @RestController
 @ConditionalOnExpression("${bullet.pubsub.builtin.rest.enabled:false}")
 public class PubSubController {

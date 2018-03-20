@@ -20,8 +20,8 @@ bullet:
       # Set to true if you want to turn on the http endpoints for the in-memory pubsub
       enabled: false
       # The paths for the endpoints
-      query.path: "/pubsub/query"
-      result.path: "/pubsub/result"
+      query.path: /pubsub/query
+      result.path: /pubsub/result
   websocket:
     # The prefix of server destination. It's used for clients to send messages to server(broker).
     server.destination.prefix: /app

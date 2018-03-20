@@ -1,18 +1,17 @@
 /*
- *  Copyright 2017, Yahoo Inc.
+ *  Copyright 2018, Yahoo Inc.
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
 package com.yahoo.bullet.rest.pubsub;
 
-import com.yahoo.bullet.pubsub.PubSubMessage;
 import org.springframework.stereotype.Service;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Service
 public class PubSubService {
-    private ConcurrentLinkedQueue<PubSubMessage> queries = new ConcurrentLinkedQueue<>();
-    private ConcurrentLinkedQueue<PubSubMessage> results = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<String> queries = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<String> results = new ConcurrentLinkedQueue<>();
 
     /**
      * Get the next query from the query queue. Queries are removed after being read once.
@@ -50,11 +49,11 @@ public class PubSubService {
         addToQueue(queries, query);
     }
 
-    private String getFromQueue(ConcurrentLinkedQueue<PubSubMessage> queue) {
-        return queue.isEmpty() ? null : queue.poll().asJSON();
+    private String getFromQueue(ConcurrentLinkedQueue<String> queue) {
+        return queue.isEmpty() ? null : queue.poll();
     }
 
-    private void addToQueue(ConcurrentLinkedQueue<PubSubMessage> queue, String message) {
-        queue.add(PubSubMessage.fromJSON(message));
+    private void addToQueue(ConcurrentLinkedQueue<String> queue, String message) {
+        queue.add(message);
     }
 }
