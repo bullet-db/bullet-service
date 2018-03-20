@@ -24,7 +24,7 @@ public class PubSubControllerTest extends AbstractTestNGSpringContextTests {
         controller.postQuery("{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
         String result = controller.getQuery(response);
         Mockito.verify(response, Mockito.never()).setStatus(Mockito.anyInt());
-        Assert.assertEquals(result, "{\"id\":\"88\",\"sequence\":-1,\"content\":\"foo\",\"metadata\":null}");
+        Assert.assertEquals(result, "{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
         controller.getQuery(response);
         Mockito.verify(response).setStatus(204);
     }
@@ -35,7 +35,7 @@ public class PubSubControllerTest extends AbstractTestNGSpringContextTests {
         controller.postResult("{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
         String result = controller.getResult(response);
         Mockito.verify(response, Mockito.never()).setStatus(Mockito.anyInt());
-        Assert.assertEquals(result, "{\"id\":\"88\",\"sequence\":-1,\"content\":\"foo\",\"metadata\":null}");
+        Assert.assertEquals(result, "{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
         controller.getResult(response);
         Mockito.verify(response).setStatus(204);
     }

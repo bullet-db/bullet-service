@@ -24,11 +24,11 @@ public class PubSubServiceTest extends AbstractTestNGSpringContextTests {
         service.postQuery("{\"id\": \"2\", \"sequence\": 2, \"content\": \"bar\", \"metadata\": null}");
         service.postQuery("{\"id\": \"3\", \"sequence\": 3, \"content\": \"baz\", \"metadata\": null}");
         s = service.getQuery();
-        Assert.assertEquals(s, "{\"id\":\"1\",\"sequence\":1,\"content\":\"foo\",\"metadata\":null}");
+        Assert.assertEquals(s, "{\"id\": \"1\", \"sequence\": 1, \"content\": \"foo\", \"metadata\": null}");
         s = service.getQuery();
-        Assert.assertEquals(s, "{\"id\":\"2\",\"sequence\":2,\"content\":\"bar\",\"metadata\":null}");
+        Assert.assertEquals(s, "{\"id\": \"2\", \"sequence\": 2, \"content\": \"bar\", \"metadata\": null}");
         s = service.getQuery();
-        Assert.assertEquals(s, "{\"id\":\"3\",\"sequence\":3,\"content\":\"baz\",\"metadata\":null}");
+        Assert.assertEquals(s, "{\"id\": \"3\", \"sequence\": 3, \"content\": \"baz\", \"metadata\": null}");
         s = service.getQuery();
         Assert.assertNull(s);
     }
@@ -41,11 +41,11 @@ public class PubSubServiceTest extends AbstractTestNGSpringContextTests {
         service.postResult("{\"id\": \"2\", \"sequence\": 2, \"content\": \"bar\", \"metadata\": null}");
         service.postResult("{\"id\": \"3\", \"sequence\": 3, \"content\": \"baz\", \"metadata\": null}");
         s = service.getResult();
-        Assert.assertEquals(s, "{\"id\":\"1\",\"sequence\":1,\"content\":\"foo\",\"metadata\":null}");
+        Assert.assertEquals(s, "{\"id\": \"1\", \"sequence\": 1, \"content\": \"foo\", \"metadata\": null}");
         s = service.getResult();
-        Assert.assertEquals(s, "{\"id\":\"2\",\"sequence\":2,\"content\":\"bar\",\"metadata\":null}");
+        Assert.assertEquals(s, "{\"id\": \"2\", \"sequence\": 2, \"content\": \"bar\", \"metadata\": null}");
         s = service.getResult();
-        Assert.assertEquals(s, "{\"id\":\"3\",\"sequence\":3,\"content\":\"baz\",\"metadata\":null}");
+        Assert.assertEquals(s, "{\"id\": \"3\", \"sequence\": 3, \"content\": \"baz\", \"metadata\": null}");
         s = service.getResult();
         Assert.assertNull(s);
     }
