@@ -66,10 +66,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         String query = "{\"window\":{}}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
-        ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
-        verify(service).submit(anyString(), eq("{}"), argument.capture());
-        argument.getValue().send(new PubSubMessage("", "bar"));
-        Assert.assertEquals(response.get(), "bar");
+        Assert.assertEquals(response.get(), QueryError.UNSUPPORTED_QUERY.toString());
     }
 
     @Test

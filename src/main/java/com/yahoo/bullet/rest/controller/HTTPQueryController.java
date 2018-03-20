@@ -41,11 +41,13 @@ public class HTTPQueryController {
     public CompletableFuture<String> submitHTTPQuery(@RequestBody String query) {
         HTTPQueryHandler queryHandler = new HTTPQueryHandler();
         String queryID = QueryService.getNewQueryID();
-        // Remove window information from queryString since we don't support windowing for this endpoint.
         try {
             Map<String, Object> queryContent = GSON.fromJson(query, Map.class);
-            queryContent.remove(WINDOW_KEY_STRING);
-            queryService.submit(queryID, GSON.toJson(queryContent), queryHandler);
+            if (queryContent.containsKey(WINDOW_KEY_STRING)) {
+                queryHandler.fail(QueryError.UNSUPPORTED_QUERY);
+            } else {
+                queryService.submit(queryID, query, queryHandler);
+            }
         } catch (Exception e) {
             queryHandler.fail(QueryError.INVALID_QUERY);
         }
