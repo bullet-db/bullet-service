@@ -19,7 +19,7 @@ public class PubSubService {
      * @return The next query.
      */
     public String getQuery() {
-        return getFromQueue(queries);
+        return queries.poll();
     }
 
     /**
@@ -28,7 +28,7 @@ public class PubSubService {
      * @return the next result.
      */
     public String getResult() {
-        return getFromQueue(results);
+        return results.poll();
     }
 
     /**
@@ -37,7 +37,7 @@ public class PubSubService {
      * @param result The result to add to the result queue.
      */
     public void postResult(String result) {
-        addToQueue(results, result);
+        results.add(result);
     }
 
     /**
@@ -46,14 +46,6 @@ public class PubSubService {
      * @param query The query to add to the queue.
      */
     public void postQuery(String query) {
-        addToQueue(queries, query);
-    }
-
-    private String getFromQueue(ConcurrentLinkedQueue<String> queue) {
-        return queue.isEmpty() ? null : queue.poll();
-    }
-
-    private void addToQueue(ConcurrentLinkedQueue<String> queue, String message) {
-        queue.add(message);
+        queries.add(query);
     }
 }
