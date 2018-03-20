@@ -7,6 +7,7 @@ package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
+import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
 import com.yahoo.bullet.rest.service.QueryService;
 import org.mockito.ArgumentCaptor;
@@ -50,14 +51,41 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testSendHTTPQuery() throws Exception {
-        String query = "foo";
+    public void testSendHTTPQueryWithoutWindow() throws Exception {
+        String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
         verify(service).submit(anyString(), eq(query), argument.capture());
         argument.getValue().send(new PubSubMessage("", "bar"));
         Assert.assertEquals(response.get(), "bar");
+    }
+
+    @Test
+    public void testSendHTTPQueryWithNullWindow() throws Exception {
+        String query = "{\"window\": null}";
+        CompletableFuture<String> response = controller.submitHTTPQuery(query);
+
+        ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
+        verify(service).submit(anyString(), eq(query), argument.capture());
+        argument.getValue().send(new PubSubMessage("", "bar"));
+        Assert.assertEquals(response.get(), "bar");
+    }
+
+    @Test
+    public void testSendHTTPQueryWithWindow() throws Exception {
+        String query = "{\"window\":{}}";
+        CompletableFuture<String> response = controller.submitHTTPQuery(query);
+
+        Assert.assertEquals(response.get(), QueryError.UNSUPPORTED_QUERY.toString());
+    }
+
+    @Test
+    public void testInvalidQuery() throws Exception {
+        String query = "invalid query";
+        CompletableFuture<String> response = controller.submitHTTPQuery(query);
+
+        Assert.assertEquals(response.get(), QueryError.INVALID_QUERY.toString());
     }
 
     @Test
