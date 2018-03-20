@@ -43,7 +43,7 @@ public class HTTPQueryController {
         String queryID = QueryService.getNewQueryID();
         try {
             Map<String, Object> queryContent = GSON.fromJson(query, Map.class);
-            if (queryContent.containsKey(WINDOW_KEY_STRING)) {
+            if (queryContent.containsKey(WINDOW_KEY_STRING) && queryContent.get(WINDOW_KEY_STRING) != null) {
                 queryHandler.fail(QueryError.UNSUPPORTED_QUERY);
             } else {
                 queryService.submit(queryID, query, queryHandler);

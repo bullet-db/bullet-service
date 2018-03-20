@@ -62,6 +62,17 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
+    public void testSendHTTPQueryWithNullWindow() throws Exception {
+        String query = "{\"window\": null}";
+        CompletableFuture<String> response = controller.submitHTTPQuery(query);
+
+        ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
+        verify(service).submit(anyString(), eq(query), argument.capture());
+        argument.getValue().send(new PubSubMessage("", "bar"));
+        Assert.assertEquals(response.get(), "bar");
+    }
+
+    @Test
     public void testSendHTTPQueryWithWindow() throws Exception {
         String query = "{\"window\":{}}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
