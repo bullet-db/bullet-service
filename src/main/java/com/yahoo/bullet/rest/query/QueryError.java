@@ -15,7 +15,7 @@ public class QueryError {
     public static final QueryError INVALID_QUERY = new QueryError("Failed to parse query.", "Please provide a valid query.");
     public static final QueryError UNSUPPORTED_QUERY = new QueryError(
             "This particular REST endpoint does not support windowed queries",
-            "Please provide a valid query without a window, or POST to a different REST endpoint.");
+            "Please provide a valid query without a window, or use the SSE or WS endpoints to submit queries with windows.");
     public static final QueryError SERVICE_UNAVAILABLE = new QueryError("Service temporarily unavailable", "Please try again later.");
 
     private String error;
