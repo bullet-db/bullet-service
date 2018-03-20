@@ -1,5 +1,5 @@
 # Context is always QUERY_SUBMISSION in the webservice.
 bullet.pubsub.context.name: "QUERY_SUBMISSION"
 # Path to your PubSub implementation.
-bullet.pubsub.class.name: "full.package.path.to.your.pubsub.class"
+bullet.pubsub.class.name: "com.yahoo.bullet.pubsub.rest.RESTPubSub"
 # Add settings specific to your pubsub.
