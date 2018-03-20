@@ -13,7 +13,9 @@ import lombok.Getter;
 @Getter
 public class QueryError {
     public static final QueryError INVALID_QUERY = new QueryError("Failed to parse query.", "Please provide a valid query.");
-    public static final QueryError UNSUPPORTED_QUERY = new QueryError("Doesn't support window query for this endpoint", "Please provide a valid query without window.");
+    public static final QueryError UNSUPPORTED_QUERY = new QueryError(
+            "This particular REST endpoint does not support windowed queries",
+            "Please provide a valid query without a window, or POST to a different REST endpoint.");
     public static final QueryError SERVICE_UNAVAILABLE = new QueryError("Service temporarily unavailable", "Please try again later.");
 
     private String error;
@@ -22,7 +24,7 @@ public class QueryError {
     /**
      * Constructor that takes an error message and resolution for it.
      *
-     * @param error The error message.
+     * @param error      The error message.
      * @param resolution The resolution that can be taken.
      */
     public QueryError(String error, String resolution) {
