@@ -25,7 +25,7 @@ public class WebSocketController {
      * @param request The {@link WebSocketRequest} object.
      * @param headerAccessor The {@link SimpMessageHeaderAccessor} headers associated with the message.
      */
-    @MessageMapping("${bullet.endpoint.message}")
+    @MessageMapping("${bullet.websocket.server.destination}")
     public void submitWebsocketQuery(@Payload WebSocketRequest request, SimpMessageHeaderAccessor headerAccessor) {
         switch (request.getType()) {
             case NEW_QUERY:

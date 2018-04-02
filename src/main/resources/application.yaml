@@ -23,17 +23,20 @@ bullet:
       query.path: /pubsub/query
       result.path: /pubsub/result
   websocket:
-    # The prefix of server destination. It's used for clients to send messages to server(broker).
-    server.destination.prefix: /app
-    # The client destination for server(broker) to send messages to clients.
+    # The following configure the STOMP endpoints for the websocket. This is currently used internally in a simple in-memory broker.
+    # The prefix of the server. It should be added before bullet.websocket.server.destination by clients to send messages to the server.
+    server.destination.prefix: /server
+    # The endpoint for clients to send messages to the server. Clients send requests to this prefixed by the bullet.websocket.server.destination.prefix.
+    server.destination: /request
+    # The prefix of the client. It is added before bullet.websocket.client.destination by the server to send messages to specific clients.
+    client.destination.prefix: /client
+    # The endpoint for the server to send messages to clients. If the server prefixes this with the bullet.websocket.client.destination.prefix, it
+    # sends it to a particular client. Otherwise, just sending messages here broadcasts to all clients.
     client.destination: /response
-    # The prefix to be added as a part of client destination for server(broker) to send messages to specific clients.
-    user.destination.prefix: /client
   endpoint:
     http: /http-query
     sse: /sse-query
     websocket: /ws-query
-    message: /submit
 
 ####################################################################################################################
 # Spring Boot settings

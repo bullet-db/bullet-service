@@ -20,14 +20,14 @@ bullet:
       query.path: "/pubsub/query"
       result.path: "/pubsub/result"
   websocket:
-    server.destination.prefix: /app
+    server.destination.prefix: /server
+    server.destination: /request
+    client.destination.prefix: /client
     client.destination: /response
-    user.destination.prefix: /client
   endpoint:
     http: /http-query
     sse: /sse-query
     websocket: /ws-query
-    message: /submit
 
 # Spring Boot settings
 
