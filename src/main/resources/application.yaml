@@ -23,17 +23,18 @@ bullet:
       query.path: /pubsub/query
       result.path: /pubsub/result
   websocket:
-    # The prefix of server destination. It's used for clients to send messages to server(broker).
+    # The prefix of the server. It should be added as a prefix to bullet.websocket.app.message by clients to send messages to the server.
     server.destination.prefix: /app
-    # The client destination for server(broker) to send messages to clients.
-    client.destination: /response
-    # The prefix to be added as a part of client destination for server(broker) to send messages to specific clients.
+    # The server destination for clients to send messages to the app.
+    app.message: /submit
+    # The prefix of the user. It is added as a prefix to bullet.websocket.client.response by the server to send messages to specific clients.
     user.destination.prefix: /client
+    # The client destination for the server to send response messages to users.
+    client.response: /response
   endpoint:
     http: /http-query
     sse: /sse-query
     websocket: /ws-query
-    message: /submit
 
 ####################################################################################################################
 # Spring Boot settings

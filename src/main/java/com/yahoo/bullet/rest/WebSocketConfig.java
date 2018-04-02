@@ -21,10 +21,10 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     private String endpoint;
     @Value("${bullet.websocket.server.destination.prefix}")
     private String serverDestinationPrefix;
-    @Value("${bullet.websocket.client.destination}")
-    private String clientDestination;
     @Value("${bullet.websocket.user.destination.prefix}")
     private String userDestinationPrefix;
+    @Value("${bullet.websocket.client.destination}")
+    private String clientDestination;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
