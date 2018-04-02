@@ -20,9 +20,9 @@ bullet:
       query.path: "/pubsub/query"
       result.path: "/pubsub/result"
   websocket:
-    server.destination.prefix: /app
-    app.message: /submit
-    user.destination.prefix: /client
+    server.destination.prefix: /server
+    server.destination: /request
+    client.destination.prefix: /client
     client.destination: /response
   endpoint:
     http: /http-query

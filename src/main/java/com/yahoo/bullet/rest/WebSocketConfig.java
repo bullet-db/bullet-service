@@ -21,8 +21,8 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     private String endpoint;
     @Value("${bullet.websocket.server.destination.prefix}")
     private String serverDestinationPrefix;
-    @Value("${bullet.websocket.user.destination.prefix}")
-    private String userDestinationPrefix;
+    @Value("${bullet.websocket.client.destination.prefix}")
+    private String clientDestinationPrefix;
     @Value("${bullet.websocket.client.destination}")
     private String clientDestination;
 
@@ -35,6 +35,6 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes(serverDestinationPrefix);
         registry.enableSimpleBroker(clientDestination);
-        registry.setUserDestinationPrefix(userDestinationPrefix);
+        registry.setUserDestinationPrefix(clientDestinationPrefix);
     }
 }
