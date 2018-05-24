@@ -7,7 +7,7 @@
     <name>bullet-service</name>
 
     <scm>
-        <developerConnection>scm:git:ssh://git@github.com/yahoo/bullet-service.git</developerConnection>
+        <developerConnection>scm:git:ssh://git@github.com/bullet-db/bullet-service.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
