@@ -24,6 +24,7 @@ bullet:
     server.destination: /request
     client.destination.prefix: /client
     client.destination: /response
+    send.buffer.size.kb: 1024
   endpoint:
     http: /http-query
     sse: /sse-query
