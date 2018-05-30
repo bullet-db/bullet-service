@@ -11,6 +11,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -25,6 +26,13 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     private String clientDestinationPrefix;
     @Value("${bullet.websocket.client.destination}")
     private String clientDestination;
+    @Value("${bullet.websocket.session.buffer.size.kb}")
+    private int sessionBufferSize;
+    @Value("${bullet.websocket.message.size.limit.kb}")
+    private int messageSizeLimit;
+    @Value("${bullet.websocket.message.send.time.limit.seconds}")
+    private int messageSendTimeLimit;
+
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -36,5 +44,12 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
         registry.setApplicationDestinationPrefixes(serverDestinationPrefix);
         registry.enableSimpleBroker(clientDestination);
         registry.setUserDestinationPrefix(clientDestinationPrefix);
+    }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
+        registration.setSendBufferSizeLimit(sessionBufferSize * 1024);
+        registration.setMessageSizeLimit(messageSizeLimit * 1024);
+        registration.setSendTimeLimit(messageSendTimeLimit * 1000);
     }
 }
