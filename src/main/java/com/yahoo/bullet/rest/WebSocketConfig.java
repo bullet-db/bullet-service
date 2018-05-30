@@ -27,7 +27,11 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     @Value("${bullet.websocket.client.destination}")
     private String clientDestination;
     @Value("${bullet.websocket.session.buffer.size.kb}")
-    private int sessionBufferSizeKB;
+    private int sessionBufferSize;
+    @Value("${bullet.websocket.message.size.limit.kb}")
+    private int messageSizeLimit;
+    @Value("${bullet.websocket.message.send.time.limit.seconds}")
+    private int messageSendTimeLimit;
 
 
     @Override
@@ -44,6 +48,8 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
-        registration.setSendBufferSizeLimit(sessionBufferSizeKB * 1024);
+        registration.setSendBufferSizeLimit(sessionBufferSize * 1024);
+        registration.setMessageSizeLimit(messageSizeLimit * 1024);
+        registration.setSendTimeLimit(messageSendTimeLimit * 1000);
     }
 }
