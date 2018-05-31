@@ -26,7 +26,7 @@ bullet:
     client.destination: /response
     session.buffer.size.kb: 1024
     message.size.limit.kb: 64
-    message.send.time.limit.seconds: -1
+    message.send.time.limit.seconds: 10
   endpoint:
     http: /http-query
     sse: /sse-query
