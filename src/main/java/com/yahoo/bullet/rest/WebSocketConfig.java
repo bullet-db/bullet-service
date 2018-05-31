@@ -30,7 +30,7 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     private int sessionBufferSize;
     @Value("${bullet.websocket.message.size.limit.kb}")
     private int messageSizeLimit;
-    @Value("${bullet.websocket.message.send.time.limit.seconds}")
+    @Value("${bullet.websocket.message.send.time.limit.secs}")
     private int messageSendTimeLimit;
 
 

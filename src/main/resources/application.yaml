@@ -34,11 +34,11 @@ bullet:
     # sends it to a particular client. Otherwise, just sending messages here broadcasts to all clients.
     client.destination: /response
     # The maximum amount of data to buffer when sending messages to a WebSocket session.
-    session.buffer.size.kb: 512
+    session.buffer.size.kb: 1024
     # The maximum size for an message between servers and clients.
     message.size.limit.kb: 64
-    # The time limit (in seconds) when sending messages to a WebSocket session.
-    message.send.time.limit.seconds: -1
+    # The time limit (in seconds) when sending messages to a WebSocket session. It should be positive.
+    message.send.time.limit.secs: 10
   endpoint:
     http: /http-query
     sse: /sse-query
