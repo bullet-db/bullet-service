@@ -1,4 +1,4 @@
-# bullet-service
+# Bullet Service
 The Web-Service layer for Bullet
 
 [![Build Status](https://travis-ci.org/bullet-db/bullet-service.svg?branch=master)](https://travis-ci.org/bullet-db/bullet-service) [![Coverage Status](https://coveralls.io/repos/github/bullet-db/bullet-service/badge.svg?branch=master)](https://coveralls.io/github/bullet-db/bullet-service?branch=master) [![Download](https://api.bintray.com/packages/yahoo/maven/bullet-service/images/download.svg) ](https://bintray.com/yahoo/maven/bullet-service/_latestVersion)
