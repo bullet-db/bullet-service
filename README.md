@@ -15,6 +15,7 @@ All documentation has moved to **[Github Pages here](https://bullet-db.github.io
 
 * [Setup Web Service](https://bullet-db.github.io/ws/setup/) for info about setting up the web service.
 * [Web Service API](https://bullet-db.github.io/ws/api/) for info about the Web Service API.
+* [API Examples](https://bullet-db.github.io/ws/examples/) to see what kind of queries you can run on Bullet.
 
 ### Useful Links
 
@@ -24,7 +25,6 @@ All documentation has moved to **[Github Pages here](https://bullet-db.github.io
 * [Storm Architecture](https://bullet-db.github.io/backend/storm-architecture/) to see how Bullet is implemented on Storm.
 * [Setup on Spark](https://bullet-db.github.io/backend/spark-setup/) to see how to setup Bullet on Spark.
 * [Setup on Storm](https://bullet-db.github.io/backend/storm-setup/) to see how to setup Bullet on Storm.
-* [API Examples](https://bullet-db.github.io/ws/examples/) to see what kind of queries you can run on Bullet.
 * [Setup UI](https://bullet-db.github.io/ui/setup/) to setup the Bullet UI.
 
 Code licensed under the Apache 2 license. See LICENSE file for terms.
