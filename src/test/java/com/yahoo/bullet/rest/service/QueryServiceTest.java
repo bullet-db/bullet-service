@@ -110,6 +110,18 @@ public class QueryServiceTest {
     }
 
     @Test
+    public void testNonJSONQueriesAreConverted() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = new MockSubscriber();
+        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+        String id = "88";
+        String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
+        service.submit(id, query, queryHandler);
+        Mockito.verify(publisher).send("88", "{\"aggregation\":{\"size\":1,\"type\":\"RAW\"},\"duration\":30000}");
+    }
+
+    @Test
     public void testSubmitSignal() throws Exception {
         Publisher publisher = Mockito.mock(Publisher.class);
         Subscriber subscriber = new MockSubscriber();
