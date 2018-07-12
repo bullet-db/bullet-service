@@ -7,10 +7,6 @@ package com.yahoo.bullet.rest.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import com.yahoo.bullet.bql.BulletQueryBuilder;
-import com.yahoo.bullet.common.BulletConfig;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
