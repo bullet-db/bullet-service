@@ -32,8 +32,6 @@ public class HTTPQueryController {
     @Autowired @Setter
     private QueryService queryService;
     private static final Gson GSON = new GsonBuilder().create();
-    private static final BulletQueryBuilder bulletQueryBuilder = new BulletQueryBuilder(new BulletConfig());
-    private static final JsonParser jsonParser = new JsonParser();
 
     /**
      * The method that handles POSTs to this endpoint. Consumes the HTTP request, invokes {@link QueryService} to
@@ -48,7 +46,6 @@ public class HTTPQueryController {
         HTTPQueryHandler queryHandler = new HTTPQueryHandler();
         String queryID = QueryService.getNewQueryID();
         try {
-            query = convertNonJSONToBQL(query);
             Map<String, Object> queryContent = GSON.fromJson(query, Map.class);
             if (queryContent.containsKey(WINDOW_KEY_STRING) && queryContent.get(WINDOW_KEY_STRING) != null) {
                 queryHandler.fail(QueryError.UNSUPPORTED_QUERY);
@@ -73,23 +70,8 @@ public class HTTPQueryController {
         SseEmitter sseEmitter = new SseEmitter();
         String queryID = QueryService.getNewQueryID();
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler(queryID, sseEmitter, queryService);
-        try {
-            query = convertNonJSONToBQL(query);
-        } catch (Exception e) {
-            sseQueryHandler.fail(QueryError.INVALID_QUERY);
-            return sseEmitter;
-        }
         // query should not be null at this point. If the post body is null, Springframework will return 400 directly.
         queryService.submit(queryID, query, sseQueryHandler);
         return sseEmitter;
-    }
-
-    private String convertNonJSONToBQL(String query) throws Exception {
-        try {
-            jsonParser.parse(query);
-        } catch (JsonParseException e) {
-            return bulletQueryBuilder.buildJson(query);
-        }
-        return query;
     }
 }
