@@ -6,7 +6,6 @@
 package com.yahoo.bullet.rest.service;
 
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import com.yahoo.bullet.bql.BulletQueryBuilder;
 import com.yahoo.bullet.common.BulletConfig;
 import com.yahoo.bullet.common.RandomPool;
@@ -39,8 +38,7 @@ public class QueryService {
     private ConcurrentMap<String, QueryHandler> runningQueries;
     private List<PubSubReader> consumers;
     private RandomPool<Publisher> publisherRandomPool;
-    private static final BulletQueryBuilder bulletQueryBuilder = new BulletQueryBuilder(new BulletConfig());
-    private static final JsonParser jsonParser = new JsonParser();
+    private static final BulletQueryBuilder QUERY_BUILDER = new BulletQueryBuilder(new BulletConfig());
 
     /**
      * Creates an instance using a List of Publishers and Subscribers.
@@ -67,7 +65,7 @@ public class QueryService {
      */
     public void submit(String queryID, String query, QueryHandler queryHandler) {
         try {
-            query = convertNonJSONToBQL(query);
+            query = convertIfBQL(query);
         } catch (Exception e) {
             queryHandler.fail(QueryError.INVALID_QUERY);
             return;
@@ -120,12 +118,11 @@ public class QueryService {
         return UUID.randomUUID().toString();
     }
 
-    private static String convertNonJSONToBQL(String query) throws Exception {
-        try {
-            jsonParser.parse(query);
-        } catch (JsonParseException e) {
-            return bulletQueryBuilder.buildJson(query);
+    private static String convertIfBQL(String query) throws Exception {
+        if (query.trim().charAt(0) == '{') {
+            return query;
+        } else {
+            return QUERY_BUILDER.buildJson(query);
         }
-        return query;
     }
 }

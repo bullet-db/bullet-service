@@ -51,7 +51,7 @@ public class QueryServiceTest {
         Subscriber subscriber = new MockSubscriber();
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
-        service.submit("", "", queryHandler);
+        service.submit("", "{", queryHandler);
         service.close();
         Mockito.verify(queryHandler).fail();
         Assert.assertTrue(service.getRunningQueries().isEmpty());
@@ -76,12 +76,24 @@ public class QueryServiceTest {
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
         String randomID = UUID.randomUUID().toString();
-        String randomContent = "foo";
+        String randomContent = "{foo}";
         service.submit(randomID, randomContent, queryHandler);
         Assert.assertEquals(1, service.getRunningQueries().size());
         Assert.assertEquals(queryHandler, service.getRunningQueries().get(randomID));
         Mockito.verify(publisher).send(randomID, randomContent);
         service.close();
+    }
+
+    @Test
+    public void testSubmitFailsForBadQuery() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = new MockSubscriber();
+        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+        String randomID = UUID.randomUUID().toString();
+        String query = "this is not a json or a valid BQL query";
+        service.submit(randomID, query, queryHandler);
+        Mockito.verify(queryHandler).fail(QueryError.INVALID_QUERY);
     }
 
     @Test
