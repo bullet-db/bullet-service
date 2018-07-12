@@ -97,6 +97,19 @@ public class QueryServiceTest {
     }
 
     @Test
+    public void testSubmitFailsFromPublisherError() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = new MockSubscriber();
+        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
+        doThrow(new PubSubException("")).when(publisher).send(any(), any());
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+        String randomID = UUID.randomUUID().toString();
+        String query = "{}";
+        service.submit(randomID, query, queryHandler);
+        Mockito.verify(queryHandler).fail(QueryError.SERVICE_UNAVAILABLE);
+    }
+
+    @Test
     public void testSubmitSignal() throws Exception {
         Publisher publisher = Mockito.mock(Publisher.class);
         Subscriber subscriber = new MockSubscriber();

@@ -42,6 +42,7 @@ public class HTTPQueryController {
         HTTPQueryHandler queryHandler = new HTTPQueryHandler();
         String queryID = QueryService.getNewQueryID();
         try {
+            query = QueryService.convertIfBQL(query);
             Map<String, Object> queryContent = GSON.fromJson(query, Map.class);
             if (queryContent.containsKey(WINDOW_KEY_STRING) && queryContent.get(WINDOW_KEY_STRING) != null) {
                 queryHandler.fail(QueryError.UNSUPPORTED_QUERY);

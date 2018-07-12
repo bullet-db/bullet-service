@@ -5,7 +5,6 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.google.gson.JsonParseException;
 import com.yahoo.bullet.bql.BulletQueryBuilder;
 import com.yahoo.bullet.common.BulletConfig;
 import com.yahoo.bullet.common.RandomPool;
@@ -118,7 +117,7 @@ public class QueryService {
         return UUID.randomUUID().toString();
     }
 
-    private static String convertIfBQL(String query) throws Exception {
+    public static String convertIfBQL(String query) throws Exception {
         if (query.trim().charAt(0) == '{') {
             return query;
         } else {
