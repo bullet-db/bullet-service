@@ -90,7 +90,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSSEQuery() throws Exception {
-        String query = "foo";
+        String query = "{foo}";
 
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
 

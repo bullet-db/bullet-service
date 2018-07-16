@@ -61,10 +61,13 @@ public class WebSocketService {
      * @param queryID The query ID to register request with.
      * @param sessionID The session ID to represent the client.
      * @param queryString The String version of the query.
+     * @param queryHandler The Query Handler to submit the query.
      */
-    public void submitQuery(String queryID, String sessionID, String queryString) {
+    public void submitQuery(String queryID, String sessionID, String queryString, WebSocketQueryHandler queryHandler) {
+        if (queryHandler.isComplete()) {
+            return;
+        }
         sessionIDMap.put(sessionID, queryID);
-        WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(this, sessionID, queryID);
         queryService.submit(queryID, queryString, queryHandler);
     }
 

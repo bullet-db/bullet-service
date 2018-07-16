@@ -5,8 +5,6 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.bql.BulletQueryBuilder;
-import com.yahoo.bullet.common.BulletConfig;
 import com.yahoo.bullet.common.RandomPool;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.Metadata.Signal;
@@ -37,7 +35,6 @@ public class QueryService {
     private ConcurrentMap<String, QueryHandler> runningQueries;
     private List<PubSubReader> consumers;
     private RandomPool<Publisher> publisherRandomPool;
-    private static final BulletQueryBuilder QUERY_BUILDER = new BulletQueryBuilder(new BulletConfig());
 
     /**
      * Creates an instance using a List of Publishers and Subscribers.
@@ -63,10 +60,7 @@ public class QueryService {
      * @param queryHandler The {@link QueryHandler} object that handles the query.
      */
     public void submit(String queryID, String query, QueryHandler queryHandler) {
-        try {
-            query = convertIfBQL(query);
-        } catch (Exception e) {
-            queryHandler.fail(QueryError.INVALID_QUERY);
+        if (queryHandler.isComplete()) {
             return;
         }
         Publisher publisher = publisherRandomPool.get();
@@ -115,13 +109,5 @@ public class QueryService {
      */
     public static String getNewQueryID() {
         return UUID.randomUUID().toString();
-    }
-
-    public static String convertIfBQL(String query) throws Exception {
-        if (query.trim().charAt(0) == '{') {
-            return query;
-        } else {
-            return QUERY_BUILDER.buildJson(query);
-        }
     }
 }

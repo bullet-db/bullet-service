@@ -22,7 +22,10 @@ import java.util.UUID;
 import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 public class QueryServiceTest {
     @NoArgsConstructor
@@ -85,15 +88,17 @@ public class QueryServiceTest {
     }
 
     @Test
-    public void testSubmitFailsForBadQuery() throws Exception {
+    public void testServiceDoesNothingWhenQueryHandlerIsComplete() throws Exception {
         Publisher publisher = Mockito.mock(Publisher.class);
         Subscriber subscriber = new MockSubscriber();
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
+        doReturn(true).when(queryHandler).isComplete();
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
         String randomID = UUID.randomUUID().toString();
-        String query = "this is not a json or a valid BQL query";
+        String query = "{}";
         service.submit(randomID, query, queryHandler);
-        Mockito.verify(queryHandler).fail(QueryError.INVALID_QUERY);
+        verify(publisher, never()).send(any(), any());
+        verify(queryHandler, never()).acknowledge();
     }
 
     @Test
@@ -107,18 +112,6 @@ public class QueryServiceTest {
         String query = "{}";
         service.submit(randomID, query, queryHandler);
         Mockito.verify(queryHandler).fail(QueryError.SERVICE_UNAVAILABLE);
-    }
-
-    @Test
-    public void testNonJSONQueriesAreConverted() throws Exception {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
-        String id = "88";
-        String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
-        service.submit(id, query, queryHandler);
-        Mockito.verify(publisher).send("88", "{\"aggregation\":{\"size\":1,\"type\":\"RAW\"},\"duration\":30000}");
     }
 
     @Test
