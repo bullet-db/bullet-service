@@ -8,6 +8,7 @@ package com.yahoo.bullet.rest.query;
 public class BQLError extends QueryError {
     /**
      * Constructor.
+     *
      * @param e The Throwable indicating the reason for the error.
      */
     public BQLError(Throwable e) {

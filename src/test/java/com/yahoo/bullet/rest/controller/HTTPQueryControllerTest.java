@@ -93,7 +93,6 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testInvalidQueryRuntimeException() throws Exception {
-        //doThrow(RuntimeException.class).when(preprocessingService).convertIfBQL(any());
         doThrow(RuntimeException.class).when(service).submit(any(), any(), any());
         String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
