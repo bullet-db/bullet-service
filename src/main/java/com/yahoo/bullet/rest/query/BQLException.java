@@ -5,7 +5,7 @@
  */
 package com.yahoo.bullet.rest.query;
 
-public class BQLException extends RuntimeException {
+public class BQLException extends Exception {
     /**
      * Constructs a new exception with the specified cause.
      *

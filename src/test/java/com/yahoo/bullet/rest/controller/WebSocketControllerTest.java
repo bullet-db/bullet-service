@@ -19,8 +19,11 @@ import org.testng.annotations.Test;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,6 +54,36 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
         webSocketController.submitWebsocketQuery(request, headerAccessor);
 
         verify(webSocketService).submitQuery(anyString(), eq(sessionID), eq(query), any());
+    }
+
+    @Test
+    public void testSubmitBadQuery() {
+        String sessionID = "sessionID";
+        String query = "This is a bad query";
+        WebSocketRequest request = new WebSocketRequest();
+        request.setType(WebSocketRequest.Type.NEW_QUERY);
+        request.setContent(query);
+        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
+        when(headerAccessor.getSessionId()).thenReturn(sessionID);
+
+        webSocketController.submitWebsocketQuery(request, headerAccessor);
+
+        verify(webSocketService, never()).submitQuery(any(), any(), any(), any());
+    }
+
+    @Test
+    public void testSubmitBadQueryRuntimeException() {
+        String sessionID = "sessionID";
+        WebSocketRequest request = mock(WebSocketRequest.class);
+        doThrow(RuntimeException.class).when(request).getContent();
+        doReturn(WebSocketRequest.Type.NEW_QUERY).when(request).getType();
+
+        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
+        when(headerAccessor.getSessionId()).thenReturn(sessionID);
+
+        webSocketController.submitWebsocketQuery(request, headerAccessor);
+
+        verify(webSocketService, never()).submitQuery(any(), any(), any(), any());
     }
 
     @Test

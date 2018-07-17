@@ -11,6 +11,6 @@ public class BQLError extends QueryError {
      * @param e The Throwable indicating the reason for the error.
      */
     public BQLError(Throwable e) {
-        super("Caught exception while trying to parse BQL Query: " + e, "Please provide a valid query.");
+        super(e.getCause().toString(), "Please provide a valid query.");
     }
 }
