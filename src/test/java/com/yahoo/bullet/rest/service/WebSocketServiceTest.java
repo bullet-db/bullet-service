@@ -70,19 +70,6 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
         Assert.assertTrue(webSocketService.getSessionIDMap().containsKey(sessionID));
     }
 
-    @Test
-    public void testSubmitQueryDoesNotInitializeIfQueryIsComplete() {
-        String sessionID = "sessionID";
-        String queryID = "queryID";
-        webSocketService.getSessionIDMap().clear();
-        WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
-        queryHandler.complete();
-        webSocketService.submitQuery(queryID, sessionID, "foo", queryHandler);
-
-        verify(queryService, never()).submit(any(), any(), any());
-        Assert.assertEquals(webSocketService.getSessionIDMap().size(), 0);
-    }
-
     @Test void testSendResponse() {
         String sessionID = "sessionID";
         SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);

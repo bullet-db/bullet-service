@@ -64,9 +64,6 @@ public class WebSocketService {
      * @param queryHandler The Query Handler to submit the query.
      */
     public void submitQuery(String queryID, String sessionID, String queryString, WebSocketQueryHandler queryHandler) {
-        if (queryHandler.isComplete()) {
-            return;
-        }
         sessionIDMap.put(sessionID, queryID);
         queryService.submit(queryID, queryString, queryHandler);
     }

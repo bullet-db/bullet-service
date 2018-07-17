@@ -85,7 +85,8 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         String query = "invalid query";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
-        Assert.assertEquals(response.get(), QueryError.INVALID_QUERY.toString());
+        String expected = "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Caught exception while trying to parse BQL Query: com.yahoo.bullet.rest.query.BQLException: com.yahoo.bullet.bql.parser.ParsingException: line 1:1: missing \\u0027SELECT\\u0027 at \\u0027invalid\\u0027\",\"resolutions\":[\"Please provide a valid query.\"]}]}}";
+        Assert.assertEquals(response.get(), expected);
     }
 
     @Test

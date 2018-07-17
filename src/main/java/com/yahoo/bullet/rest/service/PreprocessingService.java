@@ -7,10 +7,11 @@ package com.yahoo.bullet.rest.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.yahoo.bullet.bql.BulletQueryBuilder;
+import com.yahoo.bullet.bql.parser.ParsingException;
 import com.yahoo.bullet.common.BulletConfig;
-import com.yahoo.bullet.rest.query.QueryError;
-import com.yahoo.bullet.rest.query.QueryHandler;
+import com.yahoo.bullet.rest.query.BQLException;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -25,46 +26,31 @@ public class PreprocessingService {
      * Convert this query to a valid JSON Bullet Query if it is currently a BQL query.
      *
      * @param query The query to convert.
-     * @param queryHandler The {@link QueryHandler} object that handles the query.
      * @return The valid JSON Bullet query.
+     * @throws BQLException when there is an error with the BQL conversion.
      */
-    public String convertIfBQL(String query, QueryHandler queryHandler) {
+    public String convertIfBQL(String query) throws Exception {
         try {
-            query = convertIfBQL(query);
-        } catch (Exception e) {
-            queryHandler.fail(QueryError.INVALID_QUERY);
-            return null;
+            if (query == null || query.trim().charAt(0) == '{') {
+                return query;
+            } else {
+                return QUERY_BUILDER.buildJson(query);
+            }
+        } catch (ParsingException | UnsupportedOperationException e) {
+            throw new BQLException(e);
         }
-        return query;
     }
 
     /**
-     * Fail the query if the query contains a window.
+     * This function determines if the provided query contains a window.
      *
-     * @param query The query to check.
-     * @param queryHandler The {@link QueryHandler} object that handles the query.
+     * @param query The query to check. The query must be in JSON format.
+     * @return A boolean indicating whether or not this query contains a window.
+     * @throws JsonSyntaxException if json is not a valid representation for a JSON object.
      */
     @SuppressWarnings("unchecked")
-    public void failIfWindowed(String query, QueryHandler queryHandler) {
-        query = convertIfBQL(query, queryHandler);
-        if (queryHandler.isComplete()) {
-            return;
-        }
-        try {
-            Map<String, Object> queryContent = GSON.fromJson(query, Map.class);
-            if (queryContent.containsKey(WINDOW_KEY_STRING) && queryContent.get(WINDOW_KEY_STRING) != null) {
-                queryHandler.fail(QueryError.UNSUPPORTED_QUERY);
-            }
-        } catch (Exception e) {
-            queryHandler.fail(QueryError.INVALID_QUERY);
-        }
-    }
-
-    private static String convertIfBQL(String query) throws Exception {
-        if (query == null || query.trim().charAt(0) == '{') {
-            return query;
-        } else {
-            return QUERY_BUILDER.buildJson(query);
-        }
+    public boolean containsWindow(String query) throws JsonSyntaxException {
+        Map<String, Object> queryContent = GSON.fromJson(query, Map.class);
+        return queryContent.containsKey(WINDOW_KEY_STRING) && queryContent.get(WINDOW_KEY_STRING) != null;
     }
 }

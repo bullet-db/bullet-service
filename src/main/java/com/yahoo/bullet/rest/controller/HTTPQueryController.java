@@ -5,7 +5,10 @@
  */
 package com.yahoo.bullet.rest.controller;
 
+import com.yahoo.bullet.rest.query.BQLError;
+import com.yahoo.bullet.rest.query.BQLException;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
+import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
 import com.yahoo.bullet.rest.service.PreprocessingService;
 import com.yahoo.bullet.rest.service.QueryService;
@@ -38,9 +41,18 @@ public class HTTPQueryController {
     public CompletableFuture<String> submitHTTPQuery(@RequestBody String query) {
         HTTPQueryHandler queryHandler = new HTTPQueryHandler();
         String queryID = QueryService.getNewQueryID();
-        query = preprocessingService.convertIfBQL(query, queryHandler);
-        preprocessingService.failIfWindowed(query, queryHandler);
-        queryService.submit(queryID, query, queryHandler);
+        try {
+            query = preprocessingService.convertIfBQL(query);
+            if (preprocessingService.containsWindow(query)) {
+                queryHandler.fail(QueryError.UNSUPPORTED_QUERY);
+            } else {
+                queryService.submit(queryID, query, queryHandler);
+            }
+        } catch (BQLException e) {
+            queryHandler.fail(new BQLError(e));
+        } catch (Exception e) {
+            queryHandler.fail(QueryError.INVALID_QUERY);
+        }
         return queryHandler.getResult();
     }
 
@@ -56,8 +68,14 @@ public class HTTPQueryController {
         SseEmitter sseEmitter = new SseEmitter();
         String queryID = QueryService.getNewQueryID();
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler(queryID, sseEmitter, queryService);
-        query = preprocessingService.convertIfBQL(query, sseQueryHandler);
-        queryService.submit(queryID, query, sseQueryHandler);
+        try {
+            query = preprocessingService.convertIfBQL(query);
+            queryService.submit(queryID, query, sseQueryHandler);
+        } catch (BQLException e) {
+            sseQueryHandler.fail(new BQLError(e));
+        } catch (Exception e) {
+            sseQueryHandler.fail(QueryError.INVALID_QUERY);
+        }
         return sseEmitter;
     }
 }

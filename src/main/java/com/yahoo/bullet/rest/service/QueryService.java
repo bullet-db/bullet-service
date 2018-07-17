@@ -60,9 +60,6 @@ public class QueryService {
      * @param queryHandler The {@link QueryHandler} object that handles the query.
      */
     public void submit(String queryID, String query, QueryHandler queryHandler) {
-        if (queryHandler.isComplete()) {
-            return;
-        }
         Publisher publisher = publisherRandomPool.get();
         try {
             publisher.send(queryID, query);

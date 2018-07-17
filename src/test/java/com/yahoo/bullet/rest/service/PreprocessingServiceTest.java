@@ -5,8 +5,8 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.rest.query.HTTPQueryHandler;
-import com.yahoo.bullet.rest.query.QueryHandler;
+import com.google.gson.JsonSyntaxException;
+import com.yahoo.bullet.rest.query.BQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -19,69 +19,40 @@ public class PreprocessingServiceTest extends AbstractTestNGSpringContextTests {
     private PreprocessingService preprocessingService;
 
     @Test
-    public void testConvertIfBQLDoesNothingToJSON() {
+    public void testConvertIfBQLDoesNothingToJSON() throws Exception {
         String query = "{}";
-        QueryHandler queryHandler = new HTTPQueryHandler();
-        String newQuery = preprocessingService.convertIfBQL(query, queryHandler);
+        String newQuery = preprocessingService.convertIfBQL(query);
         Assert.assertEquals(query, newQuery);
-        Assert.assertFalse(queryHandler.isComplete());
     }
 
     @Test
-    public void testConvertIfBQLConverts() {
+    public void testConvertIfBQLConverts() throws Exception {
         String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
-        QueryHandler queryHandler = new HTTPQueryHandler();
-        String newQuery = preprocessingService.convertIfBQL(query, queryHandler);
+        String newQuery = preprocessingService.convertIfBQL(query);
         Assert.assertEquals("{\"aggregation\":{\"size\":1,\"type\":\"RAW\"},\"duration\":30000}", newQuery);
-        Assert.assertFalse(queryHandler.isComplete());
     }
 
-    @Test
-    public void testConvertIfBQLCompletesIfBadQuery() {
+    @Test(expectedExceptions = BQLException.class)
+    public void testConvertIfBQLThrowsIfQueryBad() throws Exception {
         String query = "garbage";
-        QueryHandler queryHandler = new HTTPQueryHandler();
-        String newQuery = preprocessingService.convertIfBQL(query, queryHandler);
-        Assert.assertNull(newQuery);
-        Assert.assertTrue(queryHandler.isComplete());
+        preprocessingService.convertIfBQL(query);
     }
 
     @Test
-    public void testFailIfWindowedFailsWindows() {
+    public void testContainsWindowHasWindow() {
         String query = "{\"window\":{\"emit\":{\"type\": \"TIME\",\"every\": 5000}}}";
-        QueryHandler queryHandler = new HTTPQueryHandler();
-        preprocessingService.failIfWindowed(query, queryHandler);
-        Assert.assertTrue(queryHandler.isComplete());
+        Assert.assertTrue(preprocessingService.containsWindow(query));
     }
 
     @Test
-    public void testFailIfWindowedFailsBQLWindows() {
-        String query = "SELECT COUNT(*) AS numSeniors FROM STREAM(20000, TIME) GROUP BY () WINDOWING(EVERY, 2000, TIME, ALL);";
-        QueryHandler queryHandler = new HTTPQueryHandler();
-        preprocessingService.failIfWindowed(query, queryHandler);
-        Assert.assertTrue(queryHandler.isComplete());
-    }
-
-    @Test
-    public void testFailIfWindowedGoodQuery() {
+    public void testContainsWindowHasNoWindow() {
         String query = "{\"filters\":[{\"field\":\"demog_info\",\"operation\":\"!=\",\"values\":[\"null\"]}]}";
-        QueryHandler queryHandler = new HTTPQueryHandler();
-        preprocessingService.failIfWindowed(query, queryHandler);
-        Assert.assertFalse(queryHandler.isComplete());
+        Assert.assertFalse(preprocessingService.containsWindow(query));
     }
 
-    @Test
-    public void testFailIfWindowsdGoodBQLQuery() {
-        String query = "SELECT COUNT(*) AS numSeniors FROM STREAM(20000, TIME) GROUP BY ();";
-        QueryHandler queryHandler = new HTTPQueryHandler();
-        preprocessingService.failIfWindowed(query, queryHandler);
-        Assert.assertFalse(queryHandler.isComplete());
-    }
-
-    @Test
-    public void testFailIfWindowsdBadJSON() {
-        String query = "{";
-        QueryHandler queryHandler = new HTTPQueryHandler();
-        preprocessingService.failIfWindowed(query, queryHandler);
-        Assert.assertTrue(queryHandler.isComplete());
+    @Test(expectedExceptions = JsonSyntaxException.class)
+    public void testContainsWindowThrows() throws Exception {
+        String query = "garbage";
+        preprocessingService.containsWindow(query);
     }
 }

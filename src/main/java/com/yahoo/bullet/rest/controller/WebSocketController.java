@@ -6,6 +6,9 @@
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.model.WebSocketRequest;
+import com.yahoo.bullet.rest.query.BQLError;
+import com.yahoo.bullet.rest.query.BQLException;
+import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
 import com.yahoo.bullet.rest.service.PreprocessingService;
 import com.yahoo.bullet.rest.service.QueryService;
@@ -45,8 +48,14 @@ public class WebSocketController {
         String queryID = QueryService.getNewQueryID();
         String sessionID = headerAccessor.getSessionId();
         WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
-        String query = preprocessingService.convertIfBQL(request.getContent(), queryHandler);
-        webSocketService.submitQuery(queryID, sessionID, query, queryHandler);
+        try {
+            String query = preprocessingService.convertIfBQL(request.getContent());
+            webSocketService.submitQuery(queryID, sessionID, query, queryHandler);
+        } catch (BQLException e) {
+            queryHandler.fail(new BQLError(e));
+        } catch (Exception e) {
+            queryHandler.fail(QueryError.INVALID_QUERY);
+        }
     }
 
     private void handleKillQuery(WebSocketRequest request, SimpMessageHeaderAccessor headerAccessor) {

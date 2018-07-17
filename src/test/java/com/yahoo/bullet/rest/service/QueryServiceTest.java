@@ -22,10 +22,7 @@ import java.util.UUID;
 import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 public class QueryServiceTest {
     @NoArgsConstructor
@@ -85,20 +82,6 @@ public class QueryServiceTest {
         Assert.assertEquals(queryHandler, service.getRunningQueries().get(randomID));
         Mockito.verify(publisher).send(randomID, randomContent);
         service.close();
-    }
-
-    @Test
-    public void testServiceDoesNothingWhenQueryHandlerIsComplete() throws Exception {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        doReturn(true).when(queryHandler).isComplete();
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
-        String randomID = UUID.randomUUID().toString();
-        String query = "{}";
-        service.submit(randomID, query, queryHandler);
-        verify(publisher, never()).send(any(), any());
-        verify(queryHandler, never()).acknowledge();
     }
 
     @Test
