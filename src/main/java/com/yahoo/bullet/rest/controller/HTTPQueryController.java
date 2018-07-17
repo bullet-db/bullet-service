@@ -5,11 +5,12 @@
  */
 package com.yahoo.bullet.rest.controller;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.yahoo.bullet.rest.query.BQLError;
+import com.yahoo.bullet.rest.query.BQLException;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
+import com.yahoo.bullet.rest.service.PreprocessingService;
 import com.yahoo.bullet.rest.service.QueryService;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,15 +20,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class HTTPQueryController {
-    private static final String WINDOW_KEY_STRING = "window";
     @Autowired @Setter
     private QueryService queryService;
-    private static final Gson GSON = new GsonBuilder().create();
+    @Autowired
+    private PreprocessingService preprocessingService;
 
     /**
      * The method that handles POSTs to this endpoint. Consumes the HTTP request, invokes {@link QueryService} to
@@ -42,12 +42,14 @@ public class HTTPQueryController {
         HTTPQueryHandler queryHandler = new HTTPQueryHandler();
         String queryID = QueryService.getNewQueryID();
         try {
-            Map<String, Object> queryContent = GSON.fromJson(query, Map.class);
-            if (queryContent.containsKey(WINDOW_KEY_STRING) && queryContent.get(WINDOW_KEY_STRING) != null) {
+            query = preprocessingService.convertIfBQL(query);
+            if (preprocessingService.containsWindow(query)) {
                 queryHandler.fail(QueryError.UNSUPPORTED_QUERY);
             } else {
                 queryService.submit(queryID, query, queryHandler);
             }
+        } catch (BQLException e) {
+            queryHandler.fail(new BQLError(e));
         } catch (Exception e) {
             queryHandler.fail(QueryError.INVALID_QUERY);
         }
@@ -66,8 +68,14 @@ public class HTTPQueryController {
         SseEmitter sseEmitter = new SseEmitter();
         String queryID = QueryService.getNewQueryID();
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler(queryID, sseEmitter, queryService);
-        // query should not be null at this point. If the post body is null, Springframework will return 400 directly.
-        queryService.submit(queryID, query, sseQueryHandler);
+        try {
+            query = preprocessingService.convertIfBQL(query);
+            queryService.submit(queryID, query, sseQueryHandler);
+        } catch (BQLException e) {
+            sseQueryHandler.fail(new BQLError(e));
+        } catch (Exception e) {
+            sseQueryHandler.fail(QueryError.INVALID_QUERY);
+        }
         return sseEmitter;
     }
 }

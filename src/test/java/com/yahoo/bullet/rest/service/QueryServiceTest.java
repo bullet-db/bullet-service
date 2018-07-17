@@ -51,7 +51,7 @@ public class QueryServiceTest {
         Subscriber subscriber = new MockSubscriber();
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
-        service.submit("", "", queryHandler);
+        service.submit("", "{", queryHandler);
         service.close();
         Mockito.verify(queryHandler).fail();
         Assert.assertTrue(service.getRunningQueries().isEmpty());
@@ -76,12 +76,25 @@ public class QueryServiceTest {
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
         String randomID = UUID.randomUUID().toString();
-        String randomContent = "foo";
+        String randomContent = "{foo}";
         service.submit(randomID, randomContent, queryHandler);
         Assert.assertEquals(1, service.getRunningQueries().size());
         Assert.assertEquals(queryHandler, service.getRunningQueries().get(randomID));
         Mockito.verify(publisher).send(randomID, randomContent);
         service.close();
+    }
+
+    @Test
+    public void testSubmitFailsFromPublisherError() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = new MockSubscriber();
+        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
+        doThrow(new PubSubException("")).when(publisher).send(any(), any());
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+        String randomID = UUID.randomUUID().toString();
+        String query = "{}";
+        service.submit(randomID, query, queryHandler);
+        Mockito.verify(queryHandler).fail(QueryError.SERVICE_UNAVAILABLE);
     }
 
     @Test

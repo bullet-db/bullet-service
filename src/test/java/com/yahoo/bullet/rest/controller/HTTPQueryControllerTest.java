@@ -28,8 +28,10 @@ import org.testng.annotations.Test;
 
 import java.util.concurrent.CompletableFuture;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -85,12 +87,23 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         String query = "invalid query";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
-        Assert.assertEquals(response.get(), QueryError.INVALID_QUERY.toString());
+        String expected = "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"com.yahoo.bullet.bql.parser.ParsingException: line 1:1: missing \\u0027SELECT\\u0027 at \\u0027invalid\\u0027\",\"resolutions\":[\"Please provide a valid query.\"]}]}}";
+        Assert.assertEquals(response.get(), expected);
+    }
+
+    @Test
+    public void testInvalidQueryRuntimeException() throws Exception {
+        doThrow(RuntimeException.class).when(service).submit(any(), any(), any());
+        String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
+        CompletableFuture<String> response = controller.submitHTTPQuery(query);
+
+        String expected = "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Failed to parse query.\",\"resolutions\":[\"Please provide a valid query.\"]}]}}";
+        Assert.assertEquals(response.get(), expected);
     }
 
     @Test
     public void testSSEQuery() throws Exception {
-        String query = "foo";
+        String query = "{foo}";
 
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
 
@@ -101,5 +114,24 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
         argument.getValue().send(new PubSubMessage("", "baz"));
         Assert.assertEquals(result.getResponse().getContentAsString(), "data:bar\n\ndata:baz\n\n");
+    }
+
+    @Test
+    public void testInvalidSSEQuery() throws Exception {
+        String query = "invalid query";
+
+        MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
+
+        Assert.assertEquals(result.getResponse().getContentAsString(), "data:{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"com.yahoo.bullet.bql.parser.ParsingException: line 1:1: missing \\u0027SELECT\\u0027 at \\u0027invalid\\u0027\",\"resolutions\":[\"Please provide a valid query.\"]}]}}\n\n");
+    }
+
+    @Test
+    public void testInvalidSSEQueryRuntimeException() throws Exception {
+        doThrow(RuntimeException.class).when(service).submit(any(), any(), any());
+        String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
+
+        MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
+
+        Assert.assertEquals(result.getResponse().getContentAsString(), "data:{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Failed to parse query.\",\"resolutions\":[\"Please provide a valid query.\"]}]}}\n\n");
     }
 }

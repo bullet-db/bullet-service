@@ -7,6 +7,7 @@ package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
+import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -63,7 +64,7 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
         String sessionID = "sessionID";
         String queryID = "queryID";
         webSocketService.getSessionIDMap().clear();
-        webSocketService.submitQuery(queryID, sessionID, "foo");
+        webSocketService.submitQuery(queryID, sessionID, "foo", new WebSocketQueryHandler(webSocketService, sessionID, queryID));
 
         verify(queryService).submit(eq(queryID), eq("foo"), any());
         Assert.assertTrue(webSocketService.getSessionIDMap().containsKey(sessionID));
