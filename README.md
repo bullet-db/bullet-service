@@ -14,7 +14,8 @@ All documentation has moved to **[Github Pages here](https://bullet-db.github.io
 ## Links
 
 * [Setup Web Service](https://bullet-db.github.io/ws/setup/) for info about setting up the web service.
-* [Web Service API](https://bullet-db.github.io/ws/api/) for info about the Web Service API.
+* [Web Service JSON API](https://bullet-db.github.io/ws/api-json) for info about the Web Service JSON API.
+* [Web Service BQL API](https://bullet-db.github.io/ws/api-bql) for info about the Web Service BQL API.
 * [API Examples](https://bullet-db.github.io/ws/examples/) to see what kind of queries you can run on Bullet.
 * [Bullet Service Releases](https://bullet-db.github.io/releases/#bullet-web-service) to see Bullet Service releases.
 
