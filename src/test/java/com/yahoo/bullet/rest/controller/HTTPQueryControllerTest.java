@@ -8,6 +8,7 @@ package com.yahoo.bullet.rest.controller;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
+import com.yahoo.bullet.rest.query.QueryHandler;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
 import com.yahoo.bullet.rest.service.QueryService;
 import org.mockito.ArgumentCaptor;
@@ -27,11 +28,14 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -50,6 +54,9 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         mockMVC = MockMvcBuilders.webAppContextSetup(context).build();
+        ConcurrentMap<String, QueryHandler> map = mock(ConcurrentMap.class);
+        doReturn(0).when(map).size();
+        doReturn(map).when(service).getRunningQueries();
     }
 
     @Test
