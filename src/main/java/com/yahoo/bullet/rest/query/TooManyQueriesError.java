@@ -12,6 +12,6 @@ public class TooManyQueriesError extends QueryError {
      * @param e The Throwable indicating the reason for the error.
      */
     public TooManyQueriesError(Throwable e) {
-        super(e.getCause().toString(), "Please try again later.");
+        super(e.getMessage(), "Please try again later.");
     }
 }

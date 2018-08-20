@@ -54,13 +54,17 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         mockMVC = MockMvcBuilders.webAppContextSetup(context).build();
+    }
+
+    public void setNumRunningQueries(int numRunningQueries) {
         ConcurrentMap<String, QueryHandler> map = mock(ConcurrentMap.class);
-        doReturn(0).when(map).size();
+        doReturn(numRunningQueries).when(map).size();
         doReturn(map).when(service).getRunningQueries();
     }
 
     @Test
     public void testSendHTTPQueryWithoutWindow() throws Exception {
+        setNumRunningQueries(0);
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
@@ -72,6 +76,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSendHTTPQueryWithNullWindow() throws Exception {
+        setNumRunningQueries(0);
         String query = "{\"window\": null}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
@@ -83,10 +88,19 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSendHTTPQueryWithWindow() throws Exception {
+        setNumRunningQueries(0);
         String query = "{\"window\":{}}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
         Assert.assertEquals(response.get(), QueryError.UNSUPPORTED_QUERY.toString());
+    }
+
+    @Test
+    public void testSendHTTPTooManyQueries() throws Exception {
+        setNumRunningQueries(500);
+        String query = "{}";
+        CompletableFuture<String> response = controller.submitHTTPQuery(query);
+        Assert.assertEquals(response.get(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"max.concurrent.queries (500) has been reached.\",\"resolutions\":[\"Please try again later.\"]}]}}");
     }
 
     @Test
@@ -110,6 +124,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSSEQuery() throws Exception {
+        setNumRunningQueries(0);
         String query = "{foo}";
 
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
@@ -130,6 +145,16 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
 
         Assert.assertEquals(result.getResponse().getContentAsString(), "data:{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"com.yahoo.bullet.bql.parser.ParsingException: line 1:1: missing \\u0027SELECT\\u0027 at \\u0027invalid\\u0027\",\"resolutions\":[\"Please provide a valid query.\"]}]}}\n\n");
+    }
+
+    @Test
+    public void testSSEQueryTooManyQueries() throws Exception {
+        setNumRunningQueries(500);
+        String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
+
+        MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
+
+        Assert.assertEquals(result.getResponse().getContentAsString(), "data:{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"max.concurrent.queries (500) has been reached.\",\"resolutions\":[\"Please try again later.\"]}]}}\n\n");
     }
 
     @Test
