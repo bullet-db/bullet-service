@@ -100,7 +100,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         setNumRunningQueries(500);
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
-        Assert.assertEquals(response.get(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"max.concurrent.queries (500) has been reached.\",\"resolutions\":[\"Please try again later.\"]}]}}");
+        Assert.assertEquals(response.get(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Setting bullet.max.concurrent.queries (500) has been reached.\",\"resolutions\":[\"Please try again later.\"]}]}}");
     }
 
     @Test
@@ -154,7 +154,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
 
-        Assert.assertEquals(result.getResponse().getContentAsString(), "data:{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"max.concurrent.queries (500) has been reached.\",\"resolutions\":[\"Please try again later.\"]}]}}\n\n");
+        Assert.assertEquals(result.getResponse().getContentAsString(), "data:{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Setting bullet.max.concurrent.queries (500) has been reached.\",\"resolutions\":[\"Please try again later.\"]}]}}\n\n");
     }
 
     @Test
