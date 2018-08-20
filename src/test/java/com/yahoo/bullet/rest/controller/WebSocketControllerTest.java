@@ -43,8 +43,11 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
     @BeforeMethod
     public void setup() {
         MockitoAnnotations.initMocks(this);
+    }
+
+    public void setNumRunningQueries(int numRunningQueries) {
         ConcurrentMap<String, QueryHandler> map = mock(ConcurrentMap.class);
-        doReturn(0).when(map).size();
+        doReturn(numRunningQueries).when(map).size();
         QueryService queryService = mock(QueryService.class);
         doReturn(map).when(queryService).getRunningQueries();
         doReturn(queryService).when(webSocketService).getQueryService();
@@ -52,6 +55,7 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSubmitNewQuery() {
+        setNumRunningQueries(0);
         String sessionID = "sessionID";
         String query = "{}";
         WebSocketRequest request = new WebSocketRequest();
@@ -63,6 +67,22 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
         webSocketController.submitWebsocketQuery(request, headerAccessor);
 
         verify(webSocketService).submitQuery(anyString(), eq(sessionID), eq(query), any());
+    }
+
+    @Test
+    public void testSubmitQueryTooManyQueries() {
+        setNumRunningQueries(500);
+        String sessionID = "sessionID";
+        String query = "{}";
+        WebSocketRequest request = new WebSocketRequest();
+        request.setType(WebSocketRequest.Type.NEW_QUERY);
+        request.setContent(query);
+        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
+        when(headerAccessor.getSessionId()).thenReturn(sessionID);
+
+        webSocketController.submitWebsocketQuery(request, headerAccessor);
+
+        verify(webSocketService, never()).submitQuery(any(), any(), any(), any());
     }
 
     @Test
