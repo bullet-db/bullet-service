@@ -57,7 +57,7 @@ public class PreprocessingService {
      */
     public void throwIfQueryLimitReached(QueryService queryService) throws TooManyQueriesException {
         if (queryService.getRunningQueries().size() >= maxConcurrentQueries) {
-            throw new TooManyQueriesException("Bullet setting max.concurrent.queries (" + maxConcurrentQueries + ") has been reached.");
+            throw new TooManyQueriesException("Setting bullet.max.concurrent.queries (" + maxConcurrentQueries + ") has been reached.");
         }
     }
 
