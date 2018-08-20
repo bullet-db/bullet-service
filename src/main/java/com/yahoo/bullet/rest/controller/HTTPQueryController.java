@@ -10,6 +10,8 @@ import com.yahoo.bullet.rest.query.BQLException;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
+import com.yahoo.bullet.rest.query.TooManyQueriesError;
+import com.yahoo.bullet.rest.query.TooManyQueriesException;
 import com.yahoo.bullet.rest.service.PreprocessingService;
 import com.yahoo.bullet.rest.service.QueryService;
 import lombok.Setter;
@@ -43,6 +45,7 @@ public class HTTPQueryController {
         String queryID = QueryService.getNewQueryID();
         try {
             query = preprocessingService.convertIfBQL(query);
+            preprocessingService.throwIfQueryLimitReached(queryService);
             if (preprocessingService.containsWindow(query)) {
                 queryHandler.fail(QueryError.UNSUPPORTED_QUERY);
             } else {
@@ -50,6 +53,8 @@ public class HTTPQueryController {
             }
         } catch (BQLException e) {
             queryHandler.fail(new BQLError(e));
+        } catch (TooManyQueriesException e) {
+            queryHandler.fail(new TooManyQueriesError(e));
         } catch (Exception e) {
             queryHandler.fail(QueryError.INVALID_QUERY);
         }
@@ -70,9 +75,12 @@ public class HTTPQueryController {
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler(queryID, sseEmitter, queryService);
         try {
             query = preprocessingService.convertIfBQL(query);
+            preprocessingService.throwIfQueryLimitReached(queryService);
             queryService.submit(queryID, query, sseQueryHandler);
         } catch (BQLException e) {
             sseQueryHandler.fail(new BQLError(e));
+        } catch (TooManyQueriesException e) {
+            sseQueryHandler.fail(new TooManyQueriesError(e));
         } catch (Exception e) {
             sseQueryHandler.fail(QueryError.INVALID_QUERY);
         }

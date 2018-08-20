@@ -9,6 +9,8 @@ import com.yahoo.bullet.rest.model.WebSocketRequest;
 import com.yahoo.bullet.rest.query.BQLError;
 import com.yahoo.bullet.rest.query.BQLException;
 import com.yahoo.bullet.rest.query.QueryError;
+import com.yahoo.bullet.rest.query.TooManyQueriesError;
+import com.yahoo.bullet.rest.query.TooManyQueriesException;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
 import com.yahoo.bullet.rest.service.PreprocessingService;
 import com.yahoo.bullet.rest.service.QueryService;
@@ -50,9 +52,12 @@ public class WebSocketController {
         WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
         try {
             String query = preprocessingService.convertIfBQL(request.getContent());
+            preprocessingService.throwIfQueryLimitReached(webSocketService.getQueryService());
             webSocketService.submitQuery(queryID, sessionID, query, queryHandler);
         } catch (BQLException e) {
             queryHandler.fail(new BQLError(e));
+        } catch (TooManyQueriesException e) {
+            queryHandler.fail(new TooManyQueriesError(e));
         } catch (Exception e) {
             queryHandler.fail(QueryError.INVALID_QUERY);
         }

@@ -25,7 +25,7 @@ public class WebSocketService {
     private String clientDestination;
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
-    @Autowired
+    @Autowired @Getter
     private QueryService queryService;
 
     // Exposed for testing only.

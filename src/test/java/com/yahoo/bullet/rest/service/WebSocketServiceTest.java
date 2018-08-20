@@ -7,6 +7,7 @@ package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
+import com.yahoo.bullet.rest.query.QueryHandler;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -21,8 +22,11 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.concurrent.ConcurrentMap;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -40,6 +44,10 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
     @BeforeMethod
     public void setup() {
         MockitoAnnotations.initMocks(this);
+        ConcurrentMap<String, QueryHandler> map = mock(ConcurrentMap.class);
+        doReturn(0).when(map).size();
+        doReturn(map).when(queryService).getRunningQueries();
+
     }
 
     @Test

@@ -12,7 +12,10 @@ import com.yahoo.bullet.bql.BulletQueryBuilder;
 import com.yahoo.bullet.bql.parser.ParsingException;
 import com.yahoo.bullet.common.BulletConfig;
 import com.yahoo.bullet.rest.query.BQLException;
+import com.yahoo.bullet.rest.query.TooManyQueriesException;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Map;
 
@@ -21,6 +24,12 @@ public class PreprocessingService {
     private static final String WINDOW_KEY_STRING = "window";
     private static final BulletQueryBuilder QUERY_BUILDER = new BulletQueryBuilder(new BulletConfig());
     private static final Gson GSON = new GsonBuilder().create();
+    private int maxConcurrentQueries;
+
+    @Autowired
+    public PreprocessingService(@Value("${bullet.max.concurrent.queries}") int maxConcurrentQueries) {
+        this.maxConcurrentQueries = maxConcurrentQueries;
+    }
 
     /**
      * Convert this query to a valid JSON Bullet Query if it is currently a BQL query.
@@ -38,6 +47,17 @@ public class PreprocessingService {
             }
         } catch (ParsingException | UnsupportedOperationException e) {
             throw new BQLException(e);
+        }
+    }
+
+    /**
+     * This function checks if the configured max.concurrent.queries limit has been exceeded.
+     *
+     * @throws TooManyQueriesException if the max.concurrent.queries limit has been reached.
+     */
+    public void throwIfQueryLimitReached(QueryService queryService) throws TooManyQueriesException {
+        if (queryService.getRunningQueries().size() >= maxConcurrentQueries) {
+            throw new TooManyQueriesException("max.concurrent.queries (" + maxConcurrentQueries + ") has been reached.");
         }
     }
 

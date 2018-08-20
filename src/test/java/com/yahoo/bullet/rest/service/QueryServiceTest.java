@@ -26,7 +26,7 @@ import static org.mockito.Mockito.doThrow;
 
 public class QueryServiceTest {
     @NoArgsConstructor
-    private class MockSubscriber implements Subscriber {
+    public static class MockSubscriber implements Subscriber {
         @Override
         public PubSubMessage receive() throws PubSubException {
             return null;
