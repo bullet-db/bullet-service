@@ -14,7 +14,6 @@ import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.query.PubSubReader;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.QueryHandler;
-import lombok.AccessLevel;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

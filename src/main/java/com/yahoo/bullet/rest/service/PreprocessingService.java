@@ -26,6 +26,11 @@ public class PreprocessingService {
     private static final Gson GSON = new GsonBuilder().create();
     private int maxConcurrentQueries;
 
+    /**
+     * Creates an instance of PreprocessingService.
+     *
+     * @param maxConcurrentQueries The maximum number of concurrent queries allowed.
+     */
     @Autowired
     public PreprocessingService(@Value("${bullet.max.concurrent.queries}") int maxConcurrentQueries) {
         this.maxConcurrentQueries = maxConcurrentQueries;
