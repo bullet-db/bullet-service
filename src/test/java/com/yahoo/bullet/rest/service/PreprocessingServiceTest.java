@@ -7,15 +7,12 @@ package com.yahoo.bullet.rest.service;
 
 import com.google.gson.JsonSyntaxException;
 import com.yahoo.bullet.rest.query.BQLException;
-import com.yahoo.bullet.rest.query.QueryHandler;
-import com.yahoo.bullet.rest.query.TooManyQueriesException;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 import org.testng.Assert;
-import java.util.concurrent.ConcurrentMap;
 import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -61,21 +58,17 @@ public class PreprocessingServiceTest extends AbstractTestNGSpringContextTests {
         preprocessingService.containsWindow(query);
     }
 
-    @Test(expectedExceptions = TooManyQueriesException.class)
-    public void testThrowIfQueryLimitReachedTooManyQueries() throws Exception {
-        ConcurrentMap<String, QueryHandler> map = Mockito.mock(ConcurrentMap.class);
-        doReturn(500).when(map).size();
+    @Test
+    public void testQueryLimitReached() throws Exception {
         QueryService queryService = Mockito.mock(QueryService.class);
-        doReturn(map).when(queryService).getRunningQueries();
-        preprocessingService.throwIfQueryLimitReached(queryService);
+        doReturn(500).when(queryService).runningQueryCount();
+        Assert.assertTrue(preprocessingService.queryLimitReached(queryService));
     }
 
     @Test
-    public void testThrowIfQueryLimitReached() throws Exception {
-        ConcurrentMap<String, QueryHandler> map = Mockito.mock(ConcurrentMap.class);
-        doReturn(499).when(map).size();
+    public void testQueryLimitNotReached() throws Exception {
         QueryService queryService = Mockito.mock(QueryService.class);
-        doReturn(map).when(queryService).getRunningQueries();
-        preprocessingService.throwIfQueryLimitReached(queryService);
+        doReturn(499).when(queryService).runningQueryCount();
+        Assert.assertFalse(preprocessingService.queryLimitReached(queryService));
     }
 }

@@ -78,7 +78,8 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
         Assert.assertTrue(webSocketService.getSessionIDMap().containsKey(sessionID));
     }
 
-    @Test void testSendResponse() {
+    @Test
+    public void testSendResponse() {
         String sessionID = "sessionID";
         SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
         when(headerAccessor.getSessionId()).thenReturn(sessionID);

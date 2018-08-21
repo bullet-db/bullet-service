@@ -14,6 +14,7 @@ import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.query.PubSubReader;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.QueryHandler;
+import lombok.AccessLevel;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class QueryService {
-    @Getter
+    @Getter(AccessLevel.PACKAGE)
     private ConcurrentMap<String, QueryHandler> runningQueries;
     private List<PubSubReader> consumers;
     private RandomPool<Publisher> publisherRandomPool;
@@ -104,5 +105,14 @@ public class QueryService {
      */
     public static String getNewQueryID() {
         return UUID.randomUUID().toString();
+    }
+
+    /**
+     * Get the number of running queries.
+     *
+     * @return The number of running queries.
+     */
+    public int runningQueryCount() {
+        return runningQueries.size();
     }
 }

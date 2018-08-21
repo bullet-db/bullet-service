@@ -8,7 +8,6 @@ package com.yahoo.bullet.rest.controller;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
-import com.yahoo.bullet.rest.query.QueryHandler;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
 import com.yahoo.bullet.rest.service.QueryService;
 import org.mockito.ArgumentCaptor;
@@ -28,14 +27,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentMap;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -57,9 +53,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     public void setNumRunningQueries(int numRunningQueries) {
-        ConcurrentMap<String, QueryHandler> map = mock(ConcurrentMap.class);
-        doReturn(numRunningQueries).when(map).size();
-        doReturn(map).when(service).getRunningQueries();
+        doReturn(numRunningQueries).when(service).runningQueryCount();
     }
 
     @Test
@@ -100,7 +94,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         setNumRunningQueries(500);
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
-        Assert.assertEquals(response.get(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Setting bullet.max.concurrent.queries (500) has been reached.\",\"resolutions\":[\"Please try again later.\"]}]}}");
+        Assert.assertEquals(response.get(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Too many queries in the system - the setting bullet.max.concurrent.queries has been reached.\",\"resolutions\":[\"Please try again later\"]}]}}");
     }
 
     @Test
@@ -154,7 +148,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
 
-        Assert.assertEquals(result.getResponse().getContentAsString(), "data:{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Setting bullet.max.concurrent.queries (500) has been reached.\",\"resolutions\":[\"Please try again later.\"]}]}}\n\n");
+        Assert.assertEquals(result.getResponse().getContentAsString(), "data:{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Too many queries in the system - the setting bullet.max.concurrent.queries has been reached.\",\"resolutions\":[\"Please try again later\"]}]}}\n\n");
     }
 
     @Test
