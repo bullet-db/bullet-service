@@ -52,13 +52,13 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         mockMVC = MockMvcBuilders.webAppContextSetup(context).build();
     }
 
-    public void setNumRunningQueries(int numRunningQueries) {
-        doReturn(numRunningQueries).when(service).runningQueryCount();
-    }
+//    public void setNumRunningQueries(int numRunningQueries) {
+//        doReturn(numRunningQueries).when(service).runningQueryCount();
+//    }
 
     @Test
     public void testSendHTTPQueryWithoutWindow() throws Exception {
-        setNumRunningQueries(0);
+        doReturn(0).when(service).runningQueryCount();
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
@@ -70,7 +70,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSendHTTPQueryWithNullWindow() throws Exception {
-        setNumRunningQueries(0);
+        doReturn(0).when(service).runningQueryCount();
         String query = "{\"window\": null}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
@@ -82,7 +82,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSendHTTPQueryWithWindow() throws Exception {
-        setNumRunningQueries(0);
+        doReturn(0).when(service).runningQueryCount();
         String query = "{\"window\":{}}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
@@ -91,7 +91,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSendHTTPTooManyQueries() throws Exception {
-        setNumRunningQueries(500);
+        doReturn(500).when(service).runningQueryCount();
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
         Assert.assertEquals(response.get(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Too many queries in the system - the setting bullet.max.concurrent.queries has been reached.\",\"resolutions\":[\"Please try again later\"]}]}}");
@@ -118,7 +118,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSSEQuery() throws Exception {
-        setNumRunningQueries(0);
+        doReturn(0).when(service).runningQueryCount();
         String query = "{foo}";
 
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
@@ -143,7 +143,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSSEQueryTooManyQueries() throws Exception {
-        setNumRunningQueries(500);
+        doReturn(500).when(service).runningQueryCount();
         String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
 
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
