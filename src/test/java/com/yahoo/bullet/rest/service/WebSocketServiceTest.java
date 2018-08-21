@@ -44,10 +44,6 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
     @BeforeMethod
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        ConcurrentMap<String, QueryHandler> map = mock(ConcurrentMap.class);
-        doReturn(0).when(map).size();
-        doReturn(map).when(queryService).getRunningQueries();
-
     }
 
     @Test
