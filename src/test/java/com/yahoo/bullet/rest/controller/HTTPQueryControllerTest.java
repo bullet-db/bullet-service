@@ -52,10 +52,6 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         mockMVC = MockMvcBuilders.webAppContextSetup(context).build();
     }
 
-//    public void setNumRunningQueries(int numRunningQueries) {
-//        doReturn(numRunningQueries).when(service).runningQueryCount();
-//    }
-
     @Test
     public void testSendHTTPQueryWithoutWindow() throws Exception {
         doReturn(0).when(service).runningQueryCount();
