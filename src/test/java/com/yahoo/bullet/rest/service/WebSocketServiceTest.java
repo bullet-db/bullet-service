@@ -90,13 +90,4 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
 
         verify(simpMessagingTemplate).convertAndSendToUser("sessionID", "/response", response, (MessageHeaders) null);
     }
-
-    @Test
-    public void testGetQueryServicePassesByReference() {
-        QueryService queryService = webSocketService.getQueryService();
-        webSocketService.getQueryService().getRunningQueries();
-        webSocketService.getQueryService().close();
-        verify(queryService).getRunningQueries();
-        verify(queryService).close();
-    }
 }

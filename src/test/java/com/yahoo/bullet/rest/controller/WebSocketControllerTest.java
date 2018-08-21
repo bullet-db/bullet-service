@@ -35,21 +35,17 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
     private WebSocketController webSocketController;
     @Mock
     private WebSocketService webSocketService;
+    @Mock
+    private QueryService queryService;
 
     @BeforeMethod
     public void setup() {
         MockitoAnnotations.initMocks(this);
     }
 
-    public void setNumRunningQueries(int numRunningQueries) {
-        QueryService queryService = mock(QueryService.class);
-        doReturn(numRunningQueries).when(queryService).runningQueryCount();
-        doReturn(queryService).when(webSocketService).getQueryService();
-    }
-
     @Test
     public void testSubmitNewQuery() {
-        setNumRunningQueries(0);
+        doReturn(0).when(queryService).runningQueryCount();
         String sessionID = "sessionID";
         String query = "{}";
         WebSocketRequest request = new WebSocketRequest();
@@ -65,7 +61,7 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSubmitQueryTooManyQueries() {
-        setNumRunningQueries(500);
+        doReturn(500).when(queryService).runningQueryCount();
         String sessionID = "sessionID";
         String query = "{}";
         WebSocketRequest request = new WebSocketRequest();
