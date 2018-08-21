@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class QueryService {
+    // Exposed for testing only.
     @Getter(AccessLevel.PACKAGE)
     private ConcurrentMap<String, QueryHandler> runningQueries;
     private List<PubSubReader> consumers;
