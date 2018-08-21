@@ -13,6 +13,7 @@ import com.yahoo.bullet.bql.parser.ParsingException;
 import com.yahoo.bullet.common.BulletConfig;
 import com.yahoo.bullet.rest.query.BQLException;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Map;
 
@@ -21,6 +22,8 @@ public class PreprocessingService {
     private static final String WINDOW_KEY_STRING = "window";
     private static final BulletQueryBuilder QUERY_BUILDER = new BulletQueryBuilder(new BulletConfig());
     private static final Gson GSON = new GsonBuilder().create();
+    @Value("${bullet.max.concurrent.queries}")
+    private int maxConcurrentQueries;
 
     /**
      * Convert this query to a valid JSON Bullet Query if it is currently a BQL query.
@@ -39,6 +42,15 @@ public class PreprocessingService {
         } catch (ParsingException | UnsupportedOperationException e) {
             throw new BQLException(e);
         }
+    }
+
+    /**
+     * This function checks if the configured max.concurrent.queries limit has been exceeded.
+     *
+     * @return A boolean indicating whether or not the query limit has been reached.
+     */
+    public boolean queryLimitReached(QueryService queryService) {
+        return queryService.runningQueryCount() >= maxConcurrentQueries;
     }
 
     /**

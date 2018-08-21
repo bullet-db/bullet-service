@@ -107,4 +107,13 @@ public class QueryService {
     public static String getNewQueryID() {
         return UUID.randomUUID().toString();
     }
+
+    /**
+     * Get the number of running queries.
+     *
+     * @return The number of running queries.
+     */
+    public int runningQueryCount() {
+        return runningQueries.size();
+    }
 }

@@ -7,11 +7,13 @@ package com.yahoo.bullet.rest.service;
 
 import com.google.gson.JsonSyntaxException;
 import com.yahoo.bullet.rest.query.BQLException;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 import org.testng.Assert;
+import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class PreprocessingServiceTest extends AbstractTestNGSpringContextTests {
@@ -54,5 +56,19 @@ public class PreprocessingServiceTest extends AbstractTestNGSpringContextTests {
     public void testContainsWindowThrows() throws Exception {
         String query = "garbage";
         preprocessingService.containsWindow(query);
+    }
+
+    @Test
+    public void testQueryLimitReached() throws Exception {
+        QueryService queryService = Mockito.mock(QueryService.class);
+        doReturn(500).when(queryService).runningQueryCount();
+        Assert.assertTrue(preprocessingService.queryLimitReached(queryService));
+    }
+
+    @Test
+    public void testQueryLimitNotReached() throws Exception {
+        QueryService queryService = Mockito.mock(QueryService.class);
+        doReturn(499).when(queryService).runningQueryCount();
+        Assert.assertFalse(preprocessingService.queryLimitReached(queryService));
     }
 }

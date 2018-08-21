@@ -45,6 +45,8 @@ public class HTTPQueryController {
             query = preprocessingService.convertIfBQL(query);
             if (preprocessingService.containsWindow(query)) {
                 queryHandler.fail(QueryError.UNSUPPORTED_QUERY);
+            } else if (preprocessingService.queryLimitReached(queryService)) {
+                queryHandler.fail(QueryError.TOO_MANY_QUERIES);
             } else {
                 queryService.submit(queryID, query, queryHandler);
             }
@@ -70,7 +72,11 @@ public class HTTPQueryController {
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler(queryID, sseEmitter, queryService);
         try {
             query = preprocessingService.convertIfBQL(query);
-            queryService.submit(queryID, query, sseQueryHandler);
+            if (preprocessingService.queryLimitReached(queryService)) {
+                sseQueryHandler.fail(QueryError.TOO_MANY_QUERIES);
+            } else {
+                queryService.submit(queryID, query, sseQueryHandler);
+            }
         } catch (BQLException e) {
             sseQueryHandler.fail(new BQLError(e));
         } catch (Exception e) {

@@ -25,6 +25,8 @@ public class WebSocketController {
     private WebSocketService webSocketService;
     @Autowired
     private PreprocessingService preprocessingService;
+    @Autowired
+    private QueryService queryService;
 
     /**
      * The method that handles WebSocket messages to this endpoint.
@@ -50,7 +52,11 @@ public class WebSocketController {
         WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
         try {
             String query = preprocessingService.convertIfBQL(request.getContent());
-            webSocketService.submitQuery(queryID, sessionID, query, queryHandler);
+            if (preprocessingService.queryLimitReached(queryService)) {
+                queryHandler.fail(QueryError.TOO_MANY_QUERIES);
+            } else {
+                webSocketService.submitQuery(queryID, sessionID, query, queryHandler);
+            }
         } catch (BQLException e) {
             queryHandler.fail(new BQLError(e));
         } catch (Exception e) {

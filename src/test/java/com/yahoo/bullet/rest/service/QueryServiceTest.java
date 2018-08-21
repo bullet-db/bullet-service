@@ -26,7 +26,7 @@ import static org.mockito.Mockito.doThrow;
 
 public class QueryServiceTest {
     @NoArgsConstructor
-    private class MockSubscriber implements Subscriber {
+    public static class MockSubscriber implements Subscriber {
         @Override
         public PubSubMessage receive() throws PubSubException {
             return null;
@@ -123,5 +123,17 @@ public class QueryServiceTest {
         service.submitSignal("id", Metadata.Signal.KILL);
         Assert.assertEquals(0, service.getRunningQueries().size());
         service.close();
+    }
+
+    @Test
+    public void testRunningQueryCount() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = new MockSubscriber();
+        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+
+        Assert.assertEquals(service.runningQueryCount(), 0);
+        service.getRunningQueries().put("id", queryHandler);
+        Assert.assertEquals(service.runningQueryCount(), 1);
     }
 }

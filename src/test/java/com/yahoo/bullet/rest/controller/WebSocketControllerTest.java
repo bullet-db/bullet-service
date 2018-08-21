@@ -6,6 +6,7 @@
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.model.WebSocketRequest;
+import com.yahoo.bullet.rest.service.QueryService;
 import com.yahoo.bullet.rest.service.WebSocketService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -16,7 +17,6 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -35,6 +35,8 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
     private WebSocketController webSocketController;
     @Mock
     private WebSocketService webSocketService;
+    @Mock
+    private QueryService queryService;
 
     @BeforeMethod
     public void setup() {
@@ -43,6 +45,7 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSubmitNewQuery() {
+        doReturn(0).when(queryService).runningQueryCount();
         String sessionID = "sessionID";
         String query = "{}";
         WebSocketRequest request = new WebSocketRequest();
@@ -54,6 +57,22 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
         webSocketController.submitWebsocketQuery(request, headerAccessor);
 
         verify(webSocketService).submitQuery(anyString(), eq(sessionID), eq(query), any());
+    }
+
+    @Test
+    public void testSubmitQueryTooManyQueries() {
+        doReturn(500).when(queryService).runningQueryCount();
+        String sessionID = "sessionID";
+        String query = "{}";
+        WebSocketRequest request = new WebSocketRequest();
+        request.setType(WebSocketRequest.Type.NEW_QUERY);
+        request.setContent(query);
+        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
+        when(headerAccessor.getSessionId()).thenReturn(sessionID);
+
+        webSocketController.submitWebsocketQuery(request, headerAccessor);
+
+        verify(webSocketService, never()).submitQuery(any(), any(), any(), any());
     }
 
     @Test

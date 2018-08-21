@@ -2,6 +2,7 @@
 # Bullet Web-Service settings
 ####################################################################################################################
 bullet:
+  max.concurrent.queries: 500
   schema:
     # The fully qualified path to your schema file
     file: /sample_columns.json

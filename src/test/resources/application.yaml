@@ -1,4 +1,5 @@
 bullet:
+  max.concurrent.queries: 500
   schema:
     # The fully qualified path to your schema file
     file: /test_columns.json
