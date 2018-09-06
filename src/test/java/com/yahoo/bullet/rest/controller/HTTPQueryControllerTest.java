@@ -90,7 +90,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         doReturn(500).when(service).runningQueryCount();
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
-        Assert.assertEquals(response.get(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Too many queries in the system - the setting bullet.max.concurrent.queries has been reached.\",\"resolutions\":[\"Please try again later\"]}]}}");
+        Assert.assertEquals(response.get(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Too many concurrent queries in the system\",\"resolutions\":[\"Please try again later\"]}]}}");
     }
 
     @Test
@@ -144,7 +144,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
 
-        Assert.assertEquals(result.getResponse().getContentAsString(), "data:{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Too many queries in the system - the setting bullet.max.concurrent.queries has been reached.\",\"resolutions\":[\"Please try again later\"]}]}}\n\n");
+        Assert.assertEquals(result.getResponse().getContentAsString(), "data:{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Too many concurrent queries in the system\",\"resolutions\":[\"Please try again later\"]}]}}\n\n");
     }
 
     @Test

@@ -12,7 +12,7 @@ import lombok.Getter;
 
 @Getter
 public class QueryError {
-    public static final QueryError TOO_MANY_QUERIES = new QueryError("Too many queries in the system - the setting bullet.max.concurrent.queries has been reached.", "Please try again later");
+    public static final QueryError TOO_MANY_QUERIES = new QueryError("Too many concurrent queries in the system", "Please try again later");
     public static final QueryError INVALID_QUERY = new QueryError("Failed to parse query.", "Please provide a valid query.");
     public static final QueryError UNSUPPORTED_QUERY =
             new QueryError("This particular REST endpoint does not support windowed queries",
