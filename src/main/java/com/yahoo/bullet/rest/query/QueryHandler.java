@@ -8,8 +8,8 @@ package com.yahoo.bullet.rest.query;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import lombok.Getter;
 
+@Getter
 public abstract class QueryHandler {
-    @Getter
     protected boolean complete = false;
 
     /**

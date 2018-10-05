@@ -3,6 +3,9 @@
 ####################################################################################################################
 bullet:
   max.concurrent.queries: 500
+  backend.status.tick-ms: 30000
+  backend.status.retries: 10
+  backend.status.enabled: true
   schema:
     # The fully qualified path to your schema file
     file: /sample_columns.json
