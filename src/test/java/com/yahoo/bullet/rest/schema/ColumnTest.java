@@ -52,25 +52,26 @@ public class ColumnTest {
         column.setType(Type.MAP);
         column.setSubtype(null);
         Assert.assertFalse(column.isValid());
+        column.setType(Type.LIST);
+        Assert.assertFalse(column.isValid());
 
-        // Subtype can only be primitives if type is MAP
+        // Subtype can only be primitives or MAP if type is MAP
         column.setType(Type.MAP);
         column.setSubtype(Type.MAP);
-        Assert.assertFalse(column.isValid());
+        Assert.assertTrue(column.isValid());
         column.setSubtype(Type.LIST);
         Assert.assertFalse(column.isValid());
         column.setSubtype(Type.BOOLEAN);
         Assert.assertTrue(column.isValid());
 
-        // Subtype can be MAP if type is LIST
+        // Subtype can only be primitives or MAP if type is LIST
         column.setType(Type.LIST);
         column.setSubtype(Type.MAP);
         Assert.assertTrue(column.isValid());
-
-        // LIST of anything else is not ok
-        column.setType(Type.LIST);
-        column.setSubtype(Type.BOOLEAN);
+        column.setSubtype(Type.LIST);
         Assert.assertFalse(column.isValid());
+        column.setSubtype(Type.BOOLEAN);
+        Assert.assertTrue(column.isValid());
     }
 
     @Test

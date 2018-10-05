@@ -17,6 +17,8 @@ import java.util.Set;
 
 import static com.yahoo.bullet.typesystem.Type.BOOLEAN;
 import static com.yahoo.bullet.typesystem.Type.DOUBLE;
+import static com.yahoo.bullet.typesystem.Type.FLOAT;
+import static com.yahoo.bullet.typesystem.Type.INTEGER;
 import static com.yahoo.bullet.typesystem.Type.LIST;
 import static com.yahoo.bullet.typesystem.Type.LONG;
 import static com.yahoo.bullet.typesystem.Type.MAP;
@@ -27,7 +29,7 @@ import static java.util.Arrays.asList;
 @Getter @Setter
 @Slf4j
 public class Column {
-    public static final Set<Type> TYPES = new HashSet<>(asList(BOOLEAN, DOUBLE, LONG, STRING, MAP, LIST));
+    public static final Set<Type> TYPES = new HashSet<>(asList(BOOLEAN, INTEGER, LONG, FLOAT, DOUBLE, STRING, MAP, LIST));
     public static final Set<Type> PRIMITIVES = new HashSet<>(Type.PRIMITIVES);
 
     private String name;
@@ -56,12 +58,12 @@ public class Column {
             log.error("Subtype can only be set if type is not a complex type");
             return false;
         }
-        if (type == MAP && !PRIMITIVES.contains(subtype)) {
-            log.error("Subtype can only be set to non-MAP values if type is MAP");
+        if (type == MAP && (subtype == null || (!PRIMITIVES.contains(subtype) && subtype != MAP))) {
+            log.error("Subtype must be set to a primitive or MAP if type is MAP");
             return false;
         }
-        if (type == LIST && subtype != MAP) {
-            log.error("Subtype must be set to MAP if type is LIST");
+        if (type == LIST && (subtype == null || (!PRIMITIVES.contains(subtype) && subtype != MAP))) {
+            log.error("Subtype must be set to a primitive or MAP if type is LIST");
             return false;
         }
         if (type != MAP && enumerations != null) {
