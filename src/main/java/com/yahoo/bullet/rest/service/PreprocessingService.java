@@ -23,14 +23,6 @@ public class PreprocessingService {
     private static final String WINDOW_KEY_STRING = "window";
     private static final BulletQueryBuilder QUERY_BUILDER = new BulletQueryBuilder(new BulletConfig());
     private static final Gson GSON = new GsonBuilder().create();
-    private static final long QUERY_DEFAULT_DURATION_MS;
-    private static final long QUERY_MAX_DURATION_MS;
-
-    static {
-        BulletConfig config = new BulletConfig();
-        QUERY_DEFAULT_DURATION_MS = (long) config.get(BulletConfig.QUERY_DEFAULT_DURATION);
-        QUERY_MAX_DURATION_MS = (long) config.get(BulletConfig.QUERY_MAX_DURATION);
-    }
 
     @Value("${bullet.max.concurrent.queries}")
     private int maxConcurrentQueries;
@@ -52,22 +44,6 @@ public class PreprocessingService {
         } catch (ParsingException | UnsupportedOperationException e) {
             throw new BQLException(e);
         }
-    }
-
-    /**
-     *
-     * @param query
-     * @return
-     */
-    public long getTimeoutDuration(String query) {
-        Query object = GSON.fromJson(query, Query.class);
-        if (object == null || object.getDuration() == null || object.getDuration() <= 0L) {
-            return QUERY_DEFAULT_DURATION_MS;
-        }
-        if (object.getDuration() > QUERY_MAX_DURATION_MS) {
-            return QUERY_MAX_DURATION_MS;
-        }
-        return object.getDuration();
     }
 
     /**

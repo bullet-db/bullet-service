@@ -79,6 +79,8 @@ public class BackendStatusService implements Runnable {
         this.retries = retries;
         this.count = 0;
 
+        // TODO validate parameters
+
         if (enabled != null && enabled) {
             Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this, period, period, TimeUnit.MILLISECONDS);
         }
