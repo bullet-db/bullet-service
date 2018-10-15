@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class BackendStatusService implements Runnable {
-    private static class TickQueryHandler extends QueryHandler {
+    static class TickQueryHandler extends QueryHandler {
         private CompletableFuture<Boolean> result = new CompletableFuture<>();
         private long timeout;
 
@@ -46,7 +46,7 @@ public class BackendStatusService implements Runnable {
         /**
          * Get whether or not this handler was sent a message.
          *
-         * @return true if result was sent within timeout; false, otherwise
+         * @return true if result was sent within timeout; false, otherwise.
          */
         public boolean hasResult() {
             try {
@@ -64,22 +64,22 @@ public class BackendStatusService implements Runnable {
 
     @Getter
     private boolean backendStatusOk = true;
-
-    @Autowired
     private QueryService queryService;
 
     /**
-     * Creates an instance with a tick period.
+     * Creates an instance with a tick period and number of retries.
      *
-     * @param period Rate at which to check backend status in ms.
+     * @param queryService QueryService autowired through constructor.
+     * @param period Rate at which to ping backend in ms.
+     * @param retries Number of times ping can fail before backend status is considered not ok.
+     * @param enabled Whether this backend status service is enabled or not.
      */
     @Autowired
-    public BackendStatusService(@Value("${bullet.backend.status.tick-ms}") long period, @Value("${bullet.backend.status.retries") long retries, @Value("${bullet.backend.status.enabled}") Boolean enabled) {
+    public BackendStatusService(QueryService queryService, @Value("${bullet.backend.status.tick-ms}") long period, @Value("${bullet.backend.status.retries}") long retries, @Value("${bullet.backend.status.enabled}") Boolean enabled) {
+        this.queryService = queryService;
         this.period = period;
         this.retries = retries;
         this.count = 0;
-
-        // TODO validate parameters
 
         if (enabled != null && enabled) {
             Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this, period, period, TimeUnit.MILLISECONDS);
@@ -97,7 +97,7 @@ public class BackendStatusService implements Runnable {
             backendStatusOk = true;
         } else {
             count++;
-            backendStatusOk = count >= retries;
+            backendStatusOk = count <= retries;
         }
         if (!backendStatusOk) {
             queryService.killRunningQueries();

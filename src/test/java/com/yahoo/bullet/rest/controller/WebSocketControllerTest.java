@@ -6,8 +6,11 @@
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.model.WebSocketRequest;
+import com.yahoo.bullet.rest.model.WebSocketResponse;
+import com.yahoo.bullet.rest.service.BackendStatusService;
 import com.yahoo.bullet.rest.service.QueryService;
 import com.yahoo.bullet.rest.service.WebSocketService;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -15,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static org.mockito.Matchers.any;
@@ -36,11 +40,35 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
     @Mock
     private WebSocketService webSocketService;
     @Mock
+    private BackendStatusService backendStatusService;
+    @Mock
     private QueryService queryService;
 
     @BeforeMethod
     public void setup() {
         MockitoAnnotations.initMocks(this);
+        doReturn(true).when(backendStatusService).isBackendStatusOk();
+    }
+
+    @Test
+    public void testWebSocketQueryWithBackendDown() {
+        doReturn(false).when(backendStatusService).isBackendStatusOk();
+
+        String sessionID = "sessionID";
+        String query = "{}";
+        WebSocketRequest request = new WebSocketRequest();
+        request.setType(WebSocketRequest.Type.NEW_QUERY);
+        request.setContent(query);
+        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
+        when(headerAccessor.getSessionId()).thenReturn(sessionID);
+
+        webSocketController.submitWebsocketQuery(request, headerAccessor);
+
+        ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
+        verify(webSocketService).sendResponse(eq(sessionID), argument.capture(), any());
+
+        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.FAIL);
+        Assert.assertEquals(argument.getValue().getContent(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Service temporarily unavailable\",\"resolutions\":[\"Please try again later.\"]}]}}");
     }
 
     @Test

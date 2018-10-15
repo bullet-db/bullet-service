@@ -11,7 +11,6 @@ import com.google.gson.JsonSyntaxException;
 import com.yahoo.bullet.bql.BulletQueryBuilder;
 import com.yahoo.bullet.bql.parser.ParsingException;
 import com.yahoo.bullet.common.BulletConfig;
-import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.rest.query.BQLException;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,6 +49,7 @@ public class PreprocessingService {
      * This function checks if the configured max.concurrent.queries limit has been exceeded.
      *
      * @return A boolean indicating whether or not the query limit has been reached.
+     * @param queryService QueryService to get running query count from.
      */
     public boolean queryLimitReached(QueryService queryService) {
         return queryService.runningQueryCount() >= maxConcurrentQueries;

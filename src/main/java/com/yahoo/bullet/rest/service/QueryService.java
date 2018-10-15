@@ -102,8 +102,7 @@ public class QueryService {
     @PreDestroy
     public void close() {
         consumers.forEach(PubSubReader::close);
-        runningQueries.values().forEach(QueryHandler::fail);
-        runningQueries.clear();
+        killRunningQueries();
         publisherRandomPool.clear();
     }
 
