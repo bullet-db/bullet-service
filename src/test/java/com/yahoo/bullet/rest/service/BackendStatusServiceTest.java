@@ -6,8 +6,6 @@
 package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.rest.query.QueryHandler;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -17,64 +15,35 @@ import static org.mockito.Mockito.mock;
 
 public class BackendStatusServiceTest {
     @Test
-    public void testBackendSucceeds() {
-        // Succeeding sets the backend status to ok
-        QueryService queryService = mock(QueryService.class);
-        doAnswer(invocationOnMock -> {
-                ((QueryHandler) invocationOnMock.getArguments()[2]).send(null);
-                return null;
-            }).when(queryService).submit(any(), any(), any());
-
-        BackendStatusService backendStatusService = new BackendStatusService(queryService, 1L, 10L, true);
-
-        Assert.assertTrue(backendStatusService.isBackendStatusOk());
-    }
-
-    @Test
-    public void testBackendFails() throws Exception {
-        // Failing a lot sets the backend status to not ok
+    public void testBackendFailsAndSucceeds() {
+        // query handler fails automatically
         QueryService queryService = mock(QueryService.class);
         doAnswer(invocationOnMock -> {
                 ((QueryHandler) invocationOnMock.getArguments()[2]).fail(null);
                 return null;
             }).when(queryService).submit(any(), any(), any());
 
-        BackendStatusService backendStatusService = new BackendStatusService(queryService, 1L, 10L, true);
+        BackendStatusService backendStatusService = new BackendStatusService(queryService, 30000L, 10L, false);
+        Assert.assertTrue(backendStatusService.isBackendStatusOk());
 
-        // Sleep for a reasonable amount of time for the backend to fail a lot
-        Thread.sleep(1000);
+        // <= 10 fails -> status ok
+        for (int i = 0; i < 10; i++) {
+            backendStatusService.run();
+        }
+        Assert.assertTrue(backendStatusService.isBackendStatusOk());
 
+        // > 10 fails (i.e. >= 10 retries) -> status not ok
+        backendStatusService.run();
         Assert.assertFalse(backendStatusService.isBackendStatusOk());
-    }
 
-    @Test
-    public void testBackendNotEnoughFails() throws Throwable {
-        // Doesn't fail enough times to set backend status to not ok
-        Answer temp = new Answer() {
-                int count = 0;
-                @Override
-                public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                    if (invocationOnMock == null) {
-                        return count;
-                    }
-                    if (count < 9) {
-                        ((QueryHandler) invocationOnMock.getArguments()[2]).fail(null);
-                        count++;
-                    } else {
-                        Thread.sleep(60000);
-                    }
-                    return null;
-                }
-            };
-        QueryService queryService = mock(QueryService.class);
-        doAnswer(temp).when(queryService).submit(any(), any(), any());
+        // query handler sends automatically
+        doAnswer(invocationOnMock -> {
+                ((QueryHandler) invocationOnMock.getArguments()[2]).send(null);
+                return null;
+            }).when(queryService).submit(any(), any(), any());
 
-        BackendStatusService backendStatusService = new BackendStatusService(queryService, 1L, 10L, true);
-
-        // Sleep for a reasonable amount of time for the backend to fail 9 times
-        Thread.sleep(1000);
-
-        Assert.assertEquals(temp.answer(null), 9);
+        // success -> status ok
+        backendStatusService.run();
         Assert.assertTrue(backendStatusService.isBackendStatusOk());
     }
 
