@@ -58,13 +58,14 @@ public class BackendStatusService implements Runnable {
         }
     }
 
+    private static final String TICK_QUERY = "{\"aggregation\":{\"type\":\"RAW\",\"size\":1},\"duration\":1}";
+
+    private QueryService queryService;
     private long period;
     private long retries;
     private long count;
-
     @Getter
-    private boolean backendStatusOk = true;
-    private QueryService queryService;
+    private boolean backendStatusOk;
 
     /**
      * Creates an instance with a tick period and number of retries.
@@ -80,6 +81,7 @@ public class BackendStatusService implements Runnable {
         this.period = period;
         this.retries = retries;
         this.count = 0;
+        this.backendStatusOk = true;
 
         if (enabled != null && enabled) {
             Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this, period, period, TimeUnit.MILLISECONDS);
@@ -90,7 +92,7 @@ public class BackendStatusService implements Runnable {
     public void run() {
         TickQueryHandler tickQueryHandler = new TickQueryHandler(period);
 
-        queryService.submit(QueryService.getNewQueryID(), "{\"aggregation\":{\"type\":\"RAW\",\"size\":1},\"duration\":1}", tickQueryHandler);
+        queryService.submit(QueryService.getNewQueryID(), TICK_QUERY, tickQueryHandler);
 
         if (tickQueryHandler.hasResult()) {
             count = 0;
