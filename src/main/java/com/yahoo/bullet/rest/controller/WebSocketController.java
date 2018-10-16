@@ -10,6 +10,7 @@ import com.yahoo.bullet.rest.query.BQLError;
 import com.yahoo.bullet.rest.query.BQLException;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
+import com.yahoo.bullet.rest.service.BackendStatusService;
 import com.yahoo.bullet.rest.service.PreprocessingService;
 import com.yahoo.bullet.rest.service.QueryService;
 import com.yahoo.bullet.rest.service.WebSocketService;
@@ -27,6 +28,8 @@ public class WebSocketController {
     private PreprocessingService preprocessingService;
     @Autowired
     private QueryService queryService;
+    @Autowired
+    private BackendStatusService backendStatusService;
 
     /**
      * The method that handles WebSocket messages to this endpoint.
@@ -50,6 +53,10 @@ public class WebSocketController {
         String queryID = QueryService.getNewQueryID();
         String sessionID = headerAccessor.getSessionId();
         WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
+        if (!backendStatusService.isBackendStatusOk()) {
+            queryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
+            return;
+        }
         try {
             String query = preprocessingService.convertIfBQL(request.getContent());
             if (preprocessingService.queryLimitReached(queryService)) {

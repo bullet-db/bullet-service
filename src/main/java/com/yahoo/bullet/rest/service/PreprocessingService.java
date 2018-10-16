@@ -22,6 +22,7 @@ public class PreprocessingService {
     private static final String WINDOW_KEY_STRING = "window";
     private static final BulletQueryBuilder QUERY_BUILDER = new BulletQueryBuilder(new BulletConfig());
     private static final Gson GSON = new GsonBuilder().create();
+
     @Value("${bullet.max.concurrent.queries}")
     private int maxConcurrentQueries;
 
@@ -48,6 +49,7 @@ public class PreprocessingService {
      * This function checks if the configured max.concurrent.queries limit has been exceeded.
      *
      * @return A boolean indicating whether or not the query limit has been reached.
+     * @param queryService QueryService to get running query count from.
      */
     public boolean queryLimitReached(QueryService queryService) {
         return queryService.runningQueryCount() >= maxConcurrentQueries;

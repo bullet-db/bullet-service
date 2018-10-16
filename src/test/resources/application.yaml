@@ -1,5 +1,12 @@
 bullet:
   max.concurrent.queries: 500
+  backend.status:
+    # The timeout/interval in ms between pings to the backend
+    tick-ms: 30000
+    # The number of retries after a failed ping before the backend status is considered not ok
+    retries: 10
+    # Whether or not this service is enabled
+    enabled: true
   schema:
     # The fully qualified path to your schema file
     file: /test_columns.json

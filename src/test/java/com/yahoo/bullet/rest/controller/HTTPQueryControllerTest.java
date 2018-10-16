@@ -9,6 +9,7 @@ import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
+import com.yahoo.bullet.rest.service.BackendStatusService;
 import com.yahoo.bullet.rest.service.QueryService;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -41,7 +42,9 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     @InjectMocks
     private HTTPQueryController controller;
     @Mock
-    private QueryService service;
+    private BackendStatusService backendStatusService;
+    @Mock
+    private QueryService queryService;
     @Autowired
     private WebApplicationContext context;
     private MockMvc mockMVC;
@@ -50,35 +53,45 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         mockMVC = MockMvcBuilders.webAppContextSetup(context).build();
+        doReturn(true).when(backendStatusService).isBackendStatusOk();
+    }
+
+    @Test
+    public void testSendHTTPQueryWithBackendDown() throws Exception {
+        doReturn(false).when(backendStatusService).isBackendStatusOk();
+
+        String query = "{}";
+        CompletableFuture<String> response = controller.submitHTTPQuery(query);
+        Assert.assertEquals(response.get(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Service temporarily unavailable\",\"resolutions\":[\"Please try again later.\"]}]}}");
     }
 
     @Test
     public void testSendHTTPQueryWithoutWindow() throws Exception {
-        doReturn(0).when(service).runningQueryCount();
+        doReturn(0).when(queryService).runningQueryCount();
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
-        verify(service).submit(anyString(), eq(query), argument.capture());
+        verify(queryService).submit(anyString(), eq(query), argument.capture());
         argument.getValue().send(new PubSubMessage("", "bar"));
         Assert.assertEquals(response.get(), "bar");
     }
 
     @Test
     public void testSendHTTPQueryWithNullWindow() throws Exception {
-        doReturn(0).when(service).runningQueryCount();
+        doReturn(0).when(queryService).runningQueryCount();
         String query = "{\"window\": null}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
-        verify(service).submit(anyString(), eq(query), argument.capture());
+        verify(queryService).submit(anyString(), eq(query), argument.capture());
         argument.getValue().send(new PubSubMessage("", "bar"));
         Assert.assertEquals(response.get(), "bar");
     }
 
     @Test
     public void testSendHTTPQueryWithWindow() throws Exception {
-        doReturn(0).when(service).runningQueryCount();
+        doReturn(0).when(queryService).runningQueryCount();
         String query = "{\"window\":{}}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
@@ -87,7 +100,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSendHTTPTooManyQueries() throws Exception {
-        doReturn(500).when(service).runningQueryCount();
+        doReturn(500).when(queryService).runningQueryCount();
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
         Assert.assertEquals(response.get(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Too many concurrent queries in the system\",\"resolutions\":[\"Please try again later\"]}]}}");
@@ -104,7 +117,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testInvalidQueryRuntimeException() throws Exception {
-        doThrow(RuntimeException.class).when(service).submit(any(), any(), any());
+        doThrow(RuntimeException.class).when(queryService).submit(any(), any(), any());
         String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
 
@@ -113,14 +126,23 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
+    public void testSSEQueryWithBackendDown() throws Exception {
+        doReturn(false).when(backendStatusService).isBackendStatusOk();
+
+        String query = "{}";
+        MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
+        Assert.assertEquals(result.getResponse().getContentAsString(), "data:{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Service temporarily unavailable\",\"resolutions\":[\"Please try again later.\"]}]}}\n\n");
+    }
+
+    @Test
     public void testSSEQuery() throws Exception {
-        doReturn(0).when(service).runningQueryCount();
+        doReturn(0).when(queryService).runningQueryCount();
         String query = "{foo}";
 
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
 
         ArgumentCaptor<SSEQueryHandler> argument = ArgumentCaptor.forClass(SSEQueryHandler.class);
-        verify(service).submit(anyString(), eq(query), argument.capture());
+        verify(queryService).submit(anyString(), eq(query), argument.capture());
         argument.getValue().send(new PubSubMessage("", "bar"));
         Assert.assertEquals(result.getResponse().getContentAsString(), "data:bar\n\n");
 
@@ -139,7 +161,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSSEQueryTooManyQueries() throws Exception {
-        doReturn(500).when(service).runningQueryCount();
+        doReturn(500).when(queryService).runningQueryCount();
         String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
 
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
@@ -149,7 +171,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testInvalidSSEQueryRuntimeException() throws Exception {
-        doThrow(RuntimeException.class).when(service).submit(any(), any(), any());
+        doThrow(RuntimeException.class).when(queryService).submit(any(), any(), any());
         String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
 
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();

@@ -10,6 +10,7 @@ import com.yahoo.bullet.rest.query.BQLException;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
+import com.yahoo.bullet.rest.service.BackendStatusService;
 import com.yahoo.bullet.rest.service.PreprocessingService;
 import com.yahoo.bullet.rest.service.QueryService;
 import lombok.Setter;
@@ -26,8 +27,12 @@ import java.util.concurrent.CompletableFuture;
 public class HTTPQueryController {
     @Autowired @Setter
     private QueryService queryService;
+
     @Autowired
     private PreprocessingService preprocessingService;
+
+    @Autowired
+    private BackendStatusService backendStatusService;
 
     /**
      * The method that handles POSTs to this endpoint. Consumes the HTTP request, invokes {@link QueryService} to
@@ -41,6 +46,10 @@ public class HTTPQueryController {
     public CompletableFuture<String> submitHTTPQuery(@RequestBody String query) {
         HTTPQueryHandler queryHandler = new HTTPQueryHandler();
         String queryID = QueryService.getNewQueryID();
+        if (!backendStatusService.isBackendStatusOk()) {
+            queryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
+            return queryHandler.getResult();
+        }
         try {
             query = preprocessingService.convertIfBQL(query);
             if (preprocessingService.containsWindow(query)) {
@@ -70,6 +79,10 @@ public class HTTPQueryController {
         SseEmitter sseEmitter = new SseEmitter();
         String queryID = QueryService.getNewQueryID();
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler(queryID, sseEmitter, queryService);
+        if (!backendStatusService.isBackendStatusOk()) {
+            sseQueryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
+            return sseEmitter;
+        }
         try {
             query = preprocessingService.convertIfBQL(query);
             if (preprocessingService.queryLimitReached(queryService)) {

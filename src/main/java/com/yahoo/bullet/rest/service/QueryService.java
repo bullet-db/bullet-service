@@ -89,13 +89,20 @@ public class QueryService {
     }
 
     /**
+     * Clears all pending requests.
+     */
+    public void killRunningQueries() {
+        runningQueries.values().forEach(QueryHandler::fail);
+        runningQueries.clear();
+    }
+
+    /**
      * Stop all service threads and clear pending requests.
      */
     @PreDestroy
     public void close() {
         consumers.forEach(PubSubReader::close);
-        runningQueries.values().forEach(QueryHandler::fail);
-        runningQueries.clear();
+        killRunningQueries();
         publisherRandomPool.clear();
     }
 
