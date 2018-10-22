@@ -88,7 +88,11 @@ public class PubSubReader {
                 break;
             }
         }
-        subscriber.close();
+        try {
+            subscriber.close();
+        } catch (Exception e) {
+            log.error("Could not close subscriber", e);
+        }
     }
 
     private static boolean isDone(PubSubMessage response) {

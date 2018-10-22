@@ -71,7 +71,7 @@ public class PubSubReaderTest {
         }
 
         @Override
-        public void close() {
+        public void close() throws Exception {
             isClosed.complete(true);
         }
 
@@ -95,10 +95,13 @@ public class PubSubReaderTest {
         }
 
         @Override
-        public void close() {
+        public void close() throws Exception {
             isClosed.complete(receiveWasCalled);
+            throw new Exception("mock exception");
         }
     }
+
+
 
     @BeforeMethod
     public void setup() {
