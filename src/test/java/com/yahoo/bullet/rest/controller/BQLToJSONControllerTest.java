@@ -5,7 +5,7 @@
  */
 package com.yahoo.bullet.rest.controller;
 
-import com.yahoo.bullet.rest.model.BQLResponse;
+import com.yahoo.bullet.rest.model.BQLToJSONResponse;
 import com.yahoo.bullet.rest.query.BQLException;
 import com.yahoo.bullet.rest.service.PreprocessingService;
 import org.mockito.InjectMocks;
@@ -21,9 +21,9 @@ import org.testng.annotations.Test;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class BQLControllerTest extends AbstractTestNGSpringContextTests {
+public class BQLToJSONControllerTest extends AbstractTestNGSpringContextTests {
     @Autowired @InjectMocks
-    BQLController controller;
+    BQLToJSONController controller;
     @Mock
     PreprocessingService mockPreprocessingService;
 
@@ -37,7 +37,7 @@ public class BQLControllerTest extends AbstractTestNGSpringContextTests {
         String bql = "Select * from stream(time, 20000) limit 1;";
         String json = "{\"aggregation\":{\"type\":\"RAW\",\"size\":1},\"duration\":20000}";
         when(mockPreprocessingService.convertIfBQL(bql)).thenReturn(json);
-        BQLResponse response = controller.convertBQLToBulletQuery(bql);
+        BQLToJSONResponse response = controller.convertBQLToJSON(bql);
 
         Assert.assertFalse(response.getHasError());
         Assert.assertEquals(response.getContent(), json);
@@ -48,7 +48,7 @@ public class BQLControllerTest extends AbstractTestNGSpringContextTests {
         String bql = "AAA";
         BQLException bqlException = new BQLException(new RuntimeException("Error"));
         when(mockPreprocessingService.convertIfBQL(bql)).thenThrow(bqlException);
-        BQLResponse response = controller.convertBQLToBulletQuery(bql);
+        BQLToJSONResponse response = controller.convertBQLToJSON(bql);
 
         Assert.assertTrue(response.getHasError());
         Assert.assertEquals(response.getContent(), bqlException.getMessage());

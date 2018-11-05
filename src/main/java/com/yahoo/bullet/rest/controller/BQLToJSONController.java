@@ -5,7 +5,7 @@
  */
 package com.yahoo.bullet.rest.controller;
 
-import com.yahoo.bullet.rest.model.BQLResponse;
+import com.yahoo.bullet.rest.model.BQLToJSONResponse;
 import com.yahoo.bullet.rest.service.PreprocessingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class BQLController {
+public class BQLToJSONController {
     @Autowired
     private PreprocessingService preprocessingService;
 
@@ -25,8 +25,8 @@ public class BQLController {
      * @return The JSON Bullet query or error message if failed.
      */
     @PostMapping(path = "${bullet.endpoint.bql-to-json}", consumes = {MediaType.TEXT_PLAIN_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
-    public BQLResponse convertBQLToBulletQuery(@RequestBody String query) {
-        BQLResponse response = new BQLResponse();
+    public BQLToJSONResponse convertBQLToJSON(@RequestBody String query) {
+        BQLToJSONResponse response = new BQLToJSONResponse();
         try {
             String json = preprocessingService.convertIfBQL(query);
             response.setHasError(false);

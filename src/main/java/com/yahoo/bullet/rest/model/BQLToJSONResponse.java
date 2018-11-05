@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @NoArgsConstructor @Setter @Getter
-public class BQLResponse {
+public class BQLToJSONResponse {
     private Boolean hasError;
     private String content;
 }
