@@ -48,6 +48,7 @@ bullet:
     # The time limit (in seconds) when sending messages to a WebSocket session. It should be positive.
     message.send.time.limit.secs: 10
   endpoint:
+    bql-to-json: /bql-to-json
     http: /http-query
     sse: /sse-query
     websocket: /ws-query
