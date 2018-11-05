@@ -33,7 +33,7 @@ public class BQLToJSONControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testconvertBQLToBulletQuery() throws Exception {
+    public void testConvertBQLToBulletQuery() throws Exception {
         String bql = "Select * from stream(time, 20000) limit 1;";
         String json = "{\"aggregation\":{\"type\":\"RAW\",\"size\":1},\"duration\":20000}";
         when(mockPreprocessingService.convertIfBQL(bql)).thenReturn(json);
@@ -44,7 +44,7 @@ public class BQLToJSONControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testconvertBQLToBulletQueryWithError() throws Exception {
+    public void testConvertBQLToBulletQueryWithError() throws Exception {
         String bql = "AAA";
         BQLException bqlException = new BQLException(new RuntimeException("Error"));
         when(mockPreprocessingService.convertIfBQL(bql)).thenThrow(bqlException);
