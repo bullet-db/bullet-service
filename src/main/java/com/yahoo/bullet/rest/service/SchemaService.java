@@ -108,13 +108,13 @@ public class SchemaService {
         List<JSONAPIColumn> mapped = columns.stream().map(SchemaService::convert).collect(toList());
         JSONAPIDocument schema = new JSONAPIDocument(mapped, Collections.singletonMap(VERSION_KEY, getVersion()));
         this.schema = GSON.toJson(schema);
-        log.info("Schema: " + this.schema);
+        log.info("Schema: {}", this.schema);
     }
 
     private List<Column> getColumns(String path) {
         log.info("Parsing json from read file");
         List<Column> columns = GSON.fromJson(getReader(path), new TypeToken<List<Column>>() { }.getType());
-        log.info("Read columns : " + columns);
+        log.info("Read columns : {}", columns);
         return columns;
     }
 
@@ -127,7 +127,7 @@ public class SchemaService {
     }
 
     private Reader getReader(String path) {
-        log.info("Loading columns from file : " + path);
+        log.info("Loading columns from file : {}", path);
         try {
             return new FileReader(new File(path));
         } catch (IOException ioe) {

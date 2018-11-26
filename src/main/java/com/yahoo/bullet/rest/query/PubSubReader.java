@@ -53,7 +53,7 @@ public class PubSubReader {
      */
     public void run() {
         PubSubMessage response;
-        log.info("Reader thread started, ID: " + Thread.currentThread().getId());
+        log.info("Reader thread started, ID: {}", Thread.currentThread().getId());
         while (!Thread.interrupted()) {
             try {
                 response = subscriber.receive();
@@ -84,11 +84,15 @@ public class PubSubReader {
             } catch (Exception e) {
                 // When the reader is closed, this block also catches InterruptedException's from Thread.sleep.
                 // If the service is busy reading messages, the while loop will break instead.
-                log.error("Closing reader thread with error: " + e);
+                log.error("Closing reader thread with error", e);
                 break;
             }
         }
-        subscriber.close();
+        try {
+            subscriber.close();
+        } catch (Exception e) {
+            log.error("Error closing subscriber", e);
+        }
     }
 
     private static boolean isDone(PubSubMessage response) {

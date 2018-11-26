@@ -51,7 +51,7 @@ public class Column {
             return false;
         }
         if (!TYPES.contains(type)) {
-            log.error("Unknown type: " + type);
+            log.error("Unknown type: {}", type);
             return false;
         }
         if (PRIMITIVES.contains(type) && subtype != null) {
