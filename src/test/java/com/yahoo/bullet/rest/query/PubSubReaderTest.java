@@ -15,6 +15,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.UUID;
@@ -71,7 +72,7 @@ public class PubSubReaderTest {
         }
 
         @Override
-        public void close() {
+        public void close() throws Exception {
             isClosed.complete(true);
         }
 
@@ -97,6 +98,21 @@ public class PubSubReaderTest {
         @Override
         public void close() {
             isClosed.complete(receiveWasCalled);
+        }
+    }
+
+    @Getter
+    private class MockUnCloseableSubscriber extends MockSubscriber {
+        private CompletableFuture<Boolean> didError = new CompletableFuture<>();
+
+        MockUnCloseableSubscriber(PubSubMessage... messages) {
+            super(messages);
+        }
+
+        @Override
+        public void close() throws Exception {
+            didError.complete(true);
+            throw new IOException("Test");
         }
     }
 
@@ -175,5 +191,15 @@ public class PubSubReaderTest {
         new PubSubReader(mockSubscriber, requestQueue, 1);
 
         Assert.assertEquals(mockSubscriber.getCommittedID().get(), randomID);
+    }
+
+    @Test(timeOut = 10000)
+    public void testExceptionOnSubscriberClose() throws Exception {
+        MockUnCloseableSubscriber subscriber = new MockUnCloseableSubscriber(mockMessage);
+        requestQueue.put(randomID, queryHandler);
+        PubSubReader reader = new PubSubReader(subscriber, requestQueue, 1);
+        Assert.assertEquals(queryHandler.getSentMessage().get(), mockMessage);
+        reader.close();
+        Assert.assertTrue(subscriber.getDidError().get());
     }
 }
