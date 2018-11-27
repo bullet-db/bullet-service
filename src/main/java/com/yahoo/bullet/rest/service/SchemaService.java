@@ -67,19 +67,17 @@ public class SchemaService {
     public static final String VERSION_KEY = "version";
 
     /**
-     * Constructor that takes in a version string.
+     * Constructor that takes in a a string file path and a version string and loads the contents of the file.
      *
-     * @param version The schema version.
-     */
-    /**
-     * Loads the contents of a file. The file is expected to contain a JSON array with entries in the following format:
+     * The file is expected to contain a JSON array with entries in the following format:
+     *
      * <pre>
      * {@code
      *     {
      *         "name": "the column name",
-     *         "type": "one of ("BOOLEAN", "LONG", "DOUBLE", "STRING", "MAP", "LIST")",
-     *         "subtype": "required for MAP/LIST type. One of ("BOOLEAN", "LONG", "DOUBLE", "STRING") if type is MAP
-     *                     or MAP if type is LIST",
+     *         "type": "one of ("BOOLEAN", "INTEGER", "LONG", "FLOAT", "DOUBLE", "STRING", "MAP", "LIST")",
+     *         "subtype": "required for MAP/LIST type. One of ("BOOLEAN", "INTEGER", "LONG", "FLOAT", "DOUBLE",
+     *                    "STRING", "MAP") if type is LIST or MAP",
      *         "description": "an optional description of this column",
      *         "enumerations": [ include known subfields in this column (must be of type MAP) of the form
      *                           {"name": "the name of the subfield", "description": "a description for it"}
