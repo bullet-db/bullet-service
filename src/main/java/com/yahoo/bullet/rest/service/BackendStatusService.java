@@ -102,7 +102,7 @@ public class BackendStatusService implements Runnable {
             backendStatusOk = count <= retries;
         }
         if (!backendStatusOk) {
-            queryService.killRunningQueries();
+            queryService.failAllQueries();
         }
     }
 }

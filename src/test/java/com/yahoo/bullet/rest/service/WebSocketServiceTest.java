@@ -5,7 +5,6 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
 import org.mockito.InjectMocks;
@@ -47,7 +46,7 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
         webSocketService.getSessionIDMap().clear();
         webSocketService.sendKillSignal("sessionID", null);
 
-        verify(queryService, never()).submitSignal(any(), any());
+        verify(queryService, never()).killQuery(any());
     }
 
     @Test
@@ -55,7 +54,7 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
         webSocketService.getSessionIDMap().put("sessionID", "queryID");
         webSocketService.sendKillSignal("sessionID", "queryID");
 
-        verify(queryService).submitSignal("queryID", Metadata.Signal.KILL);
+        verify(queryService).killQuery("queryID");
         Assert.assertFalse(webSocketService.getSessionIDMap().containsKey("sessionID"));
     }
 

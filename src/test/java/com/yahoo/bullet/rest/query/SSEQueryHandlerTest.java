@@ -5,7 +5,6 @@
  */
 package com.yahoo.bullet.rest.query;
 
-import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.service.QueryService;
 import org.mockito.Mock;
@@ -55,7 +54,7 @@ public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.send(message);
 
-        verify(queryService).submitSignal("id", Metadata.Signal.KILL);
+        verify(queryService).killQuery("id");
         Assert.assertTrue(sseQueryHandler.isComplete());
     }
 
@@ -66,7 +65,7 @@ public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
         sseQueryHandler.send(new PubSubMessage("id", "foo"));
 
         verify(sseEmitter, never()).send(any(), any());
-        verify(queryService, never()).submitSignal(any(), any());
+        verify(queryService, never()).killQuery(any());
         Assert.assertTrue(sseQueryHandler.isComplete());
     }
 
@@ -85,7 +84,7 @@ public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
 
-        verify(queryService).submitSignal("id", Metadata.Signal.KILL);
+        verify(queryService).killQuery("id");
         Assert.assertTrue(sseQueryHandler.isComplete());
     }
 
@@ -96,7 +95,7 @@ public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
         sseQueryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
 
         verify(sseEmitter, never()).send(any(), any());
-        verify(queryService, never()).submitSignal(any(), any());
+        verify(queryService, never()).killQuery(any());
         Assert.assertTrue(sseQueryHandler.isComplete());
     }
 }

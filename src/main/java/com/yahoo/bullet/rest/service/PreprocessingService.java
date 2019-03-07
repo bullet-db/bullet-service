@@ -52,7 +52,7 @@ public class PreprocessingService {
      * @param queryService QueryService to get running query count from.
      */
     public boolean queryLimitReached(QueryService queryService) {
-        return queryService.runningQueryCount() >= maxConcurrentQueries;
+        return queryService.queryCount() >= maxConcurrentQueries;
     }
 
     /**

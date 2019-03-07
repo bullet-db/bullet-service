@@ -5,7 +5,6 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
 import lombok.AccessLevel;
@@ -41,7 +40,7 @@ public class WebSocketService {
     public void sendKillSignal(String sessionID, String queryID) {
         String queryForSession = sessionIDMap.get(sessionID);
         if (queryForSession != null && (queryID == null || queryID.equals(queryForSession))) {
-            queryService.submitSignal(queryForSession, Metadata.Signal.KILL);
+            queryService.killQuery(queryForSession);
             deleteSession(sessionID);
         }
     }

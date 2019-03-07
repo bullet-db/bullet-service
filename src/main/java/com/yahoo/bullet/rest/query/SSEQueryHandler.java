@@ -5,7 +5,6 @@
  */
 package com.yahoo.bullet.rest.query;
 
-import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.service.QueryService;
 import lombok.AllArgsConstructor;
@@ -33,7 +32,7 @@ public class SSEQueryHandler extends QueryHandler {
             try {
                 emitter.send(response.getContent(), MediaType.APPLICATION_JSON);
             } catch (Exception e) {
-                queryService.submitSignal(queryID, Metadata.Signal.KILL);
+                queryService.killQuery(queryID);
                 complete();
             }
         }
@@ -45,7 +44,7 @@ public class SSEQueryHandler extends QueryHandler {
             try {
                 emitter.send(cause.toString(), MediaType.APPLICATION_JSON);
             } catch (Exception e) {
-                queryService.submitSignal(queryID, Metadata.Signal.KILL);
+                queryService.killQuery(queryID);
             }
             complete();
         }
