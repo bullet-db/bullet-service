@@ -23,6 +23,8 @@ import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class QueryServiceTest {
     @NoArgsConstructor
@@ -53,7 +55,7 @@ public class QueryServiceTest {
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
         service.submit("", "{", queryHandler);
         service.close();
-        Mockito.verify(queryHandler).fail();
+        verify(queryHandler).fail();
         Assert.assertTrue(service.getRunningQueries().isEmpty());
     }
 
@@ -65,7 +67,7 @@ public class QueryServiceTest {
         doThrow(new PubSubException("")).when(publisher).send(anyString(), anyString());
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
         service.submit("", "", queryHandler);
-        Mockito.verify(queryHandler).fail(any(QueryError.class));
+        verify(queryHandler).fail(any(QueryError.class));
         service.close();
     }
 
@@ -78,9 +80,16 @@ public class QueryServiceTest {
         String randomID = UUID.randomUUID().toString();
         String randomContent = "{foo}";
         service.submit(randomID, randomContent, queryHandler);
+        Assert.assertTrue(service.hasQuery(randomID));
+        Assert.assertEquals(1, service.queryCount());
         Assert.assertEquals(1, service.getRunningQueries().size());
         Assert.assertEquals(queryHandler, service.getRunningQueries().get(randomID));
-        Mockito.verify(publisher).send(randomID, randomContent);
+        Assert.assertSame(service.getQuery(randomID), queryHandler);
+        Assert.assertSame(service.removeQuery(randomID), queryHandler);
+        Assert.assertFalse(service.hasQuery(randomID));
+        Assert.assertEquals(0, service.queryCount());
+        Assert.assertEquals(0, service.getRunningQueries().size());
+        verify(publisher).send(randomID, randomContent);
         service.close();
     }
 
@@ -94,25 +103,27 @@ public class QueryServiceTest {
         String randomID = UUID.randomUUID().toString();
         String query = "{}";
         service.submit(randomID, query, queryHandler);
-        Mockito.verify(queryHandler).fail(QueryError.SERVICE_UNAVAILABLE);
+        verify(queryHandler).fail(QueryError.SERVICE_UNAVAILABLE);
     }
 
     @Test
-    public void testSubmitSignal() throws Exception {
+    public void testKillQuery() throws Exception {
         Publisher publisher = Mockito.mock(Publisher.class);
         Subscriber subscriber = new MockSubscriber();
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
         service.getRunningQueries().put("id", queryHandler);
 
-        service.submitSignal("id", Metadata.Signal.KILL);
+        QueryHandler actualHandler = service.killQuery("id");
+        Assert.assertSame(actualHandler, queryHandler);
+        Assert.assertEquals(0, service.queryCount());
         Assert.assertEquals(0, service.getRunningQueries().size());
-        Mockito.verify(publisher).send(new PubSubMessage("id", null, new Metadata(Metadata.Signal.KILL, null)));
+        verify(publisher).send(new PubSubMessage("id", null, new Metadata(Metadata.Signal.KILL, null)));
         service.close();
     }
 
     @Test
-    public void testSubmitSignalWhenPublisherFails() throws Exception {
+    public void testKillQueryWhenPublisherFails() throws Exception {
         Publisher publisher = Mockito.mock(Publisher.class);
         Subscriber subscriber = new MockSubscriber();
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
@@ -120,20 +131,54 @@ public class QueryServiceTest {
         service.getRunningQueries().put("id", queryHandler);
 
         doThrow(new PubSubException("")).when(publisher).send(any());
-        service.submitSignal("id", Metadata.Signal.KILL);
+        service.killQuery("id");
         Assert.assertEquals(0, service.getRunningQueries().size());
         service.close();
     }
 
     @Test
-    public void testRunningQueryCount() throws Exception {
+    public void testFailQuery() throws Exception {
         Publisher publisher = Mockito.mock(Publisher.class);
         Subscriber subscriber = new MockSubscriber();
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
 
-        Assert.assertEquals(service.runningQueryCount(), 0);
+        Assert.assertFalse(service.failQuery("id"));
+        verifyZeroInteractions(queryHandler);
         service.getRunningQueries().put("id", queryHandler);
-        Assert.assertEquals(service.runningQueryCount(), 1);
+        Assert.assertTrue(service.failQuery("id"));
+        verify(queryHandler).fail();
+    }
+
+    @Test
+    public void testQueryCount() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = new MockSubscriber();
+        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+
+        Assert.assertEquals(service.queryCount(), 0);
+        service.getRunningQueries().put("id", queryHandler);
+        Assert.assertEquals(service.queryCount(), 1);
+    }
+
+    @Test
+    public void testSendingSignalForQuery() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = new MockSubscriber();
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+
+        service.sendSignal("id", Metadata.Signal.COMPLETE);
+        verify(publisher).send(new PubSubMessage("id", null, new Metadata(Metadata.Signal.COMPLETE, null)));
+    }
+
+    @Test
+    public void testSendingMessage() throws Exception {
+        Publisher publisher = Mockito.mock(Publisher.class);
+        Subscriber subscriber = new MockSubscriber();
+        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+
+        service.sendMessage(new PubSubMessage("foo", null, new Metadata(Metadata.Signal.ACKNOWLEDGE, "test")));
+        verify(publisher).send(new PubSubMessage("foo", null, new Metadata(Metadata.Signal.ACKNOWLEDGE, "test")));
     }
 }

@@ -73,7 +73,7 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSubmitNewQuery() {
-        doReturn(0).when(queryService).runningQueryCount();
+        doReturn(0).when(queryService).queryCount();
         String sessionID = "sessionID";
         String query = "{}";
         WebSocketRequest request = new WebSocketRequest();
@@ -89,7 +89,7 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSubmitQueryTooManyQueries() {
-        doReturn(500).when(queryService).runningQueryCount();
+        doReturn(500).when(queryService).queryCount();
         String sessionID = "sessionID";
         String query = "{}";
         WebSocketRequest request = new WebSocketRequest();
