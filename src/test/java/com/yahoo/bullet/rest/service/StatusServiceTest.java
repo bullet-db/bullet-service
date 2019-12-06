@@ -13,28 +13,28 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
-public class BackendStatusServiceTest {
+public class StatusServiceTest {
     @Test
     public void testBackendFailsAndSucceeds() {
         // query handler fails automatically
-        QueryService queryService = mock(QueryService.class);
+        HandlerService queryService = mock(HandlerService.class);
         doAnswer(invocationOnMock -> {
                 ((QueryHandler) invocationOnMock.getArguments()[2]).fail(null);
                 return null;
             }).when(queryService).submit(any(), any(), any());
 
-        BackendStatusService backendStatusService = new BackendStatusService(queryService, 30000L, 10L, false);
-        Assert.assertTrue(backendStatusService.isBackendStatusOk());
+        StatusService statusService = new StatusService(queryService, 30000L, 10L, false);
+        Assert.assertTrue(statusService.isBackendStatusOk());
 
         // <= 10 fails -> status ok
         for (int i = 0; i < 10; i++) {
-            backendStatusService.run();
+            statusService.run();
         }
-        Assert.assertTrue(backendStatusService.isBackendStatusOk());
+        Assert.assertTrue(statusService.isBackendStatusOk());
 
         // > 10 fails (i.e. >= 10 retries) -> status not ok
-        backendStatusService.run();
-        Assert.assertFalse(backendStatusService.isBackendStatusOk());
+        statusService.run();
+        Assert.assertFalse(statusService.isBackendStatusOk());
 
         // query handler sends automatically
         doAnswer(invocationOnMock -> {
@@ -43,13 +43,13 @@ public class BackendStatusServiceTest {
             }).when(queryService).submit(any(), any(), any());
 
         // success -> status ok
-        backendStatusService.run();
-        Assert.assertTrue(backendStatusService.isBackendStatusOk());
+        statusService.run();
+        Assert.assertTrue(statusService.isBackendStatusOk());
     }
 
     @Test
     public void testTickQueryHandlerSend() {
-        BackendStatusService.TickQueryHandler queryHandler = new BackendStatusService.TickQueryHandler(30000L);
+        StatusService.TickQueryHandler queryHandler = new StatusService.TickQueryHandler(30000L);
 
         // send completes result as true
         queryHandler.send(null);
@@ -62,7 +62,7 @@ public class BackendStatusServiceTest {
 
     @Test
     public void testTickQueryHandlerFail() {
-        BackendStatusService.TickQueryHandler queryHandler = new BackendStatusService.TickQueryHandler(30000L);
+        StatusService.TickQueryHandler queryHandler = new StatusService.TickQueryHandler(30000L);
 
         // fail completes result as false
         queryHandler.fail(null);
@@ -75,7 +75,7 @@ public class BackendStatusServiceTest {
 
     @Test
     public void testTickQueryHandlerTimeout() {
-        BackendStatusService.TickQueryHandler queryHandler = new BackendStatusService.TickQueryHandler(0L);
+        StatusService.TickQueryHandler queryHandler = new StatusService.TickQueryHandler(0L);
         Assert.assertFalse(queryHandler.hasResult());
     }
 }

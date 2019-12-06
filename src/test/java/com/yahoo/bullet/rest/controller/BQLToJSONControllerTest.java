@@ -6,7 +6,7 @@
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.model.BQLToJSONResponse;
-import com.yahoo.bullet.rest.query.BQLException;
+import com.yahoo.bullet.rest.common.BQLException;
 import com.yahoo.bullet.rest.service.PreprocessingService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2017, Yahoo Inc.
+ *  Copyright 2019, Yahoo Inc.
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
@@ -8,164 +8,114 @@ package com.yahoo.bullet.rest.service;
 import com.yahoo.bullet.common.RandomPool;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
+import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
-import com.yahoo.bullet.rest.query.PubSubReader;
-import com.yahoo.bullet.rest.query.QueryError;
-import com.yahoo.bullet.rest.query.QueryHandler;
-import lombok.AccessLevel;
-import lombok.Getter;
+import com.yahoo.bullet.rest.common.Reader;
+import com.yahoo.bullet.rest.common.Utils;
+import com.yahoo.bullet.storage.StorageManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-@Service
-public class QueryService {
-    // Exposed for testing only.
-    @Getter(AccessLevel.PACKAGE)
-    private ConcurrentMap<String, QueryHandler> runningQueries;
-    private List<PubSubReader> consumers;
-    private RandomPool<Publisher> publisherRandomPool;
+@Slf4j
+public class QueryService implements PubSubResponder {
+    private StorageManager storage;
+    private List<PubSubResponder> responders;
+    private RandomPool<Publisher> publishers;
+    private List<Reader> readers;
 
-    /**
-     * Creates an instance using a List of Publishers and Subscribers.
-     *
-     * @param publishers The {@link List} of {@link Publisher} instances for writing queries.
-     * @param subscribers The {@link List} of {@link Subscriber} instances for reading results.
-     * @param sleep The duration to sleep for if a receive from PubSub is empty.
-     */
+    private static final CompletableFuture<Boolean> FAIL = CompletableFuture.completedFuture(false);
+    private static final CompletableFuture<Boolean> SUCCESS = CompletableFuture.completedFuture(true);
+
     @Autowired
-    public QueryService(List<Publisher> publishers, List<Subscriber> subscribers, @Value("${bullet.pubsub.sleep-ms}") int sleep) {
-        Objects.requireNonNull(publishers);
-        Objects.requireNonNull(subscribers);
-        runningQueries = new ConcurrentHashMap<>();
-        publisherRandomPool = new RandomPool<>(publishers);
-        consumers = subscribers.stream().map(x -> new PubSubReader(x, runningQueries, sleep)).collect(Collectors.toList());
+    public QueryService(StorageManager storageManager, List<PubSubResponder> responders,
+                        List<Publisher> publishers, List<Subscriber> subscribers,
+                        @Value("${bullet.pubsub.sleep-ms}") int sleep) {
+        Objects.requireNonNull(storageManager);
+        Utils.checkNotEmpty(responders);
+        Utils.checkNotEmpty(publishers);
+        Utils.checkNotEmpty(subscribers);
+        this.storage = storageManager;
+        this.responders = responders;
+        this.publishers = new RandomPool<>(publishers);
+        this.readers = subscribers.stream().map(x -> new Reader(x, this, sleep)).collect(Collectors.toList());
+        this.readers.forEach(Reader::start);
     }
 
     /**
-     * Submit a query to Bullet and register it as a pending request.
+     * Submit a query to Bullet and store it in the storage. Unless the storage succeeds, the query is not submitted.
      *
-     * @param queryID The query ID to register request with.
-     * @param query The query to register.
-     * @param queryHandler The {@link QueryHandler} object that handles the query.
+     * @param id The query ID of the query.
+     * @param query The query to send.
+     * @return A {@link CompletableFuture} that resolves to if the submission succeeded or not.
      */
-    public void submit(String queryID, String query, QueryHandler queryHandler) {
-        Publisher publisher = publisherRandomPool.get();
-        try {
-            publisher.send(queryID, query);
-            runningQueries.put(queryID, queryHandler);
-            queryHandler.acknowledge();
-        } catch (Exception e) {
-            queryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
+    public CompletableFuture<Boolean> submit(String id, String query) {
+        PubSubMessage message = new PubSubMessage(id, query);
+        return storage.putObject(id, message)
+                      .thenComposeAsync(status -> publish(status, message))
+                      .thenApply(status -> onPubSubSubmit(status, id))
+                      .exceptionally(e -> onPubSubSubmitFail(e, id));
+    }
+
+    /**
+     *
+     * Sends a {@link Metadata.Signal} to Bullet without storing it.
+     *
+     * @param id The non-null ID of the message to send this signal in.
+     * @param signal The non-null {@link Metadata.Signal} to send.
+     * @return A {@link CompletableFuture} that resolves to if the sending succeeded or not.
+     */
+    public CompletableFuture<Boolean> send(String id, Metadata.Signal signal) {
+        Objects.requireNonNull(signal);
+        return publish(new PubSubMessage(id, signal));
+    }
+    /**
+     *
+     * Sends a {@link PubSubMessage} to Bullet without storing it. This can be used to send signals or anything else.
+     *
+     * @param message The non-null {@link PubSubMessage} to send.
+     * @return A {@link CompletableFuture} that resolves to if the sending succeeded or not.
+     */
+    public CompletableFuture<Boolean> send(PubSubMessage message) {
+        Objects.requireNonNull(message);
+        return publish(message);
+    }
+
+    /**
+     * Submits a {@link Metadata.Signal#KILL} signal to Bullet for the given query ID and removes the query.
+     *
+     * @param id The query ID to submit the kill signal for.
+     * @return A {@link CompletableFuture} that resolves when the kill was finished.
+     */
+    public CompletableFuture<Void> kill(String id) {
+        log.debug("Removing metadata for query {} and killing it", id);
+        CompletableFuture<PubSubMessage> removed = storage.removeObject(id);
+        return removed.thenAccept(QueryService::onStoredMessageRemove)
+                      .exceptionally(e -> onStoredMessageRemoveFail(e, id))
+                      .thenAccept(u -> killQuery(id));
+    }
+
+    /**
+     * Respond to a {@link PubSubMessage}.
+     *
+     * @param id The id of the query.
+     * @param response The {@link PubSubMessage} response.
+     */
+    public void respond(String id, PubSubMessage response) {
+        log.debug("Received response {} for {}", id, response);
+        if (Utils.isDone(response)) {
+            CompletableFuture<PubSubMessage> removed = storage.removeObject(id);
+            removed.thenAccept(QueryService::onStoredMessageRemove)
+                   .exceptionally(e -> onRespondFail(e, id, response));
         }
-    }
-
-    /**
-     * Submits a {@link Metadata.Signal} signal to Bullet for the given query ID. This query need not exist.
-     *
-     * @param queryID The query ID to submit the signal for.
-     * @param signal The signal to send.
-     */
-    public void sendSignal(String queryID, Metadata.Signal signal) {
-        sendMessage(new PubSubMessage(queryID, null, new Metadata(signal, null)));
-    }
-
-    /**
-     * Sends a {@link PubSubMessage} to Bullet.
-     *
-     * @param message The message to send.
-     */
-    public void sendMessage(PubSubMessage message) {
-        Publisher publisher = publisherRandomPool.get();
-        try {
-            publisher.send(message);
-        } catch (Exception e) {
-            // Ignore failure.
-        }
-    }
-
-    /**
-     * Checks to see if a given query exists.
-     *
-     * @param queryID The ID of the query.
-     * @return A boolean denoting if the query exists in this service.
-     */
-    public boolean hasQuery(String queryID) {
-        return runningQueries.containsKey(queryID);
-    }
-
-    /**
-     * Retrieves the {@link QueryHandler} for the given ID, if it exists.
-     *
-     * @param queryID The ID of the query.
-     * @return The {@link QueryHandler} instance or null if the query does not exist.
-     */
-    public QueryHandler getQuery(String queryID) {
-        return runningQueries.get(queryID);
-    }
-
-    /**
-     * Removes a {@link QueryHandler} for the given ID.
-     *
-     * @param queryID The ID of the query.
-     * @return The {@link QueryHandler} instance or null if the query does not exist.
-     */
-    public QueryHandler removeQuery(String queryID) {
-        return runningQueries.remove(queryID);
-    }
-
-    /**
-     * Submits a {@link Metadata.Signal#KILL} signal to Bullet for the given query ID and removes the query. This does
-     * not invoke the {@link QueryHandler#fail()} method on the query.
-     *
-     * @param queryID The query ID to submit the kill signal for.
-     * @return The killed query, if it exists.
-     */
-    public QueryHandler killQuery(String queryID) {
-        sendSignal(queryID, Metadata.Signal.KILL);
-        return removeQuery(queryID);
-    }
-
-    /**
-     * Fail a given query, if it exists. This does not submit anything to Bullet. It simply removes the query and
-     * invokes its {@link QueryHandler#fail()} method.
-     *
-     * @param queryID The ID of a query to fail, if it exists.
-     * @return true if the query was failed.
-     */
-    public boolean failQuery(String queryID) {
-        QueryHandler handler = runningQueries.remove(queryID);
-        if (handler == null) {
-            return false;
-        }
-        handler.fail();
-        return true;
-    }
-
-    /**
-     * Clears all pending queries. This does not send anything to Bullet.
-     */
-    public void failAllQueries() {
-        runningQueries.values().forEach(QueryHandler::fail);
-        runningQueries.clear();
-    }
-
-    /**
-     * Get the number of running queries.
-     *
-     * @return The number of running queries.
-     */
-    public int queryCount() {
-        return runningQueries.size();
+        responders.forEach(responder -> responder.respond(id, response));
     }
 
     /**
@@ -173,17 +123,82 @@ public class QueryService {
      */
     @PreDestroy
     public void close() {
-        consumers.forEach(PubSubReader::close);
-        failAllQueries();
-        publisherRandomPool.clear();
+        readers.forEach(Reader::close);
+        responders.forEach(PubSubResponder::close);
+        storage.close();
+        publishers.clear();
     }
 
-    /**
-     * Get a new unique query ID.
-     *
-     * @return A new unique query ID.
-     */
-    public static String getNewQueryID() {
-        return UUID.randomUUID().toString();
+    private CompletableFuture<Boolean> publish(boolean status, PubSubMessage message) {
+        if (!status)  {
+            log.error("Could not storage query first in storage. Not publishing {}", message);
+            return FAIL;
+        }
+        return publish(message).thenComposeAsync(result -> rewindStorageIfNecessary(result, message));
     }
+
+    private CompletableFuture<Boolean> publish(PubSubMessage message) {
+        Publisher publisher = publishers.get();
+        try {
+            publisher.send(message);
+            return SUCCESS;
+        } catch (Exception e) {
+            log.error("Unable to publish message", e);
+            return FAIL;
+        }
+    }
+
+    private CompletableFuture<Boolean> rewindStorageIfNecessary(boolean status, PubSubMessage message) {
+        if (!status) {
+            log.error("Error while trying to submit query. Rewinding the storing of the query");
+            log.error("Trying to remove {} from storage", message);
+            return storage.removeObject(message.getId()).thenApply(d -> false);
+        }
+        return SUCCESS;
+    }
+
+    private void killQuery(String id) {
+        Publisher publisher = publishers.get();
+        PubSubMessage message = new PubSubMessage(id, Metadata.Signal.KILL);
+        try {
+            log.debug("Sending kill signal for {}", id);
+            publisher.send(message);
+        } catch (Exception e) {
+            log.error("Could not send message {}", message);
+            log.error("Error: ", e);
+        }
+    }
+
+    private boolean onPubSubSubmit(boolean status, String id) {
+        if (status) {
+            log.debug("Successfully submitted message for {}", id);
+            return status;
+        } else {
+            log.error("Could not submit message for {}", id);
+            return status;
+        }
+    }
+
+    private static boolean onPubSubSubmitFail(Throwable error, String id) {
+        log.error("Failed to submit query {} due to failures in storing or publishing the query", id);
+        log.error("Received exception", error);
+        return false;
+    }
+
+    private static void onStoredMessageRemove(PubSubMessage message) {
+        log.debug("Removed message {} from storage", message);
+    }
+
+    private Void onStoredMessageRemoveFail(Throwable e, String id) {
+        log.error("Exception while trying to remove stored message", e);
+        log.error("Could not remove {} from storage", id);
+        return null;
+    }
+
+    private Void onRespondFail(Throwable e, String id, PubSubMessage response) {
+        log.error("Exception while trying to remove stored message", e);
+        log.error("Could not remove {} from storage upon receiving {}", id, response);
+        return null;
+    }
+
 }

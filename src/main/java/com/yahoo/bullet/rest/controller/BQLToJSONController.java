@@ -15,8 +15,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class BQLToJSONController {
-    @Autowired
     private PreprocessingService preprocessingService;
+
+    /**
+     * Constructor that takes a {@link PreprocessingService}.
+     *
+     * @param preprocessingService The {@link PreprocessingService} to use.
+     */
+    @Autowired
+    public BQLToJSONController(PreprocessingService preprocessingService) {
+        this.preprocessingService = preprocessingService;
+    }
 
     /**
      * The POST endpoint that converts the BQL query to the JSON Bullet query.

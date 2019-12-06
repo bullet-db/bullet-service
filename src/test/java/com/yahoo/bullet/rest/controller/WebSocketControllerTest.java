@@ -7,8 +7,8 @@ package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.model.WebSocketRequest;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
-import com.yahoo.bullet.rest.service.BackendStatusService;
-import com.yahoo.bullet.rest.service.QueryService;
+import com.yahoo.bullet.rest.service.StatusService;
+import com.yahoo.bullet.rest.service.HandlerService;
 import com.yahoo.bullet.rest.service.WebSocketService;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -40,19 +40,19 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
     @Mock
     private WebSocketService webSocketService;
     @Mock
-    private BackendStatusService backendStatusService;
+    private StatusService statusService;
     @Mock
-    private QueryService queryService;
+    private HandlerService queryService;
 
     @BeforeMethod
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        doReturn(true).when(backendStatusService).isBackendStatusOk();
+        doReturn(true).when(statusService).isBackendStatusOk();
     }
 
     @Test
     public void testWebSocketQueryWithBackendDown() {
-        doReturn(false).when(backendStatusService).isBackendStatusOk();
+        doReturn(false).when(statusService).isBackendStatusOk();
 
         String sessionID = "sessionID";
         String query = "{}";
@@ -143,6 +143,6 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
 
         webSocketController.submitWebsocketQuery(request, headerAccessor);
 
-        verify(webSocketService).sendKillSignal(eq("sessionID"), eq("queryID"));
+        verify(webSocketService).killQuery(eq("sessionID"), eq("queryID"));
     }
 }

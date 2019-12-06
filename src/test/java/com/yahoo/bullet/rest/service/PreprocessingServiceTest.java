@@ -6,7 +6,7 @@
 package com.yahoo.bullet.rest.service;
 
 import com.google.gson.JsonSyntaxException;
-import com.yahoo.bullet.rest.query.BQLException;
+import com.yahoo.bullet.rest.common.BQLException;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -60,14 +60,14 @@ public class PreprocessingServiceTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testQueryLimitReached() throws Exception {
-        QueryService queryService = Mockito.mock(QueryService.class);
+        HandlerService queryService = Mockito.mock(HandlerService.class);
         doReturn(500).when(queryService).queryCount();
         Assert.assertTrue(preprocessingService.queryLimitReached(queryService));
     }
 
     @Test
     public void testQueryLimitNotReached() throws Exception {
-        QueryService queryService = Mockito.mock(QueryService.class);
+        HandlerService queryService = Mockito.mock(HandlerService.class);
         doReturn(499).when(queryService).queryCount();
         Assert.assertFalse(preprocessingService.queryLimitReached(queryService));
     }

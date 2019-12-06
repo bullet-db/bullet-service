@@ -14,8 +14,17 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 @Component
 public class WebSocketEventListener {
-    @Autowired
     private WebSocketService webSocketService;
+
+    /**
+     * Constructor.
+     *
+     * @param webSocketService The {@link WebSocketService} to use.
+     */
+    @Autowired
+    public WebSocketEventListener(WebSocketService webSocketService) {
+        this.webSocketService = webSocketService;
+    }
 
     /**
      * This method is the handler when receiving WebSocket disconnect events.
@@ -25,6 +34,6 @@ public class WebSocketEventListener {
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        webSocketService.sendKillSignal(headerAccessor.getSessionId(), null);
+        webSocketService.killQuery(headerAccessor.getSessionId(), null);
     }
 }

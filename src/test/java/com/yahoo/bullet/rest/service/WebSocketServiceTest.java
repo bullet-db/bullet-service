@@ -34,7 +34,7 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
     @Mock
     private SimpMessagingTemplate simpMessagingTemplate;
     @Mock
-    private QueryService queryService;
+    private HandlerService queryService;
 
     @BeforeMethod
     public void setup() {
@@ -44,7 +44,7 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testSendKillSignalWithNonExistingSessionID() {
         webSocketService.getSessionIDMap().clear();
-        webSocketService.sendKillSignal("sessionID", null);
+        webSocketService.killQuery("sessionID", null);
 
         verify(queryService, never()).killQuery(any());
     }
@@ -52,7 +52,7 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testSendKillSignalWithExistingSessionID() {
         webSocketService.getSessionIDMap().put("sessionID", "queryID");
-        webSocketService.sendKillSignal("sessionID", "queryID");
+        webSocketService.killQuery("sessionID", "queryID");
 
         verify(queryService).killQuery("queryID");
         Assert.assertFalse(webSocketService.getSessionIDMap().containsKey("sessionID"));

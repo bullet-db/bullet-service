@@ -51,6 +51,6 @@ public class WebSocketEventListenerTest extends AbstractTestNGSpringContextTests
 
         webSocketEventListener.handleWebSocketDisconnectListener(event);
 
-        verify(webSocketService).sendKillSignal(eq("foo"), eq(null));
+        verify(webSocketService).killQuery(eq("foo"), eq(null));
     }
 }

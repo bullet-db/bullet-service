@@ -11,10 +11,9 @@ import lombok.NoArgsConstructor;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Query handler that implements results for HTTP - one result per query. In other words,
- * a single {@link #send(PubSubMessage)} or {@link #fail(QueryError)} call is supported. Use
- * {@link #getResult()} to get a {@link CompletableFuture} that resolves to the single
- * result or error.
+ * Query handler that implements results for HTTP - one result per query. In other words, a single
+ * {@link #send(PubSubMessage)} or {@link #fail(QueryError)} call is supported. Use {@link #getResult()} to get a
+ * {@link CompletableFuture} that resolves to the single result or error.
  */
 @NoArgsConstructor
 public class HTTPQueryHandler extends QueryHandler {

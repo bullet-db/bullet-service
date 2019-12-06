@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.bullet</groupId>
     <artifactId>bullet-service</artifactId>
-    <version>0.5.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>bullet-service</name>
 
     <scm>
@@ -34,7 +34,7 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <bullet.core.version>0.6.6</bullet.core.version>
+        <bullet.core.version>1.0.0-SNAPSHOT</bullet.core.version>
         <bullet.bql.version>0.2.1</bullet.bql.version>
         <spring.security.oauth2>2.2.0.RELEASE</spring.security.oauth2>
     </properties>

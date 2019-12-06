@@ -6,7 +6,7 @@
 package com.yahoo.bullet.rest.query;
 
 import com.yahoo.bullet.pubsub.PubSubMessage;
-import com.yahoo.bullet.rest.service.QueryService;
+import com.yahoo.bullet.rest.service.HandlerService;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 
 public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
     @Mock
-    private QueryService queryService;
+    private HandlerService queryService;
     @Mock
     private SseEmitter sseEmitter;
 

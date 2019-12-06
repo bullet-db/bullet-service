@@ -5,15 +5,16 @@
  */
 package com.yahoo.bullet.rest.controller;
 
-import com.yahoo.bullet.rest.query.BQLError;
-import com.yahoo.bullet.rest.query.BQLException;
+import com.yahoo.bullet.rest.common.BQLError;
+import com.yahoo.bullet.rest.common.BQLException;
+import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
-import com.yahoo.bullet.rest.service.BackendStatusService;
+import com.yahoo.bullet.rest.service.StatusService;
+import com.yahoo.bullet.rest.service.HandlerService;
 import com.yahoo.bullet.rest.service.PreprocessingService;
 import com.yahoo.bullet.rest.service.QueryService;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,50 +26,63 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class HTTPQueryController {
-    @Autowired @Setter
     private QueryService queryService;
-
-    @Autowired
+    private HandlerService handlerService;
     private PreprocessingService preprocessingService;
-
-    @Autowired
-    private BackendStatusService backendStatusService;
+    private StatusService statusService;
 
     /**
-     * The method that handles POSTs to this endpoint. Consumes the HTTP request, invokes {@link QueryService} to
+     * Constructor that takes various services.
+     *
+     * @param handlerService The {@link HandlerService} to use.
+     * @param queryService  The {@link QueryService} to use.
+     * @param preprocessingService The {@link PreprocessingService} to use.
+     * @param statusService The {@link StatusService} to use.
+     */
+    @Autowired
+    public HTTPQueryController(HandlerService handlerService, QueryService queryService,
+                               PreprocessingService preprocessingService, StatusService statusService) {
+        this.handlerService = handlerService;
+        this.queryService = queryService;
+        this.preprocessingService = preprocessingService;
+        this.statusService = statusService;
+    }
+
+    /**
+     * The method that handles POSTs to this endpoint. Consumes the HTTP request, invokes {@link HandlerService} to
      * register and transmit the query to Bullet.
      *
      * @param query The JSON query.
      * @return A {@link CompletableFuture} representing the eventual result.
      */
     @PostMapping(path = "${bullet.endpoint.http}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-    @SuppressWarnings("unchecked")
     public CompletableFuture<String> submitHTTPQuery(@RequestBody String query) {
-        HTTPQueryHandler queryHandler = new HTTPQueryHandler();
-        String queryID = QueryService.getNewQueryID();
-        if (!backendStatusService.isBackendStatusOk()) {
-            queryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
-            return queryHandler.getResult();
+        HTTPQueryHandler handler = new HTTPQueryHandler();
+        String id = Utils.getNewQueryID();
+        if (!statusService.isBackendStatusOk()) {
+            handler.fail(QueryError.SERVICE_UNAVAILABLE);
+            return handler.getResult();
         }
         try {
             query = preprocessingService.convertIfBQL(query);
             if (preprocessingService.containsWindow(query)) {
-                queryHandler.fail(QueryError.UNSUPPORTED_QUERY);
-            } else if (preprocessingService.queryLimitReached(queryService)) {
-                queryHandler.fail(QueryError.TOO_MANY_QUERIES);
+                handler.fail(QueryError.UNSUPPORTED_QUERY);
+            } else if (preprocessingService.queryLimitReached()) {
+                handler.fail(QueryError.TOO_MANY_QUERIES);
             } else {
-                queryService.submit(queryID, query, queryHandler);
+                handlerService.addQuery(id, handler);
+                queryService.submit(id, query);
             }
         } catch (BQLException e) {
-            queryHandler.fail(new BQLError(e));
+            handler.fail(new BQLError(e));
         } catch (Exception e) {
-            queryHandler.fail(QueryError.INVALID_QUERY);
+            handler.fail(QueryError.INVALID_QUERY);
         }
-        return queryHandler.getResult();
+        return handler.getResult();
     }
 
     /**
-     * The method that handles SSE POSTs to this endpoint. Consumes the HTTP request, invokes {@link QueryService} to
+     * The method that handles SSE POSTs to this endpoint. Consumes the HTTP request, invokes {@link HandlerService} to
      * register and transmit the query to Bullet.
      *
      * @param query The JSON query.
@@ -77,23 +91,24 @@ public class HTTPQueryController {
     @PostMapping(value = "${bullet.endpoint.sse}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public SseEmitter submitSSEQuery(@RequestBody String query) {
         SseEmitter sseEmitter = new SseEmitter();
-        String queryID = QueryService.getNewQueryID();
-        SSEQueryHandler sseQueryHandler = new SSEQueryHandler(queryID, sseEmitter, queryService);
-        if (!backendStatusService.isBackendStatusOk()) {
-            sseQueryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
+        String id = Utils.getNewQueryID();
+        SSEQueryHandler handler = new SSEQueryHandler(id, sseEmitter, queryService);
+        if (!statusService.isBackendStatusOk()) {
+            handler.fail(QueryError.SERVICE_UNAVAILABLE);
             return sseEmitter;
         }
         try {
             query = preprocessingService.convertIfBQL(query);
-            if (preprocessingService.queryLimitReached(queryService)) {
-                sseQueryHandler.fail(QueryError.TOO_MANY_QUERIES);
+            if (preprocessingService.queryLimitReached()) {
+                handler.fail(QueryError.TOO_MANY_QUERIES);
             } else {
-                queryService.submit(queryID, query, sseQueryHandler);
+                handlerService.addQuery(id, handler);
+                queryService.submit(id, query);
             }
         } catch (BQLException e) {
-            sseQueryHandler.fail(new BQLError(e));
+            handler.fail(new BQLError(e));
         } catch (Exception e) {
-            sseQueryHandler.fail(QueryError.INVALID_QUERY);
+            handler.fail(QueryError.INVALID_QUERY);
         }
         return sseEmitter;
     }

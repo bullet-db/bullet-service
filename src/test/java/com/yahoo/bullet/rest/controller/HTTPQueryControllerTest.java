@@ -9,8 +9,8 @@ import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
-import com.yahoo.bullet.rest.service.BackendStatusService;
-import com.yahoo.bullet.rest.service.QueryService;
+import com.yahoo.bullet.rest.service.StatusService;
+import com.yahoo.bullet.rest.service.HandlerService;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -42,9 +42,9 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     @InjectMocks
     private HTTPQueryController controller;
     @Mock
-    private BackendStatusService backendStatusService;
+    private StatusService statusService;
     @Mock
-    private QueryService queryService;
+    private HandlerService queryService;
     @Autowired
     private WebApplicationContext context;
     private MockMvc mockMVC;
@@ -53,12 +53,12 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         mockMVC = MockMvcBuilders.webAppContextSetup(context).build();
-        doReturn(true).when(backendStatusService).isBackendStatusOk();
+        doReturn(true).when(statusService).isBackendStatusOk();
     }
 
     @Test
     public void testSendHTTPQueryWithBackendDown() throws Exception {
-        doReturn(false).when(backendStatusService).isBackendStatusOk();
+        doReturn(false).when(statusService).isBackendStatusOk();
 
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
@@ -127,7 +127,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSSEQueryWithBackendDown() throws Exception {
-        doReturn(false).when(backendStatusService).isBackendStatusOk();
+        doReturn(false).when(statusService).isBackendStatusOk();
 
         String query = "{}";
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
