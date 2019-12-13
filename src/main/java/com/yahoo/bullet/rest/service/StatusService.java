@@ -10,6 +10,7 @@ import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.QueryHandler;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@Service
+@Service @Slf4j
 public class StatusService implements Runnable {
     static class TickQueryHandler extends QueryHandler {
         private CompletableFuture<Boolean> result = new CompletableFuture<>();
@@ -101,7 +102,7 @@ public class StatusService implements Runnable {
 
         String id = Utils.getNewQueryID();
         queryService.submit(id, TICK_QUERY);
-        handlerService.addQuery(id, tickQueryHandler);
+        handlerService.addHandler(id, tickQueryHandler);
 
         if (tickQueryHandler.hasResult()) {
             count = 0;
@@ -111,7 +112,8 @@ public class StatusService implements Runnable {
             backendStatusOk = count <= retries;
         }
         if (!backendStatusOk) {
-            handlerService.failAllQueries();
+            log.error("Backend is not up! Failing all queries and refusing to accept new queries");
+            handlerService.failAllHandlers();
         }
     }
 }

@@ -61,14 +61,14 @@ public class PreprocessingServiceTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testQueryLimitReached() throws Exception {
         HandlerService queryService = Mockito.mock(HandlerService.class);
-        doReturn(500).when(queryService).queryCount();
+        doReturn(500).when(queryService).count();
         Assert.assertTrue(preprocessingService.queryLimitReached(queryService));
     }
 
     @Test
     public void testQueryLimitNotReached() throws Exception {
         HandlerService queryService = Mockito.mock(HandlerService.class);
-        doReturn(499).when(queryService).queryCount();
+        doReturn(499).when(queryService).count();
         Assert.assertFalse(preprocessingService.queryLimitReached(queryService));
     }
 }

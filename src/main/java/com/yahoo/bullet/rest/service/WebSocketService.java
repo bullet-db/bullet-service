@@ -56,7 +56,7 @@ public class WebSocketService {
     public void killQuery(String sessionID, String queryID) {
         String queryForSession = sessionIDMap.get(sessionID);
         if (queryForSession != null && (queryID == null || queryID.equals(queryForSession))) {
-            handlerService.removeQuery(queryForSession);
+            handlerService.removeHandler(queryForSession);
             deleteSession(sessionID);
             queryService.kill(queryForSession);
         }
@@ -81,7 +81,7 @@ public class WebSocketService {
      */
     public void submitQuery(String queryID, String sessionID, String queryString, WebSocketQueryHandler queryHandler) {
         sessionIDMap.put(sessionID, queryID);
-        handlerService.addQuery(queryID, queryHandler);
+        handlerService.addHandler(queryID, queryHandler);
         queryService.submit(queryID, queryString);
     }
 

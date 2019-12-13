@@ -8,10 +8,8 @@ package com.yahoo.bullet.rest.common;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
+import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Subscriber;
-import com.yahoo.bullet.rest.common.Reader;
-import com.yahoo.bullet.rest.query.QueryError;
-import com.yahoo.bullet.rest.query.QueryHandler;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.testng.Assert;
@@ -23,43 +21,24 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ReaderTest {
-    private ConcurrentHashMap<String, QueryHandler> requestQueue;
-    private String randomID;
-    private MockQueryHandler queryHandler;
     private PubSubMessage mockMessage;
+    private MockResponder responder;
 
-    @Getter @NoArgsConstructor
-    private class MockQueryHandler extends QueryHandler {
+    @Getter
+    private static class MockResponder implements PubSubResponder {
         private CompletableFuture<PubSubMessage> sentMessage = new CompletableFuture<>();
         private CompletableFuture<Boolean> isCompleted = new CompletableFuture<>();
 
         @Override
-        public void send(PubSubMessage message) {
+        public void respond(String id, PubSubMessage message) {
             sentMessage.complete(message);
-        }
-
-        @Override
-        public void complete() {
-            super.complete();
-            isCompleted.complete(true);
-        }
-
-        @Override
-        public void fail(QueryError cause) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void acknowledge() {
-            throw new UnsupportedOperationException();
         }
     }
 
     @NoArgsConstructor @Getter
-    private class MockSubscriber implements Subscriber {
+    private static class MockSubscriber implements Subscriber {
         protected CompletableFuture<Boolean> isClosed = new CompletableFuture<>();
         private LinkedList<PubSubMessage> messageList = null;
         private CompletableFuture<String> committedID = new CompletableFuture<>();
@@ -80,16 +59,16 @@ public class ReaderTest {
         }
 
         @Override
-        public void commit(String s, int i) {
+        public void commit(String s) {
             committedID.complete(s);
         }
 
         @Override
-        public void fail(String s, int i) {
+        public void fail(String s) {
         }
     }
 
-    private class MockFailingSubscriber extends MockSubscriber {
+    private static class MockFailingSubscriber extends MockSubscriber {
         private boolean receiveWasCalled = false;
 
         @Override
@@ -105,7 +84,7 @@ public class ReaderTest {
     }
 
     @Getter
-    private class MockUnCloseableSubscriber extends MockSubscriber {
+    private static class MockUnCloseableSubscriber extends MockSubscriber {
         private CompletableFuture<Boolean> didError = new CompletableFuture<>();
 
         MockUnCloseableSubscriber(PubSubMessage... messages) {
@@ -121,36 +100,23 @@ public class ReaderTest {
 
     @BeforeMethod
     public void setup() {
-        requestQueue = new ConcurrentHashMap<>();
-        randomID = UUID.randomUUID().toString();
-        queryHandler = new MockQueryHandler();
+        String randomID = UUID.randomUUID().toString();
+        responder = new MockResponder();
         mockMessage = new PubSubMessage(randomID, "foo");
     }
 
     @Test(timeOut = 10000)
-    public void testQueryCompletedOnReceive() throws Exception {
+    public void testMessageRespondedTo() throws Exception {
         Subscriber subscriber = new MockSubscriber(mockMessage);
-        requestQueue.put(randomID, queryHandler);
-        Reader reader = new Reader(subscriber, requestQueue, 1);
-        Assert.assertEquals(queryHandler.getSentMessage().get(), mockMessage);
-        reader.close();
-    }
-
-    @Test(timeOut = 10000)
-    public void testQueryCompletedOnReceiveFailMessage() throws Exception {
-        PubSubMessage failMessage = new PubSubMessage("failID", "", Metadata.Signal.FAIL);
-        Subscriber subscriber = new MockSubscriber(failMessage);
-        requestQueue.put("failID", queryHandler);
-        Reader reader = new Reader(subscriber, requestQueue, 1);
-        Assert.assertTrue(queryHandler.getIsCompleted().get());
-        Assert.assertEquals(queryHandler.getSentMessage().get(), failMessage);
+        Reader reader = new Reader(subscriber, responder, 1);
+        Assert.assertEquals(responder.getSentMessage().get(), mockMessage);
         reader.close();
     }
 
     @Test(timeOut = 10000)
     public void testSubscriberClosedOnClose() throws Exception {
         MockSubscriber subscriber = new MockSubscriber();
-        Reader reader = new Reader(subscriber, requestQueue, 1);
+        Reader reader = new Reader(subscriber, responder, 1);
         reader.close();
         Assert.assertTrue(subscriber.getIsClosed().get());
     }
@@ -159,7 +125,7 @@ public class ReaderTest {
     public void testSubscriberClosedOnError() throws Exception {
         // When a runtime exception occurs, the reader shuts down and close is called on the Subscriber.
         MockFailingSubscriber subscriber = new MockFailingSubscriber();
-        new Reader(subscriber, requestQueue, 1);
+        new Reader(subscriber, responder, 1);
 
         Assert.assertTrue(subscriber.getIsClosed().get());
     }
@@ -167,41 +133,16 @@ public class ReaderTest {
     @Test(timeOut = 10000)
     public void testEmptyReceiveIgnored() throws Exception {
         Subscriber subscriber = new MockSubscriber(null, mockMessage);
-        requestQueue.put(randomID, queryHandler);
-        new Reader(subscriber, requestQueue, 1);
+        new Reader(subscriber, responder, 1);
 
-        Assert.assertEquals(queryHandler.getSentMessage().get(), mockMessage);
-    }
-
-    @Test(timeOut = 10000)
-    public void testMessageIgnoredWhenQueryHandlerComplete() throws Exception {
-        PubSubMessage completedMessage = new PubSubMessage("completedID", "");
-        MockQueryHandler completedQueryHandler = new MockQueryHandler();
-        completedQueryHandler.complete();
-        Subscriber subscriber = new MockSubscriber(completedMessage, mockMessage);
-        requestQueue.put(randomID, queryHandler);
-        requestQueue.put("completedID", completedQueryHandler);
-        new Reader(subscriber, requestQueue, 1);
-
-        // Waits for message after completedMessage to get processed and checks that completedQueryHandler send was not invoked.
-        Assert.assertEquals(queryHandler.getSentMessage().get(), mockMessage);
-        Assert.assertFalse(completedQueryHandler.getSentMessage().isDone());
-    }
-
-    @Test(timeOut = 10000)
-    public void testAbsentQueryHandlerMessageAcked() throws Exception {
-        MockSubscriber mockSubscriber = new MockSubscriber(mockMessage);
-        new Reader(mockSubscriber, requestQueue, 1);
-
-        Assert.assertEquals(mockSubscriber.getCommittedID().get(), randomID);
+        Assert.assertEquals(responder.getSentMessage().get(), mockMessage);
     }
 
     @Test(timeOut = 10000)
     public void testExceptionOnSubscriberClose() throws Exception {
         MockUnCloseableSubscriber subscriber = new MockUnCloseableSubscriber(mockMessage);
-        requestQueue.put(randomID, queryHandler);
-        Reader reader = new Reader(subscriber, requestQueue, 1);
-        Assert.assertEquals(queryHandler.getSentMessage().get(), mockMessage);
+        Reader reader = new Reader(subscriber, responder, 1);
+        Assert.assertEquals(responder.getSentMessage().get(), mockMessage);
         reader.close();
         Assert.assertTrue(subscriber.getDidError().get());
     }

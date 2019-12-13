@@ -56,7 +56,7 @@ public class HandlerServiceTest {
         service.submit("", "{", queryHandler);
         service.close();
         verify(queryHandler).fail();
-        Assert.assertTrue(service.getQueries().isEmpty());
+        Assert.assertTrue(service.getHandlers().isEmpty());
     }
 
     @Test
@@ -80,15 +80,15 @@ public class HandlerServiceTest {
         String randomID = UUID.randomUUID().toString();
         String randomContent = "{foo}";
         service.submit(randomID, randomContent, queryHandler);
-        Assert.assertTrue(service.hasQuery(randomID));
-        Assert.assertEquals(1, service.queryCount());
-        Assert.assertEquals(1, service.getQueries().size());
-        Assert.assertEquals(queryHandler, service.getQueries().get(randomID));
-        Assert.assertSame(service.getQuery(randomID), queryHandler);
-        Assert.assertSame(service.removeQuery(randomID), queryHandler);
-        Assert.assertFalse(service.hasQuery(randomID));
-        Assert.assertEquals(0, service.queryCount());
-        Assert.assertEquals(0, service.getQueries().size());
+        Assert.assertTrue(service.hasHandlers(randomID));
+        Assert.assertEquals(1, service.count());
+        Assert.assertEquals(1, service.getHandlers().size());
+        Assert.assertEquals(queryHandler, service.getHandlers().get(randomID));
+        Assert.assertSame(service.getHandler(randomID), queryHandler);
+        Assert.assertSame(service.removeHandler(randomID), queryHandler);
+        Assert.assertFalse(service.hasHandlers(randomID));
+        Assert.assertEquals(0, service.count());
+        Assert.assertEquals(0, service.getHandlers().size());
         verify(publisher).send(randomID, randomContent);
         service.close();
     }
@@ -112,12 +112,12 @@ public class HandlerServiceTest {
         Subscriber subscriber = new MockSubscriber();
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         HandlerService service = new HandlerService(singletonList(publisher), singletonList(subscriber), 1);
-        service.getQueries().put("id", queryHandler);
+        service.getHandlers().put("id", queryHandler);
 
         QueryHandler actualHandler = service.killQuery("id");
         Assert.assertSame(actualHandler, queryHandler);
-        Assert.assertEquals(0, service.queryCount());
-        Assert.assertEquals(0, service.getQueries().size());
+        Assert.assertEquals(0, service.count());
+        Assert.assertEquals(0, service.getHandlers().size());
         verify(publisher).send(new PubSubMessage("id", Metadata.Signal.KILL));
         service.close();
     }
@@ -128,11 +128,11 @@ public class HandlerServiceTest {
         Subscriber subscriber = new MockSubscriber();
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         HandlerService service = new HandlerService(singletonList(publisher), singletonList(subscriber), 1);
-        service.getQueries().put("id", queryHandler);
+        service.getHandlers().put("id", queryHandler);
 
         doThrow(new PubSubException("")).when(publisher).send(any());
         service.killQuery("id");
-        Assert.assertEquals(0, service.getQueries().size());
+        Assert.assertEquals(0, service.getHandlers().size());
         service.close();
     }
 
@@ -143,10 +143,10 @@ public class HandlerServiceTest {
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         HandlerService service = new HandlerService(singletonList(publisher), singletonList(subscriber), 1);
 
-        Assert.assertFalse(service.failQuery("id"));
+        Assert.assertFalse(service.failHandler("id"));
         verifyZeroInteractions(queryHandler);
-        service.getQueries().put("id", queryHandler);
-        Assert.assertTrue(service.failQuery("id"));
+        service.getHandlers().put("id", queryHandler);
+        Assert.assertTrue(service.failHandler("id"));
         verify(queryHandler).fail();
     }
 
@@ -157,9 +157,9 @@ public class HandlerServiceTest {
         QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
         HandlerService service = new HandlerService(singletonList(publisher), singletonList(subscriber), 1);
 
-        Assert.assertEquals(service.queryCount(), 0);
-        service.getQueries().put("id", queryHandler);
-        Assert.assertEquals(service.queryCount(), 1);
+        Assert.assertEquals(service.count(), 0);
+        service.getHandlers().put("id", queryHandler);
+        Assert.assertEquals(service.count(), 1);
     }
 
     @Test

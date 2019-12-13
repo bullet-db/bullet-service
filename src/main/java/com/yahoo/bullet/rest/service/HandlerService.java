@@ -19,25 +19,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * This is used for synchronous sending and handling of queries.
+ * This is used for synchronous sending and handling of queries. To store and manage {@link QueryHandler} instances.
  */
 @Component
 public class HandlerService implements PubSubResponder {
     // Exposed for testing only.
     @Getter(AccessLevel.PACKAGE)
-    private ConcurrentMap<String, QueryHandler> queries;
+    private ConcurrentMap<String, QueryHandler> handlers;
 
     /**
      * Constructor that creates a responder.
      */
     @Autowired
     public HandlerService() {
-        queries = new ConcurrentHashMap<>();
+        handlers = new ConcurrentHashMap<>();
     }
 
     @Override
     public void respond(String id, PubSubMessage message) {
-        QueryHandler handler = getQuery(id);
+        QueryHandler handler = getHandler(id);
         synchronized (handler) {
             if (!handler.isComplete()) {
                 handler.send(message);
@@ -45,7 +45,7 @@ public class HandlerService implements PubSubResponder {
                     handler.complete();
                 }
                 if (handler.isComplete()) {
-                    removeQuery(message.getId());
+                    removeHandler(message.getId());
                 }
             }
         }
@@ -54,52 +54,52 @@ public class HandlerService implements PubSubResponder {
     /**
      * Adds the given {@link QueryHandler} for the given ID to this service.
      *
-     * @param id The ID of the query.
+     * @param id The ID of the handler.
      * @param handler The {@link QueryHandler} instance to add.
      */
-    public void addQuery(String id, QueryHandler handler) {
-        queries.put(id, handler);
+    public void addHandler(String id, QueryHandler handler) {
+        handlers.put(id, handler);
     }
 
     /**
      * Retrieves the {@link QueryHandler} for the given ID, if it exists.
      *
-     * @param id The ID of the query.
-     * @return The {@link QueryHandler} instance or null if the query does not exist.
+     * @param id The ID of the handler.
+     * @return The {@link QueryHandler} instance or null if the handler does not exist.
      */
-    public QueryHandler getQuery(String id) {
-        return queries.get(id);
+    public QueryHandler getHandler(String id) {
+        return handlers.get(id);
     }
 
     /**
      * Removes a {@link QueryHandler} for the given ID.
      *
-     * @param id The ID of the query.
-     * @return The {@link QueryHandler} instance or null if the query does not exist.
+     * @param id The ID of the handler.
+     * @return The {@link QueryHandler} instance or null if the handler does not exist.
      */
-    public QueryHandler removeQuery(String id) {
-        return queries.remove(id);
+    public QueryHandler removeHandler(String id) {
+        return handlers.remove(id);
     }
 
     /**
-     * Checks to see if a given query exists.
+     * Checks to see if a given handler exists.
      *
-     * @param id The ID of the query.
-     * @return A boolean denoting if the query exists in this service.
+     * @param id The ID of the handler.
+     * @return A boolean denoting if the handler exists in this service.
      */
-    public boolean hasQuery(String id) {
-        return queries.containsKey(id);
+    public boolean hasHandlers(String id) {
+        return handlers.containsKey(id);
     }
 
     /**
-     * Fail a given query, if it exists. This does not submit anything to Bullet. It simply removes the query and
+     * Fail a given handler, if it exists. This does not submit anything to Bullet. It simply removes the handler and
      * invokes its {@link QueryHandler#fail()} method.
      *
-     * @param id The ID of a query to fail, if it exists.
-     * @return true if the query was failed.
+     * @param id The ID of a handler to fail, if it exists.
+     * @return true if the handler was failed.
      */
-    public boolean failQuery(String id) {
-        QueryHandler handler = queries.remove(id);
+    public boolean failHandler(String id) {
+        QueryHandler handler = handlers.remove(id);
         if (handler == null) {
             return false;
         }
@@ -108,27 +108,27 @@ public class HandlerService implements PubSubResponder {
     }
 
     /**
-     * Clears all pending queries. This does not send anything to Bullet.
+     * Clears all pending handlers. This does not send anything to Bullet.
      */
-    public void failAllQueries() {
-        queries.values().forEach(QueryHandler::fail);
-        queries.clear();
+    public void failAllHandlers() {
+        handlers.values().forEach(QueryHandler::fail);
+        handlers.clear();
     }
 
     /**
-     * Get the number of running queries.
+     * Get the number of running handlers.
      *
-     * @return The number of running queries.
+     * @return The number of running handlers.
      */
-    public int queryCount() {
-        return queries.size();
+    public int count() {
+        return handlers.size();
     }
 
     /**
-     * Stop all service threads and clear pending requests.
+     * Stop all service threads and clear pending handlers.
      */
     @PreDestroy
     public void close() {
-        failAllQueries();
+        failAllHandlers();
     }
 }

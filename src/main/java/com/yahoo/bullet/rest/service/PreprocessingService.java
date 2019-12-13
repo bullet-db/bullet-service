@@ -63,7 +63,7 @@ public class PreprocessingService {
      * @return A boolean indicating whether or not the query limit has been reached.
      */
     public boolean queryLimitReached() {
-        return handlerService.queryCount() >= maxConcurrentQueries;
+        return handlerService.count() >= maxConcurrentQueries;
     }
 
     /**

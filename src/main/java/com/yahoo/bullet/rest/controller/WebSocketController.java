@@ -5,7 +5,7 @@
  */
 package com.yahoo.bullet.rest.controller;
 
-import com.yahoo.bullet.rest.common.BQLError;
+import com.yahoo.bullet.rest.model.BQLError;
 import com.yahoo.bullet.rest.common.BQLException;
 import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.rest.model.WebSocketRequest;

@@ -57,35 +57,12 @@ public class QueryService implements PubSubResponder {
      * @return A {@link CompletableFuture} that resolves to if the submission succeeded or not.
      */
     public CompletableFuture<Boolean> submit(String id, String query) {
+        log.debug("Submitting query {}", id);
         PubSubMessage message = new PubSubMessage(id, query);
         return storage.putObject(id, message)
                       .thenComposeAsync(status -> publish(status, message))
                       .thenApply(status -> onPubSubSubmit(status, id))
                       .exceptionally(e -> onPubSubSubmitFail(e, id));
-    }
-
-    /**
-     *
-     * Sends a {@link Metadata.Signal} to Bullet without storing it.
-     *
-     * @param id The non-null ID of the message to send this signal in.
-     * @param signal The non-null {@link Metadata.Signal} to send.
-     * @return A {@link CompletableFuture} that resolves to if the sending succeeded or not.
-     */
-    public CompletableFuture<Boolean> send(String id, Metadata.Signal signal) {
-        Objects.requireNonNull(signal);
-        return publish(new PubSubMessage(id, signal));
-    }
-    /**
-     *
-     * Sends a {@link PubSubMessage} to Bullet without storing it. This can be used to send signals or anything else.
-     *
-     * @param message The non-null {@link PubSubMessage} to send.
-     * @return A {@link CompletableFuture} that resolves to if the sending succeeded or not.
-     */
-    public CompletableFuture<Boolean> send(PubSubMessage message) {
-        Objects.requireNonNull(message);
-        return publish(message);
     }
 
     /**
@@ -116,6 +93,30 @@ public class QueryService implements PubSubResponder {
                    .exceptionally(e -> onRespondFail(e, id, response));
         }
         responders.forEach(responder -> responder.respond(id, response));
+    }
+
+    /**
+     *
+     * Sends a {@link Metadata.Signal} to Bullet without storing it.
+     *
+     * @param id The non-null ID of the message to send this signal in.
+     * @param signal The non-null {@link Metadata.Signal} to send.
+     * @return A {@link CompletableFuture} that resolves to if the sending succeeded or not.
+     */
+    public CompletableFuture<Boolean> send(String id, Metadata.Signal signal) {
+        Objects.requireNonNull(signal);
+        return publish(new PubSubMessage(id, signal));
+    }
+    /**
+     *
+     * Sends a {@link PubSubMessage} to Bullet without storing it. This can be used to send signals or anything else.
+     *
+     * @param message The non-null {@link PubSubMessage} to send.
+     * @return A {@link CompletableFuture} that resolves to if the sending succeeded or not.
+     */
+    public CompletableFuture<Boolean> send(PubSubMessage message) {
+        Objects.requireNonNull(message);
+        return publish(message);
     }
 
     /**
