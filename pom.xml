@@ -64,6 +64,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.yahoo.bullet</groupId>
+            <artifactId>bullet-core</artifactId>
+            <version>${bullet.core.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
 
         <!-- PROVIDED -->
         <dependency>
@@ -146,7 +153,7 @@
 
             <plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.16</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>checkstyle-check</id>
@@ -164,7 +171,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>6.8.2</version>
+                        <version>8.26</version>
                     </dependency>
                 </dependencies>
             </plugin>

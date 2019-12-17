@@ -20,7 +20,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import java.io.IOException;
 import java.util.List;
 
 @Configuration
@@ -47,11 +46,10 @@ public class APIConfiguration extends WebSecurityConfigurerAdapter {
      *
      * @param config The String path to the config file.
      * @return An instance of the particular {@link PubSub} indicated in the config.
-     * @throws IOException if there were issues reading the config file as a {@link BulletConfig}.
      * @throws PubSubException if there were issues creating the PubSub instance.
      */
     @Bean
-    public PubSub pubSub(@Value("${bullet.pubsub.config}") String config) throws IOException, PubSubException {
+    public PubSub pubSub(@Value("${bullet.pubsub.config}") String config) throws PubSubException {
         return PubSub.from(new BulletConfig(config));
     }
 

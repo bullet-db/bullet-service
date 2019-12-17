@@ -9,39 +9,24 @@ import com.google.gson.GsonBuilder;
 import com.yahoo.bullet.rest.schema.JSONAPIColumn;
 import com.yahoo.bullet.rest.schema.JSONAPIDocument;
 import com.yahoo.bullet.typesystem.Type;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.List;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class SchemaServiceTest extends AbstractTestNGSpringContextTests {
-    @Autowired
-    SchemaService service;
+import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
+
+public class SchemaServiceTest {
+    private SchemaService service;
 
     @Test
     public void testClasspathResource() {
-        Assert.assertNotNull(service);
-        String expected = "{" +
-            "\"data\":" +
-                "[" +
-                    "{" +
-                        "\"id\":\"test\"," +
-                        "\"type\":\"column\"," +
-                        "\"attributes\":{" +
-                            "\"name\":\"test\"," +
-                            "\"type\":\"MAP\"," +
-                            "\"subtype\":\"STRING\"," +
-                            "\"description\":\"foo\"" +
-                        "}" +
-                    "}" +
-                "]," +
-            "\"meta\":{\"version\":\"1.2\"}" +
-            "}";
-        Assert.assertEquals(expected, service.getSchema());
+        SchemaService service = new SchemaService("1.2", "/test_columns.json");
+        String expected =
+            "{'data': [{'id':'test','type':'column'," +
+                       "'attributes':{'name':'test','type':'MAP','subtype':'STRING','description':'foo'}}]," +
+             "'meta':{'version':'1.2'}}";
+        assertJSONEquals(expected, service.getSchema());
     }
 
     @Test(expectedExceptions = NullPointerException.class)

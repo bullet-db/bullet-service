@@ -7,20 +7,17 @@ package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.model.WebSocketRequest;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
-import com.yahoo.bullet.rest.service.StatusService;
 import com.yahoo.bullet.rest.service.HandlerService;
+import com.yahoo.bullet.rest.service.PreprocessingService;
+import com.yahoo.bullet.rest.service.StatusService;
 import com.yahoo.bullet.rest.service.WebSocketService;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -29,25 +26,40 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
-    @Autowired
-    @InjectMocks
-    private WebSocketController webSocketController;
-    @Mock
+public class WebSocketControllerTest {
+    private WebSocketController controller;
     private WebSocketService webSocketService;
-    @Mock
     private StatusService statusService;
-    @Mock
-    private HandlerService queryService;
+    private HandlerService handlerService;
+    private PreprocessingService preprocessingService;
 
+    private static SimpMessageHeaderAccessor getMockMessageAccessor(String sessionID) {
+        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
+        doReturn(sessionID).when(headerAccessor).getSessionId();
+        return headerAccessor;
+    }
+    
+    private static WebSocketRequest getMockRequest(WebSocketRequest.Type type, String content) {
+        WebSocketRequest request = new WebSocketRequest();
+        request.setType(type);
+        request.setContent(content);
+        return request;
+    }
+    
     @BeforeMethod
     public void setup() {
-        MockitoAnnotations.initMocks(this);
+        statusService = mock(StatusService.class);
         doReturn(true).when(statusService).isBackendStatusOk();
+
+        handlerService = mock(HandlerService.class);
+        doReturn(0).when(handlerService).count();
+
+        webSocketService = mock(WebSocketService.class);
+
+        preprocessingService = new PreprocessingService(handlerService, 500);
+
+        controller = new WebSocketController(webSocketService, preprocessingService, statusService);
     }
 
     @Test
@@ -55,94 +67,80 @@ public class WebSocketControllerTest extends AbstractTestNGSpringContextTests {
         doReturn(false).when(statusService).isBackendStatusOk();
 
         String sessionID = "sessionID";
-        String query = "{}";
-        WebSocketRequest request = new WebSocketRequest();
-        request.setType(WebSocketRequest.Type.NEW_QUERY);
-        request.setContent(query);
-        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
-        when(headerAccessor.getSessionId()).thenReturn(sessionID);
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, "{}");
+        SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
-        webSocketController.submitWebsocketQuery(request, headerAccessor);
+        controller.submitWebsocketQuery(request, headerAccessor);
 
         ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
         verify(webSocketService).sendResponse(eq(sessionID), argument.capture(), any());
 
-        Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.FAIL);
-        Assert.assertEquals(argument.getValue().getContent(), "{\"records\":[],\"meta\":{\"errors\":[{\"error\":\"Service temporarily unavailable\",\"resolutions\":[\"Please try again later.\"]}]}}");
+        WebSocketResponse response = argument.getValue();
+        Assert.assertEquals(response.getType(), WebSocketResponse.Type.FAIL);
+        String expected = "{'records':[],'meta':{'errors':[{'error':'Service temporarily unavailable','resolutions':['Please try again later']}]}}";
+        assertJSONEquals(response.getContent(), expected);
     }
 
     @Test
     public void testSubmitNewQuery() {
-        doReturn(0).when(queryService).count();
-        String sessionID = "sessionID";
         String query = "{}";
-        WebSocketRequest request = new WebSocketRequest();
-        request.setType(WebSocketRequest.Type.NEW_QUERY);
-        request.setContent(query);
-        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
-        when(headerAccessor.getSessionId()).thenReturn(sessionID);
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, query);
+        String sessionID = "sessionID";
+        SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
-        webSocketController.submitWebsocketQuery(request, headerAccessor);
+        controller.submitWebsocketQuery(request, headerAccessor);
 
         verify(webSocketService).submitQuery(anyString(), eq(sessionID), eq(query), any());
     }
 
     @Test
     public void testSubmitQueryTooManyQueries() {
-        doReturn(500).when(queryService).count();
-        String sessionID = "sessionID";
-        String query = "{}";
-        WebSocketRequest request = new WebSocketRequest();
-        request.setType(WebSocketRequest.Type.NEW_QUERY);
-        request.setContent(query);
-        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
-        when(headerAccessor.getSessionId()).thenReturn(sessionID);
+        doReturn(500).when(handlerService).count();
 
-        webSocketController.submitWebsocketQuery(request, headerAccessor);
+        String query = "{}";
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, query);
+        String sessionID = "sessionID";
+        SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
+
+        controller.submitWebsocketQuery(request, headerAccessor);
 
         verify(webSocketService, never()).submitQuery(any(), any(), any(), any());
     }
 
     @Test
     public void testSubmitBadQuery() {
-        String sessionID = "sessionID";
         String query = "This is a bad query";
-        WebSocketRequest request = new WebSocketRequest();
-        request.setType(WebSocketRequest.Type.NEW_QUERY);
-        request.setContent(query);
-        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
-        when(headerAccessor.getSessionId()).thenReturn(sessionID);
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, query);
+        String sessionID = "sessionID";
+        SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
-        webSocketController.submitWebsocketQuery(request, headerAccessor);
+        controller.submitWebsocketQuery(request, headerAccessor);
 
         verify(webSocketService, never()).submitQuery(any(), any(), any(), any());
     }
 
     @Test
     public void testSubmitBadQueryRuntimeException() {
-        String sessionID = "sessionID";
         WebSocketRequest request = mock(WebSocketRequest.class);
-        doThrow(RuntimeException.class).when(request).getContent();
         doReturn(WebSocketRequest.Type.NEW_QUERY).when(request).getType();
+        doThrow(new RuntimeException("Testing")).when(request).getContent();
+        String sessionID = "sessionID";
+        SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
-        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
-        when(headerAccessor.getSessionId()).thenReturn(sessionID);
-
-        webSocketController.submitWebsocketQuery(request, headerAccessor);
+        controller.submitWebsocketQuery(request, headerAccessor);
 
         verify(webSocketService, never()).submitQuery(any(), any(), any(), any());
     }
 
     @Test
     public void testSubmitKillQuery() {
-        WebSocketRequest request = new WebSocketRequest();
-        request.setType(WebSocketRequest.Type.KILL_QUERY);
-        request.setContent("queryID");
-        SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
-        when(headerAccessor.getSessionId()).thenReturn("sessionID");
+        String queryID = "queryID";
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.KILL_QUERY, queryID);
+        String sessionID = "sessionID";
+        SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
-        webSocketController.submitWebsocketQuery(request, headerAccessor);
+        controller.submitWebsocketQuery(request, headerAccessor);
 
-        verify(webSocketService).killQuery(eq("sessionID"), eq("queryID"));
+        verify(webSocketService).killQuery(eq(sessionID), eq(queryID));
     }
 }

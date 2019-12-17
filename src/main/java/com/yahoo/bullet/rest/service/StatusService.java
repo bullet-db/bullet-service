@@ -60,7 +60,7 @@ public class StatusService implements Runnable {
         }
     }
 
-    private static final String TICK_QUERY = "{\"aggregation\":{\"type\":\"RAW\",\"size\":1},\"duration\":1}";
+    static final String TICK_QUERY = "{'aggregation':{'type':'RAW','size':1},'duration':1}";
 
     private QueryService queryService;
     private HandlerService handlerService;
@@ -101,8 +101,8 @@ public class StatusService implements Runnable {
         TickQueryHandler tickQueryHandler = new TickQueryHandler(period);
 
         String id = Utils.getNewQueryID();
-        queryService.submit(id, TICK_QUERY);
         handlerService.addHandler(id, tickQueryHandler);
+        queryService.submit(id, TICK_QUERY);
 
         if (tickQueryHandler.hasResult()) {
             count = 0;

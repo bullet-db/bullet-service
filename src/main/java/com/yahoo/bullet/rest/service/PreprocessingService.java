@@ -21,7 +21,6 @@ import java.util.Map;
 @Service
 public class PreprocessingService {
     private HandlerService handlerService;
-    @Value("${bullet.max.concurrent.queries}")
     private int maxConcurrentQueries;
 
     private static final String WINDOW_KEY_STRING = "window";
@@ -34,8 +33,10 @@ public class PreprocessingService {
      * @param handlerService The {@link HandlerService} to use.
      */
     @Autowired
-    public PreprocessingService(HandlerService handlerService) {
+    public PreprocessingService(HandlerService handlerService,
+                                @Value("${bullet.max.concurrent.queries}") int maxConcurrentQueries) {
         this.handlerService = handlerService;
+        this.maxConcurrentQueries = maxConcurrentQueries;
     }
 
     /**
