@@ -8,8 +8,11 @@ package com.yahoo.bullet.rest;
 import com.yahoo.bullet.common.BulletConfig;
 import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.PubSubException;
+import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
+import com.yahoo.bullet.rest.service.HandlerService;
+import com.yahoo.bullet.storage.StorageManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +23,8 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Configuration
@@ -39,6 +44,53 @@ public class APIConfiguration extends WebSecurityConfigurerAdapter {
                 registry.addMapping(CORS_MAPPING);
             }
         };
+    }
+
+    /**
+     * Loads custom responders to use for asynchronous queries.
+     *
+     * @return A {@link List} of {@link PubSubResponder} instances.
+     */
+    @Bean
+    public List<PubSubResponder> configuredResponders() {
+        // TODO: Add configs and load configured PubSubResponders
+        return Collections.emptyList();
+    }
+
+    /**
+     * Creates a synchronous {@link PubSubResponder} instance.
+     *
+     * @param handlerService The {@link HandlerService} to use.
+     * @return A responder to use for synchronous queries.
+     */
+    @Bean
+    public PubSubResponder synchronousResponder(HandlerService handlerService) {
+        return handlerService;
+    }
+
+    /**
+     * Creates the {@link PubSubResponder} instances to use for responding to queries.
+     *
+     * @param synchronousResponder The required responder to use for synchronous queries.
+     * @param configuredResponders The String path to the config file.
+     * @return A {@link List} of {@link PubSubResponder} instances.
+     */
+    @Bean
+    public List<PubSubResponder> responders(PubSubResponder synchronousResponder, List<PubSubResponder> configuredResponders) {
+        List<PubSubResponder> responders = new ArrayList<>(configuredResponders);
+        responders.add(synchronousResponder);
+        return responders;
+    }
+
+    /**
+     * Creates a StorageManager instance from a provided config.
+     *
+     * @param config The String path to the config file.
+     * @return An instance of the particular {@link StorageManager} indicated in the config.
+     */
+    @Bean
+    public StorageManager storageManager(@Value("${bullet.storage.config}") String config) {
+        return StorageManager.from(new BulletConfig(config));
     }
 
     /**

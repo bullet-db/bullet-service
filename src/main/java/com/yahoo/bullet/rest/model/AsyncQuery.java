@@ -8,8 +8,6 @@ package com.yahoo.bullet.rest.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.Map;
-
 @AllArgsConstructor @Getter
 public class AsyncQuery {
     private final String key;

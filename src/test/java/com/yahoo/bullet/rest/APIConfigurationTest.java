@@ -45,10 +45,10 @@ public class APIConfigurationTest {
         List<Subscriber> subscribers = configuration.subscribers(pubSub, 1);
 
         Assert.assertNotNull(publishers);
-        Assert.assertEquals(publishers.size(), 0);
+        Assert.assertEquals(publishers.size(), 1);
 
         Assert.assertNotNull(subscribers);
-        Assert.assertEquals(subscribers.size(), 0);
+        Assert.assertEquals(subscribers.size(), 1);
 
         Assert.assertEquals(mockPubSub.getPublishersAskedFor().size(), 1);
         Assert.assertEquals(mockPubSub.getPublishersAskedFor().get(0), Integer.valueOf(1));

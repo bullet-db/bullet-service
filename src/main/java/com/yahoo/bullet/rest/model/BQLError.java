@@ -14,6 +14,6 @@ public class BQLError extends QueryError {
      * @param e The Throwable indicating the reason for the error.
      */
     public BQLError(Throwable e) {
-        super(e.getCause().toString(), "Please provide a valid query.");
+        super(e.getCause().toString(), "Please provide a valid query");
     }
 }

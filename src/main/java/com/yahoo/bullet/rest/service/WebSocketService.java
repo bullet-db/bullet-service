@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class WebSocketService {
-    private QueryService queryService;
     private HandlerService handlerService;
+    private QueryService queryService;
     private SimpMessagingTemplate messagingTemplate;
     private String clientDestination;
 

@@ -17,6 +17,7 @@ import com.yahoo.bullet.storage.StorageManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Service
 public class QueryService implements PubSubResponder {
     private StorageManager storage;
     private List<PubSubResponder> responders;
@@ -34,6 +36,15 @@ public class QueryService implements PubSubResponder {
     private static final CompletableFuture<Boolean> FAIL = CompletableFuture.completedFuture(false);
     private static final CompletableFuture<Boolean> SUCCESS = CompletableFuture.completedFuture(true);
 
+    /**
+     * Constructor that takes various necessary components.
+     *
+     * @param storageManager The non-null {@link StorageManager} to use.
+     * @param responders The non-empty {@link List} of {@link PubSubResponder} to use.
+     * @param publishers The non-empty {@link List} of {@link Publisher} to use.
+     * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
+     * @param sleep The time to sleep between checking for messages from the pubsub.
+     */
     @Autowired
     public QueryService(StorageManager storageManager, List<PubSubResponder> responders,
                         List<Publisher> publishers, List<Subscriber> subscribers,

@@ -31,6 +31,7 @@ public class PreprocessingService {
      * Constructor.
      *
      * @param handlerService The {@link HandlerService} to use.
+     * @param maxConcurrentQueries The maximum number of concurrent queries.
      */
     @Autowired
     public PreprocessingService(HandlerService handlerService,

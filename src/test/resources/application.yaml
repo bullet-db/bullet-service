@@ -27,6 +27,9 @@ bullet:
       # The paths for the endpoints
       query.path: "/pubsub/query"
       result.path: "/pubsub/result"
+  storage:
+    # The file containing settings required by the StorageManager implementation being used. No need to prepend a /
+    config: test_storage_defaults.yaml
   websocket:
     server.destination.prefix: /server
     server.destination: /request
@@ -40,6 +43,7 @@ bullet:
     http: /http-query
     sse: /sse-query
     websocket: /ws-query
+    async: /async-query
 
 # Spring Boot settings
 

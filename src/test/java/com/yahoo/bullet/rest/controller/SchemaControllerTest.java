@@ -6,7 +6,6 @@
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.rest.service.SchemaService;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
