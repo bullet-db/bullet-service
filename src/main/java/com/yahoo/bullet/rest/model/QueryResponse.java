@@ -6,14 +6,14 @@
 package com.yahoo.bullet.rest.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.io.Serializable;
 
-@AllArgsConstructor
+@AllArgsConstructor @Getter
 public class QueryResponse implements Serializable {
     private static final long serialVersionUID = 437826438344200937L;
 
-    private final String key;
     private final String id;
     private final String query;
     private final long createTime;

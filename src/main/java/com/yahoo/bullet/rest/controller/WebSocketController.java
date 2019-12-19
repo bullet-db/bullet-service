@@ -14,13 +14,14 @@ import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
 import com.yahoo.bullet.rest.service.PreprocessingService;
 import com.yahoo.bullet.rest.service.StatusService;
 import com.yahoo.bullet.rest.service.WebSocketService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
-@Controller
+@Controller @Slf4j
 public class WebSocketController {
     private WebSocketService webSocketService;
     private PreprocessingService preprocessingService;
@@ -72,6 +73,7 @@ public class WebSocketController {
             if (preprocessingService.queryLimitReached()) {
                 queryHandler.fail(QueryError.TOO_MANY_QUERIES);
             } else {
+                log.debug("Submitting websocket query {}: {}", queryID, query);
                 webSocketService.submitQuery(queryID, sessionID, query, queryHandler);
             }
         } catch (BQLException e) {
@@ -82,6 +84,8 @@ public class WebSocketController {
     }
 
     private void handleKillQuery(WebSocketRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        webSocketService.killQuery(headerAccessor.getSessionId(), request.getContent());
+        String queryID = request.getContent();
+        log.debug("Killing WebSocket query {}", queryID);
+        webSocketService.killQuery(headerAccessor.getSessionId(), queryID);
     }
 }

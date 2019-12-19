@@ -8,6 +8,7 @@ package com.yahoo.bullet.rest.controller;
 import com.yahoo.bullet.bql.parser.ParsingException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.common.BQLException;
+import com.yahoo.bullet.rest.model.QueryResponse;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
@@ -20,7 +21,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -35,9 +38,12 @@ import java.util.concurrent.CompletableFuture;
 import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -78,7 +84,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testSendHTTPQueryWithBackendDown() throws Exception {
+    public void testSubmitHTTPQueryWithBackendDown() throws Exception {
         doReturn(false).when(statusService).isBackendStatusOk();
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
@@ -88,7 +94,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testSendHTTPQueryWithoutWindow() throws Exception {
+    public void testSubmitHTTPQueryWithoutWindow() throws Exception {
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
@@ -98,7 +104,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testSendHTTPQueryWithNullWindow() throws Exception {
+    public void testSubmitHTTPQueryWithNullWindow() throws Exception {
         String query = "{'window': null}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
@@ -108,7 +114,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testSendHTTPQueryWithWindow() throws Exception {
+    public void testSubmitHTTPQueryWithWindow() throws Exception {
         doReturn(true).when(preprocessingService).containsWindow(anyString());
         String query = "{'window':{}}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
@@ -116,7 +122,20 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testSendHTTPTooManyQueries() throws Exception {
+    public void testSubmitHTTPQueryInBQL() throws Exception {
+        doReturn(false).when(preprocessingService).containsWindow(anyString());
+        doAnswer(i -> i.getArgumentAt(0, String.class)).when(preprocessingService).convertIfBQL(anyString());
+        String query = "bql query without window";
+        CompletableFuture<String> response = controller.submitHTTPQuery(query);
+        ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
+        verify(handlerService).addHandler(anyString(), argument.capture());
+        verify(queryService).submit(anyString(), eq("bql query without window"));
+        argument.getValue().send(new PubSubMessage("", "bar"));
+        Assert.assertEquals(response.get(), "bar");
+    }
+
+    @Test
+    public void testSubmitHTTPQueryWhenTooManyQueries() throws Exception {
         doReturn(true).when(preprocessingService).queryLimitReached();
         String query = "{}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
@@ -125,7 +144,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testInvalidQuery() throws Exception {
+    public void testSubmitInvalidBQLHTTPQuery() throws Exception {
         doThrow(new BQLException(new ParsingException("missing SELECT"))).when(preprocessingService).convertIfBQL(anyString());
         String query = "invalid query";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
@@ -137,7 +156,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testInvalidQueryRuntimeException() throws Exception {
+    public void testSubmitInvalidHTTPQuery() throws Exception {
         doThrow(RuntimeException.class).when(queryService).submit(anyString(), anyString());
         String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
@@ -146,7 +165,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testSSEQueryWithBackendDown() throws Exception {
+    public void testSubmitSSEQueryWithBackendDown() throws Exception {
         doReturn(false).when(statusService).isBackendStatusOk();
         String query = "{}";
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
@@ -155,7 +174,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testSSEQuery() throws Exception {
+    public void testSubmitSSEQuery() throws Exception {
         String query = "{foo}";
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
         ArgumentCaptor<SSEQueryHandler> argument = ArgumentCaptor.forClass(SSEQueryHandler.class);
@@ -167,7 +186,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testInvalidSSEQuery() throws Exception {
+    public void testSubmitInvalidBQLSSEQuery() throws Exception {
         doThrow(new BQLException(new ParsingException("missing SELECT"))).when(preprocessingService).convertIfBQL(anyString());
         String query = "invalid query";
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
@@ -178,7 +197,16 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testSSEQueryTooManyQueries() throws Exception {
+    public void testSubmitInvalidSSEQuery() throws Exception {
+        doThrow(RuntimeException.class).when(handlerService).addHandler(anyString(), any());
+        String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
+        MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
+        String expected = "data:{'records':[],'meta':{'errors':[{'error':'Failed to parse query','resolutions':['Please provide a valid query']}]}}\n\n";
+        assertSSEJSONEquals(result, expected);
+    }
+
+    @Test
+    public void testSubmitSSEQueryWhenTooManyQueries() throws Exception {
         doReturn(true).when(preprocessingService).queryLimitReached();
         String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
@@ -187,11 +215,157 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testInvalidSSEQueryRuntimeException() throws Exception {
-        doThrow(RuntimeException.class).when(handlerService).addHandler(anyString(), any());
-        String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
-        MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
-        String expected = "data:{'records':[],'meta':{'errors':[{'error':'Failed to parse query','resolutions':['Please provide a valid query']}]}}\n\n";
-        assertSSEJSONEquals(result, expected);
+    public void testSubmitAsyncQuery() throws Exception {
+        doAnswer(i -> i.getArgumentAt(0, String.class)).when(preprocessingService).convertIfBQL(anyString());
+        doAnswer(i -> {
+            String id = i.getArgumentAt(0, String.class);
+            String query = i.getArgumentAt(1, String.class);
+            return CompletableFuture.completedFuture(new PubSubMessage(id, query));
+        }).when(queryService).submit(anyString(), anyString());
+
+        long start = System.currentTimeMillis();
+        ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
+        long end = System.currentTimeMillis();
+
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.CREATED);
+        QueryResponse queryResponse = (QueryResponse) response.getBody();
+        verify(queryService).submit(eq(queryResponse.getId()), eq("query"));
+        Assert.assertEquals(queryResponse.getQuery(), "query");
+        Assert.assertTrue(queryResponse.getCreateTime() >= start && queryResponse.getCreateTime() <= end);
+        verifyZeroInteractions(handlerService);
+    }
+
+    @Test
+    public void testSubmitInvalidBQLAsyncQuery() throws Exception {
+        doThrow(new BQLException(new ParsingException("missing SELECT"))).when(preprocessingService).convertIfBQL(anyString());
+
+        ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
+
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
+        verifyZeroInteractions(queryService);
+        String expected = "{'records':[],'meta':{'errors':[{" +
+            "'error':'com.yahoo.bullet.bql.parser.ParsingException: line 1:1: missing SELECT'," +
+            "'resolutions':['Please provide a valid query']" +
+            "}]}}";
+        assertJSONEquals(response.getBody().toString(), expected);
+        verifyZeroInteractions(handlerService);
+    }
+
+    @Test
+    public void testSubmitInvalidAsyncQuery() throws Exception {
+        doThrow(new RuntimeException("Testing")).when(preprocessingService).convertIfBQL(anyString());
+
+        ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
+
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
+        QueryError queryError = (QueryError) response.getBody();
+        assertJSONEquals(queryError.toString(), QueryError.INVALID_QUERY.toString());
+        verifyZeroInteractions(queryService);
+        verifyZeroInteractions(handlerService);
+    }
+
+    @Test
+    public void testSubmitAsyncQueryWhenTooManyQueries() throws Exception {
+        doReturn(true).when(preprocessingService).queryLimitReached();
+        ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.SERVICE_UNAVAILABLE);
+        QueryError queryError = (QueryError) response.getBody();
+        assertJSONEquals(queryError.toString(), QueryError.TOO_MANY_QUERIES.toString());
+        verifyZeroInteractions(queryService);
+        verifyZeroInteractions(handlerService);
+    }
+
+    @Test
+    public void testSubmitAsyncQueryWithBackendDown() throws Exception {
+        doReturn(false).when(statusService).isBackendStatusOk();
+        ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        QueryError queryError = (QueryError) response.getBody();
+        assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
+        verifyZeroInteractions(queryService);
+        verifyZeroInteractions(handlerService);
+    }
+
+    @Test
+    public void testSubmitAsyncQueryWhenCannotPublish() throws Exception {
+        doAnswer(i -> i.getArgumentAt(0, String.class)).when(preprocessingService).convertIfBQL(anyString());
+        doReturn(CompletableFuture.completedFuture(null)).when(queryService).submit(anyString(), anyString());
+
+        ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        QueryError queryError = (QueryError) response.getBody();
+        assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
+        verify(queryService).submit(anyString(), eq("query"));
+        verifyZeroInteractions(handlerService);
+    }
+
+    @Test
+    public void testSubmitAsyncQueryWhenResolvingToError() throws Exception {
+        doAnswer(i -> i.getArgumentAt(0, String.class)).when(preprocessingService).convertIfBQL(anyString());
+        CompletableFuture<PubSubMessage> fail = new CompletableFuture<>();
+        fail.completeExceptionally(new RuntimeException("Testing"));
+        doReturn(fail).when(queryService).submit(anyString(), anyString());
+
+        ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        QueryError queryError = (QueryError) response.getBody();
+        assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
+        verify(queryService).submit(anyString(), eq("query"));
+        verifyZeroInteractions(handlerService);
+    }
+
+    @Test
+    public void testDeletingAsyncQuery() throws Exception {
+        doReturn(CompletableFuture.completedFuture(null)).when(queryService).kill(anyString());
+        ResponseEntity<Object> response = controller.deleteAsyncQuery("id").get();
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.OK);
+        Assert.assertNull((response.getBody()));
+    }
+
+    @Test
+    public void testDeletingAsyncQueryWithBackendDown() throws Exception {
+        doReturn(false).when(statusService).isBackendStatusOk();
+        ResponseEntity<Object> response = controller.deleteAsyncQuery("id").get();
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        QueryError queryError = (QueryError) response.getBody();
+        assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
+        verifyZeroInteractions(queryService);
+        verifyZeroInteractions(handlerService);
+    }
+
+    @Test
+    public void testDeletingAsyncQueryResultingInError() throws Exception {
+        doThrow(new RuntimeException("Testing")).when(queryService).kill(anyString());
+        ResponseEntity<Object> response = controller.deleteAsyncQuery("id").get();
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        QueryError queryError = (QueryError) response.getBody();
+        assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
+        verify(queryService).kill(eq("id"));
+        verifyZeroInteractions(handlerService);
+    }
+
+    @Test
+    public void testDeleteAsyncQueryWhenResolvingToError() throws Exception {
+        CompletableFuture<Void> fail = new CompletableFuture<>();
+        fail.completeExceptionally(new RuntimeException("Testing"));
+        doReturn(fail).when(queryService).kill(anyString());
+
+        ResponseEntity<Object> response = controller.deleteAsyncQuery("id").get();
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        QueryError queryError = (QueryError) response.getBody();
+        assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
+        verify(queryService).kill(eq("id"));
+        verifyZeroInteractions(handlerService);
     }
 }

@@ -8,7 +8,6 @@ package com.yahoo.bullet.rest.controller;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.common.BQLException;
 import com.yahoo.bullet.rest.common.Utils;
-import com.yahoo.bullet.rest.model.AsyncQuery;
 import com.yahoo.bullet.rest.model.BQLError;
 import com.yahoo.bullet.rest.model.QueryResponse;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
@@ -82,6 +81,7 @@ public class HTTPQueryController {
             } else {
                 query = preprocessingService.convertIfBQL(query);
                 String id = Utils.getNewQueryID();
+                log.debug("Submitting HTTP query {}: {}", id, query);
                 handlerService.addHandler(id, handler);
                 queryService.submit(id, query);
             }
@@ -115,6 +115,7 @@ public class HTTPQueryController {
         }
         try {
             query = preprocessingService.convertIfBQL(query);
+            log.debug("Submitting SSE query {}: {}", id, query);
             handlerService.addHandler(id, handler);
             queryService.submit(id, query);
         } catch (BQLException e) {
@@ -126,11 +127,7 @@ public class HTTPQueryController {
     }
 
     @PostMapping(value = "${bullet.endpoint.async}", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-    public CompletableFuture<ResponseEntity<Object>> submitAsyncQuery(@RequestBody AsyncQuery asyncQuery) {
-        final String key = asyncQuery.getKey();
-        if (key == null || key.isEmpty()) {
-            return failWith(QueryError.MISSING_KEY, HttpStatus.BAD_REQUEST);
-        }
+    public CompletableFuture<ResponseEntity<Object>> submitAsyncQuery(@RequestBody String asyncQuery) {
         if (!statusService.isBackendStatusOk()) {
             return failWith(unavailable());
         }
@@ -138,11 +135,11 @@ public class HTTPQueryController {
             return failWith(QueryError.TOO_MANY_QUERIES, HttpStatus.SERVICE_UNAVAILABLE);
         }
         try {
-            final String query = preprocessingService.convertIfBQL(asyncQuery.getQuery());
+            final String query = preprocessingService.convertIfBQL(asyncQuery);
             final String id = Utils.getNewQueryID();
-            log.debug("Submitting querying {}", id);
+            log.debug("Submitting Async query {}: {}", id, query);
             return queryService.submit(id, query)
-                               .thenCompose(message -> createQueryResponse(message, key, id, query))
+                               .thenCompose(message -> createQueryResponse(message, id, query))
                                .exceptionally(HTTPQueryController::unavailable);
         } catch (BQLException e) {
             return failWith(new BQLError(e), HttpStatus.BAD_REQUEST);
@@ -158,7 +155,7 @@ public class HTTPQueryController {
             return failWith(unavailable());
         }
         try {
-            log.debug("Removing query {}", id);
+            log.debug("Removing Async query {}", id);
             return queryService.kill(id)
                                .thenApply(u -> createResponse(HttpStatus.OK))
                                .exceptionally(HTTPQueryController::unavailable);
@@ -168,13 +165,13 @@ public class HTTPQueryController {
         }
     }
 
-    private static CompletableFuture<ResponseEntity<Object>> createQueryResponse(PubSubMessage message, String key, String id, String query) {
+    private static CompletableFuture<ResponseEntity<Object>> createQueryResponse(PubSubMessage message, String id, String query) {
         if (message == null) {
-            log.error("Unable to create response for id: {}, key: {}, query: {}", id, key, query);
+            log.error("Unable to create response for id: {}, query: {}", id, query);
             return failWith(unavailable());
         }
         log.debug("Creating response for id: {}", id);
-        return completedFuture(createResponse(HttpStatus.CREATED, new QueryResponse(key, id, query, System.currentTimeMillis())));
+        return completedFuture(createResponse(HttpStatus.CREATED, new QueryResponse(id, query, System.currentTimeMillis())));
     }
 
     private static CompletableFuture<ResponseEntity<Object>> failWith(QueryError error, HttpStatus status) {
