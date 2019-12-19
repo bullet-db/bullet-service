@@ -87,7 +87,7 @@ public class HandlerService implements PubSubResponder {
      * @param id The ID of the handler.
      * @return A boolean denoting if the handler exists in this service.
      */
-    public boolean hasHandlers(String id) {
+    public boolean hasHandler(String id) {
         return handlers.containsKey(id);
     }
 

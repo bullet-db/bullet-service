@@ -33,8 +33,9 @@ public class QueryService implements PubSubResponder {
     private RandomPool<Publisher> publishers;
     private List<Reader> readers;
 
-    private static final CompletableFuture<Boolean> FAIL = CompletableFuture.completedFuture(false);
+    private static final CompletableFuture<PubSubMessage> NONE = CompletableFuture.completedFuture(null);
     private static final CompletableFuture<Boolean> SUCCESS = CompletableFuture.completedFuture(true);
+    private static final CompletableFuture<Boolean> FAIL = CompletableFuture.completedFuture(false);
 
     /**
      * Constructor that takes various necessary components.
@@ -61,19 +62,19 @@ public class QueryService implements PubSubResponder {
     }
 
     /**
-     * Submit a query to Bullet and store it in the storage. Unless the storage succeeds, the query is not submitted.
+     * Submit a query to Bullet and store it in the storage. Unless the publishing succeeds, the query is not stored.
      *
      * @param id The query ID of the query.
      * @param query The query to send.
-     * @return A {@link CompletableFuture} that resolves to if the submission succeeded or not.
+     * @return A {@link CompletableFuture} that resolves to the sent {@link PubSubMessage} or null if it could not be sent.
      */
-    public CompletableFuture<Boolean> submit(String id, String query) {
+    public CompletableFuture<PubSubMessage> submit(String id, String query) {
         log.debug("Submitting query {}", id);
         PubSubMessage message = new PubSubMessage(id, query);
-        return storage.putObject(id, message)
-                      .thenComposeAsync(status -> publish(status, message))
-                      .thenApply(status -> onPubSubSubmit(status, id))
-                      .exceptionally(e -> onPubSubSubmitFail(e, id));
+        // Publish then store. Publishing might change the message. Store the sent result
+        return publish(message).thenComposeAsync(sent -> store(id, sent))
+                               .thenApply(sent -> onSubmit(id, sent))
+                               .exceptionally(e -> onSubmitFail(e, id));
     }
 
     /**
@@ -107,25 +108,24 @@ public class QueryService implements PubSubResponder {
     }
 
     /**
-     *
      * Sends a {@link Metadata.Signal} to Bullet without storing it.
      *
      * @param id The non-null ID of the message to send this signal in.
      * @param signal The non-null {@link Metadata.Signal} to send.
-     * @return A {@link CompletableFuture} that resolves to if the sending succeeded or not.
+     * @return A {@link CompletableFuture} that resolves to the sent {@link PubSubMessage} or null if it could not be sent.
      */
-    public CompletableFuture<Boolean> send(String id, Metadata.Signal signal) {
+    public CompletableFuture<PubSubMessage> send(String id, Metadata.Signal signal) {
         Objects.requireNonNull(signal);
         return publish(new PubSubMessage(id, signal));
     }
+
     /**
-     *
      * Sends a {@link PubSubMessage} to Bullet without storing it. This can be used to send signals or anything else.
      *
      * @param message The non-null {@link PubSubMessage} to send.
-     * @return A {@link CompletableFuture} that resolves to if the sending succeeded or not.
+     * @return A {@link CompletableFuture} that resolves to the sent {@link PubSubMessage} or null if it could not be sent.
      */
-    public CompletableFuture<Boolean> send(PubSubMessage message) {
+    public CompletableFuture<PubSubMessage> send(PubSubMessage message) {
         Objects.requireNonNull(message);
         return publish(message);
     }
@@ -141,60 +141,62 @@ public class QueryService implements PubSubResponder {
         publishers.clear();
     }
 
-    private CompletableFuture<Boolean> publish(boolean status, PubSubMessage message) {
-        if (!status)  {
-            log.error("Could not storage query first in storage. Not publishing {}", message);
-            return FAIL;
+    private CompletableFuture<PubSubMessage> store(String id, PubSubMessage message) {
+        if (message == null)  {
+            log.error("Could not publish query first. Not storing it {}", message);
+            return NONE;
         }
-        return publish(message).thenComposeAsync(result -> rewindStorageIfNecessary(result, message));
+        // TODO: consider sending a kill if an exception happens here. It's technically a leak to the backend
+        return storage.putObject(id, message).thenComposeAsync(result -> sendKillIfNecessary(result, id, message));
     }
 
-    private CompletableFuture<Boolean> publish(PubSubMessage message) {
+    private CompletableFuture<PubSubMessage> publish(PubSubMessage message) {
         Publisher publisher = publishers.get();
         try {
-            publisher.send(message);
-            return SUCCESS;
+            PubSubMessage sent = publisher.send(message);
+            return CompletableFuture.completedFuture(sent);
         } catch (Exception e) {
             log.error("Unable to publish message", e);
-            return FAIL;
+            return NONE;
         }
     }
 
-    private CompletableFuture<Boolean> rewindStorageIfNecessary(boolean status, PubSubMessage message) {
-        if (!status) {
-            log.error("Error while trying to submit query. Rewinding the storing of the query");
-            log.error("Trying to remove {} from storage", message);
-            return storage.removeObject(message.getId()).thenApply(d -> false);
-        }
-        return SUCCESS;
-    }
-
-    private void killQuery(String id) {
+    private PubSubMessage killQuery(String id) {
         Publisher publisher = publishers.get();
         PubSubMessage message = new PubSubMessage(id, Metadata.Signal.KILL);
         try {
             log.debug("Sending kill signal for {}", id);
-            publisher.send(message);
+            return publisher.send(message);
         } catch (Exception e) {
             log.error("Could not send message {}", message);
             log.error("Error: ", e);
+            return null;
         }
     }
 
-    private boolean onPubSubSubmit(boolean status, String id) {
-        if (status) {
+    private CompletableFuture<PubSubMessage> sendKillIfNecessary(Boolean status, String id, PubSubMessage message) {
+        if (!status) {
+            log.error("Error while trying to store query after submitting. Sending a kill for it...");
+            log.error("Sending a kill signal for {}", id);
+            return send(id, Metadata.Signal.KILL).thenApply(d -> null);
+        }
+        return CompletableFuture.completedFuture(message);
+    }
+
+    private PubSubMessage onSubmit(String id, PubSubMessage message) {
+        if (message != null) {
             log.debug("Successfully submitted message for {}", id);
-            return status;
+            return message;
         } else {
             log.error("Could not submit message for {}", id);
-            return status;
+            return null;
         }
     }
 
-    private static boolean onPubSubSubmitFail(Throwable error, String id) {
+    private static PubSubMessage onSubmitFail(Throwable error, String id) {
         log.error("Failed to submit query {} due to failures in storing or publishing the query", id);
         log.error("Received exception", error);
-        return false;
+        return null;
     }
 
     private static void onStoredMessageRemove(PubSubMessage message) {

@@ -5,6 +5,7 @@
  */
 package com.yahoo.bullet.rest.controller;
 
+import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.common.BQLException;
 import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.rest.model.AsyncQuery;
@@ -141,7 +142,7 @@ public class HTTPQueryController {
             final String id = Utils.getNewQueryID();
             log.debug("Submitting querying {}", id);
             return queryService.submit(id, query)
-                               .thenCompose(b -> createQueryResponse(b, key, id, query))
+                               .thenCompose(message -> createQueryResponse(message, key, id, query))
                                .exceptionally(HTTPQueryController::unavailable);
         } catch (BQLException e) {
             return failWith(new BQLError(e), HttpStatus.BAD_REQUEST);
@@ -167,8 +168,8 @@ public class HTTPQueryController {
         }
     }
 
-    private static CompletableFuture<ResponseEntity<Object>> createQueryResponse(boolean status, String key, String id, String query) {
-        if (!status) {
+    private static CompletableFuture<ResponseEntity<Object>> createQueryResponse(PubSubMessage message, String key, String id, String query) {
+        if (message == null) {
             log.error("Unable to create response for id: {}, key: {}, query: {}", id, key, query);
             return failWith(unavailable());
         }
