@@ -32,6 +32,7 @@ public class AsyncConfiguration {
     public static class ResponderClasses {
         @Getter @Setter
         private List<String> classes = new ArrayList<>();
+        private static final String CONFIG_KEY = "bullet.async.configuration.class.name";
 
         /**
          * Creates a {@link List} of {@link PubSubResponder} instantiated and configured classes out of the {@link List}
@@ -43,8 +44,16 @@ public class AsyncConfiguration {
          */
         List<PubSubResponder> create(BulletConfig config) {
             Objects.requireNonNull(config);
-            Function<String, PubSubResponder> creator = config::loadConfiguredClass;
+            Function<String, PubSubResponder> creator = createClass(config);
             return classes.stream().map(creator).collect(Collectors.toList());
+        }
+
+        private static Function<String, PubSubResponder> createClass(BulletConfig config) {
+            return s -> {
+                log.info("Loading PubSubResponder instance {}", s);
+                config.set(CONFIG_KEY, s);
+                return config.loadConfiguredClass(CONFIG_KEY);
+            };
         }
     }
 

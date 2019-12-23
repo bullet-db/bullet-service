@@ -19,7 +19,7 @@ public class PubSubConfigurationTest {
     @Test
     public void testPubSub() throws Exception {
         PubSubConfiguration configuration = new PubSubConfiguration();
-        PubSub pubSub = configuration.pubSub("src/test/resources/test_pubsub_defaults.yaml");
+        PubSub pubSub = configuration.pubSub("test_pubsub_defaults.yaml");
 
         Assert.assertNotNull(pubSub);
         Assert.assertTrue(pubSub instanceof MockPubSub);
