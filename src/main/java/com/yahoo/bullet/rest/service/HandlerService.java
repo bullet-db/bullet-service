@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentMap;
  * This is used for synchronous sending and handling of queries. To store and manage {@link QueryHandler} instances.
  */
 @Component
-public class HandlerService implements PubSubResponder {
+public class HandlerService extends PubSubResponder {
     // Exposed for testing only.
     @Getter(AccessLevel.PACKAGE)
     private ConcurrentMap<String, QueryHandler> handlers;
@@ -32,6 +32,7 @@ public class HandlerService implements PubSubResponder {
      */
     @Autowired
     public HandlerService() {
+        super(null);
         handlers = new ConcurrentHashMap<>();
     }
 

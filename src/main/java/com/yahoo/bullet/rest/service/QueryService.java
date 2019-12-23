@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class QueryService implements PubSubResponder {
+public class QueryService extends PubSubResponder {
     private StorageManager storage;
     private List<PubSubResponder> responders;
     private RandomPool<Publisher> publishers;
@@ -47,9 +47,9 @@ public class QueryService implements PubSubResponder {
      * @param sleep The time to sleep between checking for messages from the pubsub.
      */
     @Autowired
-    public QueryService(StorageManager storageManager, List<PubSubResponder> responders,
-                        List<Publisher> publishers, List<Subscriber> subscribers,
-                        @Value("${bullet.pubsub.sleep-ms}") int sleep) {
+    public QueryService(StorageManager storageManager, List<PubSubResponder> responders, List<Publisher> publishers,
+                        List<Subscriber> subscribers, @Value("${bullet.pubsub.sleep-ms}") int sleep) {
+        super(null);
         Objects.requireNonNull(storageManager);
         Utils.checkNotEmpty(responders);
         Utils.checkNotEmpty(publishers);
@@ -134,6 +134,7 @@ public class QueryService implements PubSubResponder {
      * Stop all service threads and clear pending requests.
      */
     @PreDestroy
+    @Override
     public void close() {
         readers.forEach(Reader::close);
         responders.forEach(PubSubResponder::close);

@@ -26,9 +26,13 @@ public class ReaderTest {
     private MockResponder responder;
 
     @Getter
-    private static class MockResponder implements PubSubResponder {
+    private static class MockResponder extends PubSubResponder {
         private CompletableFuture<PubSubMessage> sentMessage = new CompletableFuture<>();
         private CompletableFuture<Boolean> isCompleted = new CompletableFuture<>();
+
+        private MockResponder() {
+            super(null);
+        }
 
         @Override
         public void respond(String id, PubSubMessage message) {
