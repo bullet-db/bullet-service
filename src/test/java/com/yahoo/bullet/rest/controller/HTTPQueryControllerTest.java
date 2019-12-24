@@ -268,18 +268,6 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testSubmitAsyncQueryWhenTooManyQueries() throws Exception {
-        doReturn(true).when(preprocessingService).queryLimitReached();
-        ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
-        Assert.assertNotNull((response));
-        Assert.assertEquals(response.getStatusCode(), HttpStatus.SERVICE_UNAVAILABLE);
-        QueryError queryError = (QueryError) response.getBody();
-        assertJSONEquals(queryError.toString(), QueryError.TOO_MANY_QUERIES.toString());
-        verifyZeroInteractions(queryService);
-        verifyZeroInteractions(handlerService);
-    }
-
-    @Test
     public void testSubmitAsyncQueryWithBackendDown() throws Exception {
         doReturn(false).when(statusService).isBackendStatusOk();
         ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();

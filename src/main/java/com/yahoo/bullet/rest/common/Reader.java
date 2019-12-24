@@ -50,21 +50,21 @@ public class Reader {
     }
 
     /**
-     * Read responses from the Pub/Sub and update requests.
+     * Read responses from the PubSub and update requests.
      */
     public void run() {
-        PubSubMessage response;
+        PubSubMessage message;
         log.info("Reader thread started, ID: {}", Thread.currentThread().getId());
         while (!Thread.interrupted()) {
             try {
-                response = subscriber.receive();
-                if (response == null) {
+                message = subscriber.receive();
+                if (message == null) {
                     Thread.sleep(sleepTimeMS);
                     continue;
                 }
-                log.debug("Received message {}", response);
-                responder.respond(response.getId(), response);
-                subscriber.commit(response.getId());
+                log.debug("Received message {}", message);
+                responder.respond(message.getId(), message);
+                subscriber.commit(message.getId());
             } catch (Exception e) {
                 // When the reader is closed, this block also catches InterruptedException's from Thread.sleep.
                 // If the service is busy reading messages, the while loop will break instead.

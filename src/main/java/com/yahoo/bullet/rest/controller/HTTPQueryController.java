@@ -44,7 +44,7 @@ public class HTTPQueryController {
      * Constructor that takes various services.
      *
      * @param handlerService The {@link HandlerService} to use.
-     * @param queryService  The {@link QueryService} to use.
+     * @param queryService The {@link QueryService} to use.
      * @param preprocessingService The {@link PreprocessingService} to use.
      * @param statusService The {@link StatusService} to use.
      */
@@ -61,7 +61,7 @@ public class HTTPQueryController {
      * The method that handles POSTs to this endpoint. Consumes the HTTP request, invokes {@link HandlerService} to
      * register and transmit the query to Bullet.
      *
-     * @param query The JSON query.
+     * @param query The String query to submit.
      * @return A {@link CompletableFuture} representing the eventual result.
      */
     @PostMapping(path = "${bullet.endpoint.http}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -97,7 +97,7 @@ public class HTTPQueryController {
      * The method that handles SSE POSTs to this endpoint. Consumes the HTTP request, invokes {@link HandlerService} to
      * register and transmit the query to Bullet.
      *
-     * @param query The JSON query.
+     * @param query The String query to submit.
      * @return A {@link SseEmitter} to send streaming results.
      */
     @PostMapping(value = "${bullet.endpoint.sse}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -126,13 +126,16 @@ public class HTTPQueryController {
         return sseEmitter;
     }
 
-    @PostMapping(value = "${bullet.endpoint.async}", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    /**
+     * This method handles POSTs for asynchronous queries to the API. These queries do not wait around for the results.
+     *
+     * @param asyncQuery The String query to submit.
+     * @return A {@link CompletableFuture} that resolves to either a {@link QueryResponse} or a {@link QueryError}.
+     */
+    @PostMapping(value = "${bullet.endpoint.async}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<ResponseEntity<Object>> submitAsyncQuery(@RequestBody String asyncQuery) {
         if (!statusService.isBackendStatusOk()) {
             return failWith(unavailable());
-        }
-        if (preprocessingService.queryLimitReached()) {
-            return failWith(QueryError.TOO_MANY_QUERIES, HttpStatus.SERVICE_UNAVAILABLE);
         }
         try {
             final String query = preprocessingService.convertIfBQL(asyncQuery);
@@ -148,6 +151,12 @@ public class HTTPQueryController {
         }
     }
 
+    /**
+     * This method handles DELETEs for any asynchronous queries submitted to the API.
+     *
+     * @param id The ID returned in the {@link QueryResponse} from the previous submit call signifying the query to delete.
+     * @return {@link CompletableFuture} that resolves to a 200 if the delete was successful or the appropriate code otherwise.
+     */
     @DeleteMapping(path = "${bullet.endpoint.async}/{id}")
     public CompletableFuture<ResponseEntity<Object>> deleteAsyncQuery(@PathVariable String id) {
         log.debug("Delete requested for id: {}", id);

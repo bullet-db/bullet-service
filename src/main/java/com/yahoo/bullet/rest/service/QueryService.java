@@ -215,5 +215,4 @@ public class QueryService extends PubSubResponder {
         log.error("Could not remove {} from storage upon receiving {}", id, response);
         return null;
     }
-
 }
