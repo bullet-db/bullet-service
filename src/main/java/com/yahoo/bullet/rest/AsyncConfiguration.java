@@ -6,6 +6,7 @@
 package com.yahoo.bullet.rest;
 
 import com.yahoo.bullet.common.BulletConfig;
+import com.yahoo.bullet.common.Utilities;
 import com.yahoo.bullet.pubsub.PubSubResponder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,13 +27,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Configuration @Slf4j
-@ConditionalOnProperty(prefix = "bullet.async", name = "enable", havingValue = "true")
+@ConditionalOnProperty(prefix = "bullet.async", name = "enabled", havingValue = "true")
 public class AsyncConfiguration {
     @NoArgsConstructor @AllArgsConstructor @Slf4j
     public static class ResponderClasses {
         @Getter @Setter
         private List<String> classes = new ArrayList<>();
-        private static final String CONFIG_KEY = "bullet.async.configuration.class.name";
 
         /**
          * Creates a {@link List} of {@link PubSubResponder} instantiated and configured classes out of the {@link List}
@@ -51,8 +51,7 @@ public class AsyncConfiguration {
         private static Function<String, PubSubResponder> createClass(BulletConfig config) {
             return s -> {
                 log.info("Loading PubSubResponder instance {}", s);
-                config.set(CONFIG_KEY, s);
-                return config.loadConfiguredClass(CONFIG_KEY);
+                return Utilities.loadConfiguredClass(s, config);
             };
         }
     }

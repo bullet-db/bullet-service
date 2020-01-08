@@ -57,7 +57,7 @@ bullet:
     # bullet.endpoint.async endpoint and get results sent to a place of your choice. You must configure responders
     # below of type com.yahoo.bullet.pubsub.PubSubResponder below.
     # Enables Asynchronous query result publishing to responders of your choice.
-    enable: false
+    enabled: false
     # The file containing settings required by the StorageManager implementation being used.
     config: async_defaults.yaml
     # The list of responders that extend the com.yahoo.bullet.pubsub.PubSubResponder class. Anything listed here will be instantiated
