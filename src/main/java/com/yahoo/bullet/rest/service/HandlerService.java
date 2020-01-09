@@ -12,7 +12,7 @@ import com.yahoo.bullet.rest.query.QueryHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * This is used for synchronous sending and handling of queries. To store and manage {@link QueryHandler} instances.
  */
-@Component
+@Service
 public class HandlerService extends PubSubResponder {
     // Exposed for testing only.
     @Getter(AccessLevel.PACKAGE)
