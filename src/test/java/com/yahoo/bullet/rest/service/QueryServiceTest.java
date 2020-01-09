@@ -1,184 +1,258 @@
 /*
- *  Copyright 2017, Yahoo Inc.
+ *  Copyright 2019, Yahoo Inc.
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
 package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.pubsub.Metadata;
-import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
+import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
-import com.yahoo.bullet.rest.query.QueryError;
-import com.yahoo.bullet.rest.query.QueryHandler;
-import lombok.NoArgsConstructor;
-import org.mockito.Mockito;
+import com.yahoo.bullet.rest.TestHelpers.CustomMetadata;
+import com.yahoo.bullet.storage.StorageManager;
+import org.mockito.ArgumentCaptor;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
+import static com.yahoo.bullet.rest.TestHelpers.assertMessageEquals;
+import static com.yahoo.bullet.rest.TestHelpers.emptyStorage;
+import static com.yahoo.bullet.rest.TestHelpers.failingPublisher;
+import static com.yahoo.bullet.rest.TestHelpers.failingStorage;
+import static com.yahoo.bullet.rest.TestHelpers.metadataModifyingPublisher;
+import static com.yahoo.bullet.rest.TestHelpers.mockPublisher;
+import static com.yahoo.bullet.rest.TestHelpers.mockStorage;
+import static com.yahoo.bullet.rest.TestHelpers.unRemovableStorage;
 import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class QueryServiceTest {
-    @NoArgsConstructor
-    public static class MockSubscriber implements Subscriber {
-        @Override
-        public PubSubMessage receive() throws PubSubException {
-            return null;
-        }
+    private Publisher publisher;
+    private List<Publisher> publishers;
+    private List<Subscriber> subscribers;
+    private PubSubResponder responder;
+    private List<PubSubResponder> responders;
 
-        @Override
-        public void close() {
-        }
+    private void assertMessageResponded(PubSubResponder responderMock, PubSubMessage expected) {
+        ArgumentCaptor<PubSubMessage> messageCaptor = ArgumentCaptor.forClass(PubSubMessage.class);
+        verify(responderMock).respond(eq(expected.getId()), messageCaptor.capture());
+        assertMessageEquals(messageCaptor.getValue(), expected);
+    }
 
-        @Override
-        public void commit(String s, int i) {
-        }
+    private void assertMessageSent(Publisher publisherMock, PubSubMessage expected) throws Exception {
+        ArgumentCaptor<PubSubMessage> messageCaptor = ArgumentCaptor.forClass(PubSubMessage.class);
+        verify(publisherMock).send(messageCaptor.capture());
+        assertMessageEquals(messageCaptor.getValue(), expected);
+    }
 
-        @Override
-        public void fail(String s, int i) {
-        }
+    @BeforeMethod
+    private void setup() throws Exception {
+        publisher = mockPublisher();
+        publishers = singletonList(publisher);
+
+        Subscriber subscriber = mock(Subscriber.class);
+        doReturn(null).when(subscriber).receive();
+        subscribers = singletonList(subscriber);
+
+        responder = mock(PubSubResponder.class);
+        responders = singletonList(responder);
     }
 
     @Test
     public void testClose() {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
-        service.submit("", "{", queryHandler);
+        StorageManager storage = mockStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
         service.close();
-        verify(queryHandler).fail();
-        Assert.assertTrue(service.getRunningQueries().isEmpty());
+        verify(responder).close();
+        verify(storage).close();
     }
 
     @Test
-    public void testSubmitWhenPublisherFails() throws Exception {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        doThrow(new PubSubException("")).when(publisher).send(anyString(), anyString());
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
-        service.submit("", "", queryHandler);
-        verify(queryHandler).fail(any(QueryError.class));
-        service.close();
+    public void testSubmissionPersistsQuery() throws Exception {
+        StorageManager storage = mockStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
+
+        PubSubMessage result = service.submit("key", "{}").get();
+        PubSubMessage expected = new PubSubMessage("key", "{}");
+        assertMessageEquals(result, expected);
+        verify(storage).putObject("key", expected);
+        assertMessageSent(publisher, expected);
     }
 
     @Test
-    public void testSubmit() throws Exception {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
-        String randomID = UUID.randomUUID().toString();
-        String randomContent = "{foo}";
-        service.submit(randomID, randomContent, queryHandler);
-        Assert.assertTrue(service.hasQuery(randomID));
-        Assert.assertEquals(1, service.queryCount());
-        Assert.assertEquals(1, service.getRunningQueries().size());
-        Assert.assertEquals(queryHandler, service.getRunningQueries().get(randomID));
-        Assert.assertSame(service.getQuery(randomID), queryHandler);
-        Assert.assertSame(service.removeQuery(randomID), queryHandler);
-        Assert.assertFalse(service.hasQuery(randomID));
-        Assert.assertEquals(0, service.queryCount());
-        Assert.assertEquals(0, service.getRunningQueries().size());
-        verify(publisher).send(randomID, randomContent);
-        service.close();
+    public void testSubmissionPersistsModifiedMessage() throws Exception {
+        publisher = metadataModifyingPublisher("testMetadata");
+        publishers = singletonList(publisher);
+        StorageManager storage = mockStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
+
+        PubSubMessage result = service.submit("key", "{}").get();
+        // We will answer with a CustomMetadata but the original metadata has nothing anyway
+        PubSubMessage expected = new PubSubMessage("key", "{}", new Metadata());
+        assertMessageEquals(result, expected);
+
+        ArgumentCaptor<PubSubMessage> messageCaptor = ArgumentCaptor.forClass(PubSubMessage.class);
+        verify(publisher).send(messageCaptor.capture());
+        PubSubMessage actual = messageCaptor.getValue();
+        assertMessageEquals(actual, expected);
+        CustomMetadata actualMetadata = (CustomMetadata) actual.getMetadata();
+        Assert.assertEquals(actualMetadata.getPayload(), "testMetadata");
     }
 
     @Test
-    public void testSubmitFailsFromPublisherError() throws Exception {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        doThrow(new PubSubException("")).when(publisher).send(any(), any());
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
-        String randomID = UUID.randomUUID().toString();
-        String query = "{}";
-        service.submit(randomID, query, queryHandler);
-        verify(queryHandler).fail(QueryError.SERVICE_UNAVAILABLE);
+    public void testSubmissionDoesNotPersistIfPublishingFailed() throws Exception {
+        PubSubMessage expected = new PubSubMessage("key", "{}");
+        publisher = failingPublisher();
+        publishers = singletonList(publisher);
+        StorageManager storage = mockStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
+
+        PubSubMessage result = service.submit("key", "{}").get();
+        Assert.assertNull(result);
+        assertMessageSent(publisher, expected);
+        verifyZeroInteractions(storage);
     }
 
     @Test
-    public void testKillQuery() throws Exception {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
-        service.getRunningQueries().put("id", queryHandler);
+    public void testSubmissionIsKilledIfPersistingFailed() throws Exception {
+        PubSubMessage expected = new PubSubMessage("key", "{}");
+        StorageManager storage = failingStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
 
-        QueryHandler actualHandler = service.killQuery("id");
-        Assert.assertSame(actualHandler, queryHandler);
-        Assert.assertEquals(0, service.queryCount());
-        Assert.assertEquals(0, service.getRunningQueries().size());
-        verify(publisher).send(new PubSubMessage("id", null, new Metadata(Metadata.Signal.KILL, null)));
-        service.close();
+        PubSubMessage result = service.submit("key", "{}").get();
+        Assert.assertNull(result);
+
+        ArgumentCaptor<PubSubMessage> messageCaptor = ArgumentCaptor.forClass(PubSubMessage.class);
+        verify(publisher, times(2)).send(messageCaptor.capture());
+        List<PubSubMessage> messages = messageCaptor.getAllValues();
+        Assert.assertEquals(messages.size(), 2);
+        PubSubMessage payload = messages.get(0);
+        PubSubMessage kill = messages.get(1);
+
+        assertMessageEquals(payload, expected);
+        assertMessageEquals(kill, new PubSubMessage("key", Metadata.Signal.KILL));
+        verify(storage).putObject("key", expected);
     }
 
     @Test
-    public void testKillQueryWhenPublisherFails() throws Exception {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
-        service.getRunningQueries().put("id", queryHandler);
+    public void testQuerySubmissionDoubleFailureWhenTryingToKillAfterPersistingFailure() throws Exception {
+        PubSubMessage expected = new PubSubMessage("key", "{}");
+        // Send the message but can't send the kill
+        doReturn(expected).doThrow(new RuntimeException("Testing")).when(publisher).send(expected);
 
-        doThrow(new PubSubException("")).when(publisher).send(any());
-        service.killQuery("id");
-        Assert.assertEquals(0, service.getRunningQueries().size());
-        service.close();
+        StorageManager storage = emptyStorage();
+        CompletableFuture<Boolean> fail = new CompletableFuture<>();
+        fail.completeExceptionally(new RuntimeException("Testing"));
+        doReturn(fail).when(storage).putObject(eq("key"), any());
+
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
+
+        PubSubMessage result = service.submit("key", "{}").get();
+        Assert.assertNull(result);
+
+        assertMessageSent(publisher, expected);
+        verify(storage).putObject("key", expected);
     }
 
     @Test
-    public void testFailQuery() throws Exception {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+    public void testKillingAnExistingQuery() throws Exception {
+        StorageManager storage = mockStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
 
-        Assert.assertFalse(service.failQuery("id"));
-        verifyZeroInteractions(queryHandler);
-        service.getRunningQueries().put("id", queryHandler);
-        Assert.assertTrue(service.failQuery("id"));
-        verify(queryHandler).fail();
+        service.kill("key").get();
+
+        PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
+        verify(storage).removeObject("key");
+        assertMessageSent(publisher, expected);
     }
 
     @Test
-    public void testQueryCount() throws Exception {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryHandler queryHandler = Mockito.mock(QueryHandler.class);
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+    public void testSendingASignal() throws Exception {
+        StorageManager storage = mockStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
 
-        Assert.assertEquals(service.queryCount(), 0);
-        service.getRunningQueries().put("id", queryHandler);
-        Assert.assertEquals(service.queryCount(), 1);
+        service.send("key", Metadata.Signal.KILL).get();
+        PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
+        verifyZeroInteractions(storage);
+        assertMessageSent(publisher, expected);
     }
 
     @Test
-    public void testSendingSignalForQuery() throws Exception {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+    public void testSendingAPubSubMessage() throws Exception {
+        StorageManager storage = mockStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
 
-        service.sendSignal("id", Metadata.Signal.COMPLETE);
-        verify(publisher).send(new PubSubMessage("id", null, new Metadata(Metadata.Signal.COMPLETE, null)));
+        PubSubMessage expected = new PubSubMessage("key", "test", new Metadata(Metadata.Signal.KILL, new HashMap<>()));
+        service.send(expected).get();
+        verifyZeroInteractions(storage);
+        assertMessageSent(publisher, expected);
     }
 
     @Test
-    public void testSendingMessage() throws Exception {
-        Publisher publisher = Mockito.mock(Publisher.class);
-        Subscriber subscriber = new MockSubscriber();
-        QueryService service = new QueryService(singletonList(publisher), singletonList(subscriber), 1);
+    public void testFailingToRemoveFromStorageStillKillsAQuery() throws Exception {
+        StorageManager storage = unRemovableStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
 
-        service.sendMessage(new PubSubMessage("foo", null, new Metadata(Metadata.Signal.ACKNOWLEDGE, "test")));
-        verify(publisher).send(new PubSubMessage("foo", null, new Metadata(Metadata.Signal.ACKNOWLEDGE, "test")));
+        service.kill("key").get();
+
+        PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
+        verify(storage).removeObject("key");
+        assertMessageSent(publisher, expected);
+    }
+
+    @Test
+    public void testFailingToSendAKillSignalIsIgnored() throws Exception {
+        doThrow(new RuntimeException("Testing")).when(publisher).send(any());
+        StorageManager storage = mockStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
+
+        service.kill("key").get();
+
+        PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
+        verify(storage).removeObject("key");
+        assertMessageSent(publisher, expected);
+    }
+
+    @Test
+    public void testRespondingToADoneSignal() {
+        StorageManager storage = mockStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
+
+        PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.COMPLETE);
+        service.respond("key", expected);
+        assertMessageResponded(responder, expected);
+    }
+
+    @Test
+    public void testErrorWhileRemovingStillResponds() {
+        StorageManager storage = unRemovableStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
+
+        PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.COMPLETE);
+        service.respond("key", expected);
+        assertMessageResponded(responder, expected);
+    }
+
+    @Test
+    public void testRespondingToAnything() {
+        StorageManager storage = emptyStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
+
+        PubSubMessage expected = new PubSubMessage("key", "{}");
+        service.respond("key", expected);
+        assertMessageResponded(responder, expected);
     }
 }

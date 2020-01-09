@@ -13,9 +13,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class SchemaController {
-    public static final String JSON_API_HEADER = "application/vnd.api+json";
-    @Autowired
     private SchemaService schemaService;
+    private static final String JSON_API_HEADER = "application/vnd.api+json";
+
+    /**
+     * Constructor.
+     *
+     * @param schemaService The {@link SchemaService} to use.
+     */
+    @Autowired
+    public SchemaController(SchemaService schemaService) {
+        this.schemaService = schemaService;
+    }
 
     /**
      * The GET endpoint that returns the JSON API schema.

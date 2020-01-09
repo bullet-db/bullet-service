@@ -32,7 +32,7 @@ public class SSEQueryHandler extends QueryHandler {
             try {
                 emitter.send(response.getContent(), MediaType.APPLICATION_JSON);
             } catch (Exception e) {
-                queryService.killQuery(queryID);
+                queryService.kill(queryID);
                 complete();
             }
         }
@@ -44,7 +44,7 @@ public class SSEQueryHandler extends QueryHandler {
             try {
                 emitter.send(cause.toString(), MediaType.APPLICATION_JSON);
             } catch (Exception e) {
-                queryService.killQuery(queryID);
+                queryService.kill(queryID);
             }
             complete();
         }

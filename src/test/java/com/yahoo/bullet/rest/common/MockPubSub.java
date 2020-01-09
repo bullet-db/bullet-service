@@ -3,7 +3,7 @@
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
-package com.yahoo.bullet.rest.query;
+package com.yahoo.bullet.rest.common;
 
 import com.yahoo.bullet.common.BulletConfig;
 import com.yahoo.bullet.pubsub.PubSub;
@@ -13,8 +13,11 @@ import com.yahoo.bullet.pubsub.Subscriber;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.mockito.Mockito.mock;
 
 @Getter
 public class MockPubSub extends PubSub {
@@ -30,21 +33,21 @@ public class MockPubSub extends PubSub {
 
     @Override
     public Publisher getPublisher() {
-        return null;
+        return mock(Publisher.class);
     }
 
     @Override
     public Subscriber getSubscriber() {
-        return null;
+        return mock(Subscriber.class);
     }
 
     public List<Subscriber> getSubscribers(int n) {
         subscribersAskedFor.add(n);
-        return Collections.emptyList();
+        return IntStream.range(0, n).mapToObj(i -> this.getSubscriber()).collect(Collectors.toList());
     }
 
     public List<Publisher> getPublishers(int n) {
         publishersAskedFor.add(n);
-        return Collections.emptyList();
+        return IntStream.range(0, n).mapToObj(i -> this.getPublisher()).collect(Collectors.toList());
     }
 }

@@ -6,16 +6,13 @@
 package com.yahoo.bullet.rest;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class ApplicationTest extends AbstractTestNGSpringContextTests {
+public class ApplicationTest {
     @Test
     public void testConfigure() {
         Application application = new Application();

@@ -6,16 +6,12 @@
 package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.rest.model.WebSocketResponse;
+import com.yahoo.bullet.rest.query.QueryHandler;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -27,34 +23,54 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
-    @Autowired @InjectMocks
+public class WebSocketServiceTest {
     private WebSocketService webSocketService;
-    @Mock
     private SimpMessagingTemplate simpMessagingTemplate;
-    @Mock
+    private HandlerService handlerService;
     private QueryService queryService;
 
     @BeforeMethod
     public void setup() {
-        MockitoAnnotations.initMocks(this);
+        queryService = mock(QueryService.class);
+        handlerService = mock(HandlerService.class);
+        simpMessagingTemplate = mock(SimpMessagingTemplate.class);
+        webSocketService = new WebSocketService(queryService, handlerService, simpMessagingTemplate, "/response");
     }
 
     @Test
     public void testSendKillSignalWithNonExistingSessionID() {
         webSocketService.getSessionIDMap().clear();
-        webSocketService.sendKillSignal("sessionID", null);
+        webSocketService.killQuery("sessionID", null);
 
-        verify(queryService, never()).killQuery(any());
+        verify(handlerService, never()).removeHandler(any());
+        verify(queryService, never()).kill(any());
+    }
+
+    @Test
+    public void testSendKillSignalWithMissingQueryID() {
+        webSocketService.getSessionIDMap().put("sessionID", "queryID");
+        webSocketService.killQuery("sessionID", null);
+
+        verify(handlerService).removeHandler(any());
+        verify(queryService).kill(eq("queryID"));
+    }
+
+    @Test
+    public void testSendNoKillSignalIfDifferentQueryIDThanInSession() {
+        webSocketService.getSessionIDMap().put("sessionID", "queryID");
+        webSocketService.killQuery("sessionID", "differentQueryID");
+
+        verify(handlerService, never()).removeHandler(any());
+        verify(queryService, never()).kill(any());
     }
 
     @Test
     public void testSendKillSignalWithExistingSessionID() {
         webSocketService.getSessionIDMap().put("sessionID", "queryID");
-        webSocketService.sendKillSignal("sessionID", "queryID");
+        webSocketService.killQuery("sessionID", "queryID");
 
-        verify(queryService).killQuery("queryID");
+        verify(handlerService).removeHandler("queryID");
+        verify(queryService).kill("queryID");
         Assert.assertFalse(webSocketService.getSessionIDMap().containsKey("sessionID"));
     }
 
@@ -62,10 +78,13 @@ public class WebSocketServiceTest extends AbstractTestNGSpringContextTests {
     public void testSubmitQuery() {
         String sessionID = "sessionID";
         String queryID = "queryID";
-        webSocketService.getSessionIDMap().clear();
-        webSocketService.submitQuery(queryID, sessionID, "foo", new WebSocketQueryHandler(webSocketService, sessionID, queryID));
+        WebSocketQueryHandler handler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
+        webSocketService.submitQuery(queryID, sessionID, "foo", handler);
 
-        verify(queryService).submit(eq(queryID), eq("foo"), any());
+        ArgumentCaptor<QueryHandler> handlerCaptor = ArgumentCaptor.forClass(QueryHandler.class);
+        verify(queryService).submit(eq(queryID), eq("foo"));
+        verify(handlerService).addHandler(eq(queryID), handlerCaptor.capture());
+        Assert.assertSame(handlerCaptor.getValue(), handler);
         Assert.assertTrue(webSocketService.getSessionIDMap().containsKey(sessionID));
     }
 

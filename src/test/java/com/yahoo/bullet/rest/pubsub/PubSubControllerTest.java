@@ -6,37 +6,46 @@
 package com.yahoo.bullet.rest.pubsub;
 
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
 import javax.servlet.http.HttpServletResponse;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class PubSubControllerTest extends AbstractTestNGSpringContextTests {
-    @Autowired
-    PubSubController controller;
+import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
-    @Test
-    public void testPostAndGetQuery() throws Exception {
-        HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-        controller.postQuery("{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
-        String result = controller.getQuery(response);
-        Mockito.verify(response, Mockito.never()).setStatus(Mockito.anyInt());
-        Assert.assertEquals(result, "{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
-        controller.getQuery(response);
-        Mockito.verify(response).setStatus(204);
+public class PubSubControllerTest {
+    private PubSubController controller;
+
+    @BeforeMethod
+    public void setup() {
+        controller = new PubSubController(new PubSubService());
     }
 
     @Test
-    public void testPostAndGetResult() throws Exception {
-        HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-        controller.postResult("{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
+    public void testPostAndGetQuery() {
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        controller.postQuery("{'id': '88', 'sequence': -1, 'content': 'foo', 'metadata': null}");
+        String result = controller.getQuery(response);
+        assertJSONEquals(result, "{'id': '88', 'sequence': -1, 'content': 'foo', 'metadata': null}");
+        verify(response, Mockito.never()).setStatus(Mockito.anyInt());
+
+        controller.getQuery(response);
+        verify(response).setStatus(204);
+    }
+
+    @Test
+    public void testPostAndGetResult() {
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        controller.postResult("{'id': '88', 'sequence': -1, 'content': 'foo', 'metadata': null}");
         String result = controller.getResult(response);
-        Mockito.verify(response, Mockito.never()).setStatus(Mockito.anyInt());
-        Assert.assertEquals(result, "{\"id\": \"88\", \"sequence\": -1, \"content\": \"foo\", \"metadata\": null}");
+        assertJSONEquals(result, "{'id': '88', 'sequence': -1, 'content': 'foo', 'metadata': null}");
+        verify(response, Mockito.never()).setStatus(Mockito.anyInt());
+
         controller.getResult(response);
-        Mockito.verify(response).setStatus(204);
+        verify(response).setStatus(204);
     }
 }

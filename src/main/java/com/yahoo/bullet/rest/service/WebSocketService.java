@@ -20,28 +20,45 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class WebSocketService {
-    @Value("${bullet.websocket.client.destination}")
-    private String clientDestination;
-    @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
-    @Autowired
+    private HandlerService handlerService;
     private QueryService queryService;
+    private SimpMessagingTemplate messagingTemplate;
+    private String clientDestination;
 
     // Exposed for testing only.
     @Getter(AccessLevel.PACKAGE)
-    private Map<String, String> sessionIDMap = new ConcurrentHashMap<>();
+    private Map<String, String> sessionIDMap;
 
     /**
-     * Sends a KILL signal to the backend.
+     * Constructor.
+     *
+     * @param queryService The {@link QueryService} to use.
+     * @param handlerService The {@link HandlerService} to use.
+     * @param messagingTemplate The {@link SimpMessagingTemplate} to use.
+     * @param clientDestination The client destination to use for websockets.
+     */
+    @Autowired
+    public WebSocketService(QueryService queryService, HandlerService handlerService,
+                            SimpMessagingTemplate messagingTemplate,
+                            @Value("${bullet.websocket.client.destination}") String clientDestination) {
+        this.queryService = queryService;
+        this.handlerService = handlerService;
+        this.messagingTemplate = messagingTemplate;
+        this.clientDestination = clientDestination;
+        this.sessionIDMap = new ConcurrentHashMap<>();
+    }
+    /**
+     * Kills the query and cleans up.
      *
      * @param sessionID The session ID to represent the client.
      * @param queryID The query ID of the query to be killed or null to kill the query associated with the session.
      */
-    public void sendKillSignal(String sessionID, String queryID) {
+    public void killQuery(String sessionID, String queryID) {
         String queryForSession = sessionIDMap.get(sessionID);
         if (queryForSession != null && (queryID == null || queryID.equals(queryForSession))) {
-            queryService.killQuery(queryForSession);
+            handlerService.removeHandler(queryForSession);
             deleteSession(sessionID);
+            queryService.kill(queryForSession);
         }
     }
 
@@ -55,7 +72,7 @@ public class WebSocketService {
     }
 
     /**
-     * Submits a query by {@link QueryService}.
+     * Submits a query by {@link HandlerService}.
      *
      * @param queryID The query ID to register request with.
      * @param sessionID The session ID to represent the client.
@@ -64,7 +81,8 @@ public class WebSocketService {
      */
     public void submitQuery(String queryID, String sessionID, String queryString, WebSocketQueryHandler queryHandler) {
         sessionIDMap.put(sessionID, queryID);
-        queryService.submit(queryID, queryString, queryHandler);
+        handlerService.addHandler(queryID, queryHandler);
+        queryService.submit(queryID, queryString);
     }
 
     /**
@@ -75,6 +93,6 @@ public class WebSocketService {
      * @param headerAccessor The {@link SimpMessageHeaderAccessor} headers to be associated with the response message.
      */
     public void sendResponse(String sessionID, WebSocketResponse response, SimpMessageHeaderAccessor headerAccessor) {
-        simpMessagingTemplate.convertAndSendToUser(sessionID, clientDestination, response, headerAccessor.getMessageHeaders());
+        messagingTemplate.convertAndSendToUser(sessionID, clientDestination, response, headerAccessor.getMessageHeaders());
     }
 }

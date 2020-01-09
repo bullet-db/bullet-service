@@ -5,37 +5,22 @@
  */
 package com.yahoo.bullet.rest.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.Assert;
+import com.yahoo.bullet.rest.service.SchemaService;
 import org.testng.annotations.Test;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class SchemaControllerTest extends AbstractTestNGSpringContextTests {
-    @Autowired
-    SchemaController controller;
+import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
 
+public class SchemaControllerTest {
     @Test
     public void testDefaultResponse() {
+        SchemaService service = new SchemaService("1.2", "/test_columns.json");
+        SchemaController controller = new SchemaController(service);
         String actual = controller.getJSONSchema();
 
-        String expected = "{" +
-            "\"data\":" +
-                "[" +
-                    "{" +
-                        "\"id\":\"test\"," +
-                        "\"type\":\"column\"," +
-                        "\"attributes\":{" +
-                            "\"name\":\"test\"," +
-                            "\"type\":\"MAP\"," +
-                            "\"subtype\":\"STRING\"," +
-                            "\"description\":\"foo\"" +
-                        "}" +
-                    "}" +
-                "]," +
-            "\"meta\":{\"version\":\"1.2\"}" +
-            "}";
-        Assert.assertEquals(actual, expected);
+        String expected =
+            "{'data': [{'id':'test','type':'column'," +
+                       "'attributes':{'name':'test','type':'MAP','subtype':'STRING','description':'foo'}}]," +
+             "'meta':{'version':'1.2'}}";
+        assertJSONEquals(actual, expected);
     }
 }

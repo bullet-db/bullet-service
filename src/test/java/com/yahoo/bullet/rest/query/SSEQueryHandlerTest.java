@@ -7,10 +7,7 @@ package com.yahoo.bullet.rest.query;
 
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.service.QueryService;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -21,18 +18,18 @@ import java.io.IOException;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
-    @Mock
+public class SSEQueryHandlerTest {
     private QueryService queryService;
-    @Mock
     private SseEmitter sseEmitter;
 
     @BeforeMethod
     public void setup() {
-        MockitoAnnotations.initMocks(this);
+        queryService = mock(QueryService.class);
+        sseEmitter = mock(SseEmitter.class);
     }
 
     @Test
@@ -54,7 +51,7 @@ public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.send(message);
 
-        verify(queryService).killQuery("id");
+        verify(queryService).kill("id");
         Assert.assertTrue(sseQueryHandler.isComplete());
     }
 
@@ -65,7 +62,7 @@ public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
         sseQueryHandler.send(new PubSubMessage("id", "foo"));
 
         verify(sseEmitter, never()).send(any(), any());
-        verify(queryService, never()).killQuery(any());
+        verify(queryService, never()).kill(any());
         Assert.assertTrue(sseQueryHandler.isComplete());
     }
 
@@ -84,7 +81,7 @@ public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
 
-        verify(queryService).killQuery("id");
+        verify(queryService).kill("id");
         Assert.assertTrue(sseQueryHandler.isComplete());
     }
 
@@ -95,7 +92,7 @@ public class SSEQueryHandlerTest extends AbstractTestNGSpringContextTests {
         sseQueryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
 
         verify(sseEmitter, never()).send(any(), any());
-        verify(queryService, never()).killQuery(any());
+        verify(queryService, never()).kill(any());
         Assert.assertTrue(sseQueryHandler.isComplete());
     }
 }

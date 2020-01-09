@@ -13,11 +13,12 @@ import lombok.Getter;
 @Getter
 public class QueryError {
     public static final QueryError TOO_MANY_QUERIES = new QueryError("Too many concurrent queries in the system", "Please try again later");
-    public static final QueryError INVALID_QUERY = new QueryError("Failed to parse query.", "Please provide a valid query.");
+    public static final QueryError INVALID_QUERY = new QueryError("Failed to parse query", "Please provide a valid query");
+    public static final QueryError MISSING_KEY = new QueryError("Asynchronous queries need a unique key", "Please provide a key");
     public static final QueryError UNSUPPORTED_QUERY =
-            new QueryError("This particular REST endpoint does not support windowed queries",
-                           "Please provide a valid query without a window, or use the SSE or WS endpoints to submit queries with windows.");
-    public static final QueryError SERVICE_UNAVAILABLE = new QueryError("Service temporarily unavailable", "Please try again later.");
+        new QueryError("This particular REST endpoint does not support windowed queries",
+                       "Please provide a valid query without a window, or use the SSE or WS endpoints to submit queries with windows");
+    public static final QueryError SERVICE_UNAVAILABLE = new QueryError("Service temporarily unavailable", "Please try again later");
 
     private String error;
     private String resolution;

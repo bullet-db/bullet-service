@@ -11,7 +11,8 @@ import com.google.gson.JsonSyntaxException;
 import com.yahoo.bullet.bql.BulletQueryBuilder;
 import com.yahoo.bullet.bql.parser.ParsingException;
 import com.yahoo.bullet.common.BulletConfig;
-import com.yahoo.bullet.rest.query.BQLException;
+import com.yahoo.bullet.rest.common.BQLException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -19,12 +20,25 @@ import java.util.Map;
 
 @Service
 public class PreprocessingService {
+    private HandlerService handlerService;
+    private int maxConcurrentQueries;
+
     private static final String WINDOW_KEY_STRING = "window";
     private static final BulletQueryBuilder QUERY_BUILDER = new BulletQueryBuilder(new BulletConfig());
     private static final Gson GSON = new GsonBuilder().create();
 
-    @Value("${bullet.max.concurrent.queries}")
-    private int maxConcurrentQueries;
+    /**
+     * Constructor.
+     *
+     * @param handlerService The {@link HandlerService} to use.
+     * @param maxConcurrentQueries The maximum number of concurrent queries.
+     */
+    @Autowired
+    public PreprocessingService(HandlerService handlerService,
+                                @Value("${bullet.max.concurrent.queries}") int maxConcurrentQueries) {
+        this.handlerService = handlerService;
+        this.maxConcurrentQueries = maxConcurrentQueries;
+    }
 
     /**
      * Convert this query to a valid JSON Bullet Query if it is currently a BQL query.
@@ -49,10 +63,9 @@ public class PreprocessingService {
      * This function checks if the configured max.concurrent.queries limit has been exceeded.
      *
      * @return A boolean indicating whether or not the query limit has been reached.
-     * @param queryService QueryService to get running query count from.
      */
-    public boolean queryLimitReached(QueryService queryService) {
-        return queryService.queryCount() >= maxConcurrentQueries;
+    public boolean queryLimitReached() {
+        return handlerService.count() >= maxConcurrentQueries;
     }
 
     /**

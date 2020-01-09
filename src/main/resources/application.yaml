@@ -19,7 +19,7 @@ bullet:
     subscribers: 1
     # The number of publisher publishing queries to the PubSub
     publishers: 1
-    # The file containing settings required by the PubSub implementation being used. No need to prepend a /
+    # The file containing settings required by the PubSub implementation being used.
     config: pubsub_defaults.yaml
     # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
     sleep-ms: 1
@@ -30,6 +30,11 @@ bullet:
       # The paths for the endpoints
       query.path: /pubsub/query
       result.path: /pubsub/result
+  # Enables the storage module.
+  storage:
+    # This persists your queries to a com.yahoo.bullet.storage.StorageManager instance as configured. This setting points to
+    # the file with settings needed by the StorageManager being used. By default, uses the NullStorageManager, which does nothing.
+    config: storage_defaults.yaml
   websocket:
     # The following configure the STOMP endpoints for the websocket. This is currently used internally in a simple in-memory broker.
     # The prefix of the server. It should be added before bullet.websocket.server.destination by clients to send messages to the server.
@@ -47,11 +52,26 @@ bullet:
     message.size.limit.kb: 64
     # The time limit (in seconds) when sending messages to a WebSocket session. It should be positive.
     message.send.time.limit.secs: 10
+  async:
+    # The following configures the asynchronous query result returning of the service. Use this if you want to use the
+    # bullet.endpoint.async endpoint and get results sent to a place of your choice. You must configure responders
+    # below of type com.yahoo.bullet.pubsub.PubSubResponder below.
+    # Enables Asynchronous query result publishing to responders of your choice.
+    enabled: false
+    # The file containing settings required by the StorageManager implementation being used.
+    config: async_defaults.yaml
+    # The list of responders that extend the com.yahoo.bullet.pubsub.PubSubResponder class. Anything listed here will be instantiated
+    # and anything returning from the Bullet backend will be passed to it.
+    responders:
+      # This responder uses the Publisher part of a com.yahoo.bullet.pubsub.PubSub (Kafka, Pulsar, your own, ...) to send results.
+      - com.yahoo.bullet.pubsub.BulletPubSubResponder
+
   endpoint:
     bql-to-json: /bql-to-json
     http: /http-query
     sse: /sse-query
     websocket: /ws-query
+    async: /async-query
 
 ####################################################################################################################
 # Spring Boot settings

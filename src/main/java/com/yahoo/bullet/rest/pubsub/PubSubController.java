@@ -19,8 +19,17 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 @ConditionalOnExpression("${bullet.pubsub.builtin.rest.enabled:false}")
 public class PubSubController {
-    @Autowired
     private PubSubService pubSubService;
+
+    /**
+     * Constructor.
+     *
+     * @param pubSubService The {@link PubSubService} to use.
+     */
+    @Autowired
+    public PubSubController(PubSubService pubSubService) {
+        this.pubSubService = pubSubService;
+    }
 
     /**
      * The method that handles adding results to the result queue. Clients should POST to this endpoint to write results

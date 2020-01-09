@@ -5,31 +5,42 @@
  */
 package com.yahoo.bullet.rest.controller;
 
+import com.yahoo.bullet.rest.model.BQLError;
+import com.yahoo.bullet.rest.common.BQLException;
+import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.rest.model.WebSocketRequest;
-import com.yahoo.bullet.rest.query.BQLError;
-import com.yahoo.bullet.rest.query.BQLException;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
-import com.yahoo.bullet.rest.service.BackendStatusService;
 import com.yahoo.bullet.rest.service.PreprocessingService;
-import com.yahoo.bullet.rest.service.QueryService;
+import com.yahoo.bullet.rest.service.StatusService;
 import com.yahoo.bullet.rest.service.WebSocketService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
-@Controller
+@Controller @Slf4j
 public class WebSocketController {
-    @Autowired
     private WebSocketService webSocketService;
-    @Autowired
     private PreprocessingService preprocessingService;
+    private StatusService statusService;
+
+    /**
+     * Constructor that takes various services.
+     *
+     * @param webSocketService The {@link WebSocketService} to use.
+     * @param preprocessingService The {@link PreprocessingService} to use.
+     * @param statusService The {@link StatusService} to use.
+     */
     @Autowired
-    private QueryService queryService;
-    @Autowired
-    private BackendStatusService backendStatusService;
+    public WebSocketController(WebSocketService webSocketService, PreprocessingService preprocessingService,
+                               StatusService statusService) {
+        this.webSocketService = webSocketService;
+        this.preprocessingService = preprocessingService;
+        this.statusService = statusService;
+    }
 
     /**
      * The method that handles WebSocket messages to this endpoint.
@@ -50,18 +61,19 @@ public class WebSocketController {
     }
 
     private void handleNewQuery(WebSocketRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        String queryID = QueryService.getNewQueryID();
+        String queryID = Utils.getNewQueryID();
         String sessionID = headerAccessor.getSessionId();
         WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
-        if (!backendStatusService.isBackendStatusOk()) {
+        if (!statusService.isBackendStatusOk()) {
             queryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
             return;
         }
         try {
             String query = preprocessingService.convertIfBQL(request.getContent());
-            if (preprocessingService.queryLimitReached(queryService)) {
+            if (preprocessingService.queryLimitReached()) {
                 queryHandler.fail(QueryError.TOO_MANY_QUERIES);
             } else {
+                log.debug("Submitting websocket query {}: {}", queryID, query);
                 webSocketService.submitQuery(queryID, sessionID, query, queryHandler);
             }
         } catch (BQLException e) {
@@ -72,6 +84,8 @@ public class WebSocketController {
     }
 
     private void handleKillQuery(WebSocketRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        webSocketService.sendKillSignal(headerAccessor.getSessionId(), request.getContent());
+        String queryID = request.getContent();
+        log.debug("Killing WebSocket query {}", queryID);
+        webSocketService.killQuery(headerAccessor.getSessionId(), queryID);
     }
 }
