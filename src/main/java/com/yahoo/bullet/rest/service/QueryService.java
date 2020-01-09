@@ -11,6 +11,7 @@ import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
+import com.yahoo.bullet.rest.common.PublisherRandomPool;
 import com.yahoo.bullet.rest.common.Reader;
 import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.storage.StorageManager;
@@ -56,7 +57,7 @@ public class QueryService extends PubSubResponder {
         Utils.checkNotEmpty(subscribers);
         this.storage = storageManager;
         this.responders = responders;
-        this.publishers = new RandomPool<>(publishers);
+        this.publishers = new PublisherRandomPool(publishers);
         this.readers = subscribers.stream().map(x -> new Reader(x, this, sleep)).collect(Collectors.toList());
         this.readers.forEach(Reader::start);
     }
