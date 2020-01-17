@@ -3,15 +3,15 @@
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
-package com.yahoo.bullet.rest.pubsub;
+package com.yahoo.bullet.rest.service;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class PubSubServiceTest {
+public class RESTPubSubServiceTest {
     @Test
     public void testPostAndGetQuery() {
-        PubSubService service = new PubSubService();
+        RESTPubSubService service = new RESTPubSubService();
         String s = service.getQuery();
         Assert.assertNull(s);
         service.postQuery("{'id': '1', 'sequence': 1, 'content': 'foo', 'metadata': null}");
@@ -29,7 +29,7 @@ public class PubSubServiceTest {
 
     @Test
     public void testPostAndGetResult() {
-        PubSubService service = new PubSubService();
+        RESTPubSubService service = new RESTPubSubService();
         String s = service.getResult();
         Assert.assertNull(s);
         service.postResult("{'id': '1', 'sequence': 1, 'content': 'foo', 'metadata': null}");

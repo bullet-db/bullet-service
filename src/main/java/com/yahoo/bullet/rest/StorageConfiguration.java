@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class StorageConfiguration {
     /**
-     * Creates a StorageManager instance from a provided config.
+     * Creates a {@link StorageManager} instance from a provided config.
      *
      * @param config The String path to the config file.
      * @return An instance of the particular {@link StorageManager} indicated in the config.

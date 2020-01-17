@@ -3,13 +3,13 @@
  *  Licensed under the terms of the Apache License, Version 2.0.
  *  See the LICENSE file associated with the project for terms.
  */
-package com.yahoo.bullet.rest.pubsub;
+package com.yahoo.bullet.rest.service;
 
 import org.springframework.stereotype.Service;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Service
-public class PubSubService {
+public class RESTPubSubService {
     private ConcurrentLinkedQueue<String> queries = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<String> results = new ConcurrentLinkedQueue<>();
 

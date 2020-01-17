@@ -1,0 +1,21 @@
+# The class to use for publishing metrics. It must be of the com.yahoo.bullet.common.metrics.MetricPublisher type
+# By default, uses the com.yahoo.bullet.common.metrics.HTTPMetricEventPublisher that publishes a JSON payload of
+# com.yahoo.bullet.common.metrics.MetricEvent
+bullet.metric.publisher.class.name: 'com.yahoo.bullet.common.metrics.HTTPMetricEventPublisher'
+
+# The URL to POST the payload to. By default, the HTTPMetricEventPublisher posts a
+# com.yahoo.bullet.common.metrics.MetricEvent payload. You can extend the publisher to POST something else
+bullet.metric.publisher.http.url: 'http://localhost:9905/metrics'
+# A group to publish all MetricEvent with. You might use this if other metrics from other things are being collected by
+# your metrics collection service
+bullet.metric.publisher.http.group: 'bullet-api'
+# The static dimensions to use with all MetricEvent. You might use this to distinguish shared Bullet APIs for instance
+bullet.metric.publisher.http.dimensions:
+  id: 'instance-1'
+  env: 'prod'
+# The number of times to retry any failed POSTs. A request will be tried at least once
+bullet.metric.publisher.http.retries: 1
+# The time to wait between each failed retry in ms
+bullet.metric.publisher.http.retry.interval.ms: 1000
+# The maximum simultaneous requests to use for the internal HTTP client used by the publisher
+bullet.metric.publisher.http.max.concurrency: 20

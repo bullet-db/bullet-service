@@ -1,5 +1,5 @@
-bullet.pubsub.class.name: "com.yahoo.bullet.pubsub.rest.RESTPubSub"
-bullet.pubsub.context.name: "QUERY_SUBMISSION"
+bullet.pubsub.class.name: 'com.yahoo.bullet.pubsub.rest.RESTPubSub'
+bullet.pubsub.context.name: 'QUERY_SUBMISSION'
 # The RESTPubSub will provide a publisher that will send async responses here
 bullet.pubsub.rest.query.urls:
-  - http://localhost:9903/api/bullet/pubsub/query
+  - 'http://localhost:9903/api/bullet/pubsub/query'

@@ -27,7 +27,7 @@ public class PublisherRandomPoolTest {
         pool.clear();
         verify(publisher, times(5)).close();
     }
-    
+
     @Test
     public void testExceptionWhileClosing() throws Exception {
         Publisher publisherA = mock(Publisher.class);
