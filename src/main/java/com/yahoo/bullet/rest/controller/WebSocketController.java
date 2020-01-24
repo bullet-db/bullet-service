@@ -5,9 +5,12 @@
  */
 package com.yahoo.bullet.rest.controller;
 
-import com.yahoo.bullet.rest.model.BQLError;
+import com.yahoo.bullet.common.metrics.MetricCollector;
+import com.yahoo.bullet.common.metrics.MetricPublisher;
 import com.yahoo.bullet.rest.common.BQLException;
+import com.yahoo.bullet.rest.common.Metric;
 import com.yahoo.bullet.rest.common.Utils;
+import com.yahoo.bullet.rest.model.BQLError;
 import com.yahoo.bullet.rest.model.WebSocketRequest;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
@@ -21,11 +24,19 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Controller @Slf4j
-public class WebSocketController {
+public class WebSocketController extends MetricController {
     private WebSocketService webSocketService;
     private PreprocessingService preprocessingService;
     private StatusService statusService;
+
+    private static final String STATUS_PREFIX = "api.websocket.status.code.";
+    private static final List<String> STATUSES =
+        Arrays.asList(toMetric(Metric.OK), toMetric(Metric.CREATED), toMetric(Metric.BAD_REQUEST),
+                      toMetric(Metric.TOO_MANY_REQUESTS), toMetric(Metric.ERROR), toMetric(Metric.UNAVAILABLE));
 
     /**
      * Constructor that takes various services.
@@ -36,7 +47,8 @@ public class WebSocketController {
      */
     @Autowired
     public WebSocketController(WebSocketService webSocketService, PreprocessingService preprocessingService,
-                               StatusService statusService) {
+                               StatusService statusService, MetricPublisher metricPublisher) {
+        super(metricPublisher, new MetricCollector(STATUSES));
         this.webSocketService = webSocketService;
         this.preprocessingService = preprocessingService;
         this.statusService = statusService;
@@ -66,20 +78,25 @@ public class WebSocketController {
         WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
         if (!statusService.isBackendStatusOk()) {
             queryHandler.fail(QueryError.SERVICE_UNAVAILABLE);
+            incrementMetric(STATUS_PREFIX, Metric.UNAVAILABLE);
             return;
         }
         try {
             String query = preprocessingService.convertIfBQL(request.getContent());
             if (preprocessingService.queryLimitReached()) {
                 queryHandler.fail(QueryError.TOO_MANY_QUERIES);
+                incrementMetric(STATUS_PREFIX, Metric.TOO_MANY_REQUESTS);
             } else {
                 log.debug("Submitting websocket query {}: {}", queryID, query);
                 webSocketService.submitQuery(queryID, sessionID, query, queryHandler);
+                incrementMetric(STATUS_PREFIX, Metric.OK);
             }
         } catch (BQLException e) {
             queryHandler.fail(new BQLError(e));
+            incrementMetric(STATUS_PREFIX, Metric.BAD_REQUEST);
         } catch (Exception e) {
             queryHandler.fail(QueryError.INVALID_QUERY);
+            incrementMetric(STATUS_PREFIX, Metric.BAD_REQUEST);
         }
     }
 
@@ -87,5 +104,9 @@ public class WebSocketController {
         String queryID = request.getContent();
         log.debug("Killing WebSocket query {}", queryID);
         webSocketService.killQuery(headerAccessor.getSessionId(), queryID);
+    }
+
+    private static String toMetric(Metric status) {
+        return STATUS_PREFIX + status.toString();
     }
 }

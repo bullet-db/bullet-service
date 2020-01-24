@@ -85,6 +85,8 @@ bullet:
   metric:
     # Enables gathering and publishing metrics from the service
     enabled: false
+    # The time between reporting metrics from the various components that collect them in ms
+    publish.interval.ms:
     # The file containing settings required by the MetricPublisher implementation being used. By default, contains
     # settings for the HTTPMetricEventPublisher below
     config: 'metric_defaults.yaml'
