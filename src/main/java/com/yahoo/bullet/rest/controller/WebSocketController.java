@@ -44,6 +44,7 @@ public class WebSocketController extends MetricController {
      * @param webSocketService The {@link WebSocketService} to use.
      * @param preprocessingService The {@link PreprocessingService} to use.
      * @param statusService The {@link StatusService} to use.
+     * @param metricPublisher The {@link MetricPublisher} to use. It can be null.
      */
     @Autowired
     public WebSocketController(WebSocketService webSocketService, PreprocessingService preprocessingService,

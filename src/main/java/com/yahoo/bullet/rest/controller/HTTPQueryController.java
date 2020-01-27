@@ -31,13 +31,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
-import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 @RestController @Slf4j
@@ -196,7 +193,7 @@ public class HTTPQueryController extends MetricController {
     private CompletableFuture<ResponseEntity<Object>> createQueryResponse(PubSubMessage message, String id, String query) {
         if (message == null) {
             log.error("Unable to create response for id: {}, query: {}", id, query);
-            return failWith(unavailable());
+            return failWith(internalError(new RuntimeException("Unable to create query")));
         }
         log.debug("Creating response for id: {}", id);
         return completedFuture(respondWith(Metric.CREATED, new QueryResponse(id, query, System.currentTimeMillis())));

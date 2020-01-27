@@ -5,6 +5,7 @@
  */
 package com.yahoo.bullet.rest.controller;
 
+import com.yahoo.bullet.common.metrics.MetricPublisher;
 import com.yahoo.bullet.rest.model.WebSocketRequest;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.service.HandlerService;
@@ -33,6 +34,7 @@ public class WebSocketControllerTest {
     private StatusService statusService;
     private HandlerService handlerService;
     private PreprocessingService preprocessingService;
+    private MetricPublisher metricPublisher;
 
     private static SimpMessageHeaderAccessor getMockMessageAccessor(String sessionID) {
         SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
@@ -59,7 +61,9 @@ public class WebSocketControllerTest {
 
         preprocessingService = new PreprocessingService(handlerService, 500);
 
-        controller = new WebSocketController(webSocketService, preprocessingService, statusService);
+        metricPublisher = mock(MetricPublisher.class);
+
+        controller = new WebSocketController(webSocketService, preprocessingService, statusService, metricPublisher);
     }
 
     @Test

@@ -272,7 +272,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         doReturn(false).when(statusService).isBackendStatusOk();
         ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
         Assert.assertNotNull((response));
-        Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.SERVICE_UNAVAILABLE);
         QueryError queryError = (QueryError) response.getBody();
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
         verifyZeroInteractions(queryService);
@@ -323,7 +323,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         doReturn(false).when(statusService).isBackendStatusOk();
         ResponseEntity<Object> response = controller.deleteAsyncQuery("id").get();
         Assert.assertNotNull((response));
-        Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.SERVICE_UNAVAILABLE);
         QueryError queryError = (QueryError) response.getBody();
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
         verifyZeroInteractions(queryService);

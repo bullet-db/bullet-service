@@ -46,6 +46,7 @@ public class MetricController {
      */
     protected void incrementMetric(String prefix, Metric metric) {
         if (this.enableMetrics) {
+            // Doesn't call incrementMetric(String) on purpose to avoid the if again
             metricCollector.increment(prefix + metric.toString());
         }
     }

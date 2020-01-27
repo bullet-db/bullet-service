@@ -18,6 +18,7 @@ public class MetricConfiguration {
     /**
      * Creates a {@link MetricPublisher} instance from a provided config.
      *
+     * @param isEnabled A boolean denoting if the metric module is enabled.
      * @param config The String path to the config file.
      * @return An instance of the particular {@link MetricPublisher}.
      */
