@@ -12,6 +12,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 @Getter(AccessLevel.PACKAGE)
 public class MetricController {
     private final boolean metricEnabled;
@@ -48,7 +53,7 @@ public class MetricController {
      * @param metric The {@link Metric} name.
      */
     protected void incrementMetric(String prefix, Metric metric) {
-        if (this.metricEnabled) {
+        if (metricEnabled) {
             // Doesn't call incrementMetric(String) on purpose to avoid the if again
             metricCollector.increment(prefix + metric.toString());
         }
@@ -60,8 +65,19 @@ public class MetricController {
      * @param metric The String name of the metric.
      */
     protected void incrementMetric(String metric) {
-        if (this.metricEnabled) {
+        if (metricEnabled) {
             metricCollector.increment(metric);
         }
+    }
+
+    /**
+     * Concatenates a String prefix to the given metrics.
+     *
+     * @param prefix The String prefix to add.
+     * @param metrics The {@link Metric} varargs.
+     * @return A {@link List} of String metrics with the prefix added to each.
+     */
+    public static List<String> toMetric(String prefix, Metric... metrics) {
+        return Arrays.stream(metrics).map(Objects::toString).map(prefix::concat).collect(Collectors.toList());
     }
 }

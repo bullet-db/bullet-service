@@ -24,7 +24,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Controller @Slf4j
@@ -35,8 +34,7 @@ public class WebSocketController extends MetricController {
 
     static final String STATUS_PREFIX = "api.websocket.status.code.";
     private static final List<String> STATUSES =
-        Arrays.asList(toMetric(Metric.OK), toMetric(Metric.CREATED), toMetric(Metric.BAD_REQUEST),
-                      toMetric(Metric.TOO_MANY_REQUESTS), toMetric(Metric.ERROR), toMetric(Metric.UNAVAILABLE));
+        toMetric(STATUS_PREFIX, Metric.CREATED, Metric.BAD_REQUEST, Metric.TOO_MANY_REQUESTS, Metric.UNAVAILABLE);
 
     /**
      * Constructor that takes various services.
@@ -105,9 +103,5 @@ public class WebSocketController extends MetricController {
         String queryID = request.getContent();
         log.debug("Killing WebSocket query {}", queryID);
         webSocketService.killQuery(headerAccessor.getSessionId(), queryID);
-    }
-
-    private static String toMetric(Metric status) {
-        return STATUS_PREFIX + status.toString();
     }
 }

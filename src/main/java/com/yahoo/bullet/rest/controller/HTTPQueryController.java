@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -46,8 +45,7 @@ public class HTTPQueryController extends MetricController {
 
     static final String STATUS_PREFIX = "api.http.status.code.";
     private static final List<String> STATUSES =
-        Arrays.asList(toMetric(Metric.OK), toMetric(Metric.CREATED), toMetric(Metric.BAD_REQUEST),
-                      toMetric(Metric.TOO_MANY_REQUESTS), toMetric(Metric.ERROR), toMetric(Metric.UNAVAILABLE));
+        toMetric(STATUS_PREFIX, Metric.OK, Metric.CREATED, Metric.BAD_REQUEST, Metric.TOO_MANY_REQUESTS, Metric.ERROR, Metric.UNAVAILABLE);
 
     /**
      * Constructor that takes various services.
@@ -227,9 +225,5 @@ public class HTTPQueryController extends MetricController {
     private <T> T returnWith(Metric status, T object) {
         incrementMetric(STATUS_PREFIX, status);
         return object;
-    }
-
-    private static String toMetric(Metric status) {
-        return STATUS_PREFIX + status.toString();
     }
 }
