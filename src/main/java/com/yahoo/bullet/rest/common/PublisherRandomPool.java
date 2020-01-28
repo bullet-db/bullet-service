@@ -34,5 +34,6 @@ public class PublisherRandomPool extends RandomPool<Publisher> {
                 log.error("Error closing publisher", e);
             }
         }
+        publishers = null;
     }
 }
