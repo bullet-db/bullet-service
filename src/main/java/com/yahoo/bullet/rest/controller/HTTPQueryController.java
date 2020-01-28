@@ -44,7 +44,7 @@ public class HTTPQueryController extends MetricController {
     private PreprocessingService preprocessingService;
     private StatusService statusService;
 
-    private static final String STATUS_PREFIX = "api.http.status.code.";
+    static final String STATUS_PREFIX = "api.http.status.code.";
     private static final List<String> STATUSES =
         Arrays.asList(toMetric(Metric.OK), toMetric(Metric.CREATED), toMetric(Metric.BAD_REQUEST),
                       toMetric(Metric.TOO_MANY_REQUESTS), toMetric(Metric.ERROR), toMetric(Metric.UNAVAILABLE));

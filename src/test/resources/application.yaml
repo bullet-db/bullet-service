@@ -25,7 +25,7 @@ bullet:
   async:
     enabled: false
   metric:
-    enabled: false
+    enabled: true
     publish.interval.ms: 60000
     config: 'metric_defaults.yaml'
   endpoint:

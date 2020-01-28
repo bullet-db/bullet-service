@@ -8,10 +8,13 @@ package com.yahoo.bullet.rest.controller;
 import com.yahoo.bullet.common.metrics.MetricCollector;
 import com.yahoo.bullet.common.metrics.MetricPublisher;
 import com.yahoo.bullet.rest.common.Metric;
+import lombok.AccessLevel;
+import lombok.Getter;
 import org.springframework.scheduling.annotation.Scheduled;
 
+@Getter(AccessLevel.PACKAGE)
 public class MetricController {
-    private final boolean enableMetrics;
+    private final boolean metricEnabled;
     private final MetricPublisher metricPublisher;
     private final MetricCollector metricCollector;
 
@@ -23,7 +26,7 @@ public class MetricController {
      * @param metricCollector The {@link MetricCollector} to use.
      */
     public MetricController(MetricPublisher metricPublisher, MetricCollector metricCollector) {
-        this.enableMetrics = metricPublisher != null;
+        this.metricEnabled = metricPublisher != null;
         this.metricPublisher = metricPublisher;
         this.metricCollector = metricCollector;
     }
@@ -33,7 +36,7 @@ public class MetricController {
      */
     @Scheduled(fixedDelayString = "${bullet.metric.publish.interval.ms}")
     public void publishMetrics() {
-        if (enableMetrics) {
+        if (metricEnabled) {
             metricPublisher.fire(metricCollector.extractMetrics());
         }
     }
@@ -45,7 +48,7 @@ public class MetricController {
      * @param metric The {@link Metric} name.
      */
     protected void incrementMetric(String prefix, Metric metric) {
-        if (this.enableMetrics) {
+        if (this.metricEnabled) {
             // Doesn't call incrementMetric(String) on purpose to avoid the if again
             metricCollector.increment(prefix + metric.toString());
         }
@@ -57,7 +60,7 @@ public class MetricController {
      * @param metric The String name of the metric.
      */
     protected void incrementMetric(String metric) {
-        if (this.enableMetrics) {
+        if (this.metricEnabled) {
             metricCollector.increment(metric);
         }
     }

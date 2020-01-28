@@ -33,7 +33,7 @@ public class WebSocketController extends MetricController {
     private PreprocessingService preprocessingService;
     private StatusService statusService;
 
-    private static final String STATUS_PREFIX = "api.websocket.status.code.";
+    static final String STATUS_PREFIX = "api.websocket.status.code.";
     private static final List<String> STATUSES =
         Arrays.asList(toMetric(Metric.OK), toMetric(Metric.CREATED), toMetric(Metric.BAD_REQUEST),
                       toMetric(Metric.TOO_MANY_REQUESTS), toMetric(Metric.ERROR), toMetric(Metric.UNAVAILABLE));
@@ -90,7 +90,7 @@ public class WebSocketController extends MetricController {
             } else {
                 log.debug("Submitting websocket query {}: {}", queryID, query);
                 webSocketService.submitQuery(queryID, sessionID, query, queryHandler);
-                incrementMetric(STATUS_PREFIX, Metric.OK);
+                incrementMetric(STATUS_PREFIX, Metric.CREATED);
             }
         } catch (BQLException e) {
             queryHandler.fail(new BQLError(e));
