@@ -2,25 +2,35 @@
 # Bullet Web-Service settings
 ####################################################################################################################
 bullet:
+  # This controls the maximum number of Synchronous queries that can run concurrently. Any further queries submitted
+  # once this limit is reached causes the API to return a 5xx. Note that this does not affect Asynchronous queries
   max.concurrent.queries: 500
+
+  # This module checks if the backend is operational and turns off the service if the backend is not reachable. It will
+  # reenable the API if the backend is reachable after. It polls the backend with a custom query as the status check
   backend.status:
+    # Whether or not this service is enabled
+    enabled: true
     # The timeout/interval in ms between pings to the backend
     tick-ms: 30000
     # The number of retries after a failed ping before the backend status is considered not ok
     retries: 10
-    # Whether or not this service is enabled
-    enabled: true
+
+  # This module serves the schema of the data. This is primarily used by the UI to provide its type aware query building
   schema:
     # The fully qualified path to your schema file
-    file: /sample_columns.json
-    version: 0.1
+    file: 'sample_columns.json'
+    version: '0.1'
+
+  # The following configure the PubSub module used by the API. This is the mechanism by the which the API (service)
+  # talks to the backend. The config picks the com.yahoo.bullet.pubsub.PubSub implementation being used.
   pubsub:
     # The number of subscriber instances (each creates a thread to read) reading responses from the PubSub
     subscribers: 1
     # The number of publisher publishing queries to the PubSub
     publishers: 1
     # The file containing settings required by the PubSub implementation being used.
-    config: pubsub_defaults.yaml
+    config: 'pubsub_defaults.yaml'
     # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
     sleep-ms: 1
     # In-memory pubsub settings
@@ -28,50 +38,66 @@ bullet:
       # Set to true if you want to turn on the http endpoints for the in-memory pubsub
       enabled: false
       # The paths for the endpoints
-      query.path: /pubsub/query
-      result.path: /pubsub/result
-  # Enables the storage module.
-  storage:
-    # This persists your queries to a com.yahoo.bullet.storage.StorageManager instance as configured. This setting points to
-    # the file with settings needed by the StorageManager being used. By default, uses the NullStorageManager, which does nothing.
-    config: storage_defaults.yaml
-  websocket:
-    # The following configure the STOMP endpoints for the websocket. This is currently used internally in a simple in-memory broker.
-    # The prefix of the server. It should be added before bullet.websocket.server.destination by clients to send messages to the server.
-    server.destination.prefix: /server
-    # The endpoint for clients to send messages to the server. Clients send requests to this prefixed by the bullet.websocket.server.destination.prefix.
-    server.destination: /request
-    # The prefix of the client. It is added before bullet.websocket.client.destination by the server to send messages to specific clients.
-    client.destination.prefix: /client
-    # The endpoint for the server to send messages to clients. If the server prefixes this with the bullet.websocket.client.destination.prefix, it
-    # sends it to a particular client. Otherwise, just sending messages here broadcasts to all clients.
-    client.destination: /response
-    # The maximum amount of data to buffer when sending messages to a WebSocket session.
-    session.buffer.size.kb: 1024
-    # The maximum size for an message between servers and clients.
-    message.size.limit.kb: 64
-    # The time limit (in seconds) when sending messages to a WebSocket session. It should be positive.
-    message.send.time.limit.secs: 10
-  async:
-    # The following configures the asynchronous query result returning of the service. Use this if you want to use the
-    # bullet.endpoint.async endpoint and get results sent to a place of your choice. You must configure responders
-    # below of type com.yahoo.bullet.pubsub.PubSubResponder below.
-    # Enables Asynchronous query result publishing to responders of your choice.
-    enabled: false
-    # The file containing settings required by the StorageManager implementation being used.
-    config: async_defaults.yaml
-    # The list of responders that extend the com.yahoo.bullet.pubsub.PubSubResponder class. Anything listed here will be instantiated
-    # and anything returning from the Bullet backend will be passed to it.
-    responders:
-      # This responder uses the Publisher part of a com.yahoo.bullet.pubsub.PubSub (Kafka, Pulsar, your own, ...) to send results.
-      - com.yahoo.bullet.pubsub.BulletPubSubResponder
+      query.path: '/pubsub/query'
+      result.path: '/pubsub/result'
 
+  # This persists your queries to a com.yahoo.bullet.storage.StorageManager instance as configured. This setting points to
+  # the file with settings needed by the StorageManager being used. By default, uses the NullStorageManager, which does nothing
+  # Note that there is no way to disable this module but you can point it the NullStorageManager instead if you do not want storage
+  storage:
+    config: 'storage_defaults.yaml'
+
+  # The following configure the STOMP endpoints for the websocket. This is currently used internally in a simple in-memory broker
+  websocket:
+    # The prefix of the server. It should be added before bullet.websocket.server.destination by clients to send messages to the server
+    server.destination.prefix: '/server'
+    # The endpoint for clients to send messages to the server. Clients send requests to this prefixed by the bullet.websocket.server.destination.prefix
+    server.destination: '/request'
+    # The prefix of the client. It is added before bullet.websocket.client.destination by the server to send messages to specific clients
+    client.destination.prefix: '/client'
+    # The endpoint for the server to send messages to clients. If the server prefixes this with the bullet.websocket.client.destination.prefix, it
+    # sends it to a particular client. Otherwise, just sending messages here broadcasts to all clients
+    client.destination: '/response'
+    # The maximum amount of data to buffer when sending messages to a WebSocket session
+    session.buffer.size.kb: 1024
+    # The maximum size for an message between servers and clients
+    message.size.limit.kb: 64
+    # The time limit (in seconds) when sending messages to a WebSocket session. It should be positive
+    message.send.time.limit.secs: 10
+
+  # The following configures the asynchronous query result returning of the service. Use this if you want to use the
+  # bullet.endpoint.async endpoint and get results sent to a place of your choice. You must configure responders below
+  # of type com.yahoo.bullet.pubsub.PubSubResponder below
+  async:
+    # Enables Asynchronous query result publishing to responders of your choice
+    enabled: false
+    # The file containing settings required by the Async implementation(s) being used
+    config: 'async_defaults.yaml'
+    # The list of responders that extend the com.yahoo.bullet.pubsub.PubSubResponder class. Anything listed here will
+    # be instantiated  and anything returning from the Bullet backend will be passed to it
+    responders:
+      # This responder uses the Publisher part of a com.yahoo.bullet.pubsub.PubSub (Kafka, Pulsar, your own, ...) to send results
+      - 'com.yahoo.bullet.pubsub.BulletPubSubResponder'
+
+  # The following configure setting up the metrics collection and reporting in the service. Use this if you want to
+  # collect metrics and send them somewhere in a format of your choice. By default, uses the HTTP publishing collector
+  # that can publish a JSON payload to an arbitrary HTTP endpoint
+  metric:
+    # Enables gathering and publishing metrics from the service
+    enabled: false
+    # The time between reporting metrics from the various components that collect them in ms. Defaults to 60s
+    publish.interval.ms: 60000
+    # The file containing settings required by the MetricPublisher implementation being used. By default, contains
+    # settings for the HTTPMetricEventPublisher below
+    config: 'metric_defaults.yaml'
+
+  # The following configure the names of the various renamable public endpoints of the API
   endpoint:
-    bql-to-json: /bql-to-json
-    http: /http-query
-    sse: /sse-query
-    websocket: /ws-query
-    async: /async-query
+    bql-to-json: '/bql-to-json'
+    http: '/http-query'
+    sse: '/sse-query'
+    websocket: '/ws-query'
+    async: '/async-query'
 
 ####################################################################################################################
 # Spring Boot settings
@@ -88,7 +114,7 @@ spring:
     async.request-timeout: -1
 
 server:
-  context-path: /api/bullet
+  context-path: '/api/bullet'
   port: 9901
 
 # To configure SSL, override and change the following settings to your config
@@ -101,7 +127,7 @@ server:
 #     keyAlias: spring
 
 # Override the value to "" to enable SSO security
-security.ignored: "/**"
+security.ignored: '/**'
 
 # To configure SSO security, override and change the following settings to your config
 #security:

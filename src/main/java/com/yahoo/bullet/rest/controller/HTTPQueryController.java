@@ -5,8 +5,11 @@
  */
 package com.yahoo.bullet.rest.controller;
 
+import com.yahoo.bullet.common.metrics.MetricCollector;
+import com.yahoo.bullet.common.metrics.MetricPublisher;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.common.BQLException;
+import com.yahoo.bullet.rest.common.Metric;
 import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.rest.model.BQLError;
 import com.yahoo.bullet.rest.model.QueryResponse;
@@ -19,7 +22,6 @@ import com.yahoo.bullet.rest.service.QueryService;
 import com.yahoo.bullet.rest.service.StatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,16 +31,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 @RestController @Slf4j
-public class HTTPQueryController {
+public class HTTPQueryController extends MetricController {
     private QueryService queryService;
     private HandlerService handlerService;
     private PreprocessingService preprocessingService;
     private StatusService statusService;
+
+    static final String STATUS_PREFIX = "api.http.status.code.";
+    private static final List<String> STATUSES =
+        toMetric(STATUS_PREFIX, Metric.OK, Metric.CREATED, Metric.BAD_REQUEST, Metric.TOO_MANY_REQUESTS, Metric.ERROR, Metric.UNAVAILABLE);
 
     /**
      * Constructor that takes various services.
@@ -47,10 +54,13 @@ public class HTTPQueryController {
      * @param queryService The {@link QueryService} to use.
      * @param preprocessingService The {@link PreprocessingService} to use.
      * @param statusService The {@link StatusService} to use.
+     * @param metricPublisher The {@link MetricPublisher} to use. It can be null.
      */
     @Autowired
     public HTTPQueryController(HandlerService handlerService, QueryService queryService,
-                               PreprocessingService preprocessingService, StatusService statusService) {
+                               PreprocessingService preprocessingService, StatusService statusService,
+                               MetricPublisher metricPublisher) {
+        super(metricPublisher, new MetricCollector(STATUSES));
         this.handlerService = handlerService;
         this.queryService = queryService;
         this.preprocessingService = preprocessingService;
@@ -69,28 +79,31 @@ public class HTTPQueryController {
         HTTPQueryHandler handler = new HTTPQueryHandler();
         if (!statusService.isBackendStatusOk()) {
             handler.fail(QueryError.SERVICE_UNAVAILABLE);
-            return handler.getResult();
+            return returnWith(Metric.UNAVAILABLE, handler.getResult());
         }
         if (preprocessingService.queryLimitReached()) {
             handler.fail(QueryError.TOO_MANY_QUERIES);
-            return handler.getResult();
+            return returnWith(Metric.TOO_MANY_REQUESTS, handler.getResult());
         }
         try {
             if (preprocessingService.containsWindow(query)) {
                 handler.fail(QueryError.UNSUPPORTED_QUERY);
+                return returnWith(Metric.BAD_REQUEST, handler.getResult());
             } else {
                 query = preprocessingService.convertIfBQL(query);
                 String id = Utils.getNewQueryID();
                 log.debug("Submitting HTTP query {}: {}", id, query);
                 handlerService.addHandler(id, handler);
                 queryService.submit(id, query);
+                return returnWith(Metric.CREATED, handler.getResult());
             }
         } catch (BQLException e) {
             handler.fail(new BQLError(e));
+            return returnWith(Metric.BAD_REQUEST, handler.getResult());
         } catch (Exception e) {
             handler.fail(QueryError.INVALID_QUERY);
+            return returnWith(Metric.BAD_REQUEST, handler.getResult());
         }
-        return handler.getResult();
     }
 
     /**
@@ -107,23 +120,25 @@ public class HTTPQueryController {
         SSEQueryHandler handler = new SSEQueryHandler(id, sseEmitter, queryService);
         if (!statusService.isBackendStatusOk()) {
             handler.fail(QueryError.SERVICE_UNAVAILABLE);
-            return sseEmitter;
+            return returnWith(Metric.UNAVAILABLE, sseEmitter);
         }
         if (preprocessingService.queryLimitReached()) {
             handler.fail(QueryError.TOO_MANY_QUERIES);
-            return sseEmitter;
+            return returnWith(Metric.TOO_MANY_REQUESTS, sseEmitter);
         }
         try {
             query = preprocessingService.convertIfBQL(query);
             log.debug("Submitting SSE query {}: {}", id, query);
             handlerService.addHandler(id, handler);
             queryService.submit(id, query);
+            return returnWith(Metric.CREATED, sseEmitter);
         } catch (BQLException e) {
             handler.fail(new BQLError(e));
+            return returnWith(Metric.BAD_REQUEST, sseEmitter);
         } catch (Exception e) {
             handler.fail(QueryError.INVALID_QUERY);
+            return returnWith(Metric.BAD_REQUEST, sseEmitter);
         }
-        return sseEmitter;
     }
 
     /**
@@ -143,11 +158,11 @@ public class HTTPQueryController {
             log.debug("Submitting Async query {}: {}", id, query);
             return queryService.submit(id, query)
                                .thenCompose(message -> createQueryResponse(message, id, query))
-                               .exceptionally(HTTPQueryController::unavailable);
+                               .exceptionally(this::internalError);
         } catch (BQLException e) {
-            return failWith(new BQLError(e), HttpStatus.BAD_REQUEST);
+            return failWith(new BQLError(e));
         } catch (Exception e) {
-            return failWith(QueryError.INVALID_QUERY, HttpStatus.BAD_REQUEST);
+            return failWith(QueryError.INVALID_QUERY);
         }
     }
 
@@ -166,45 +181,49 @@ public class HTTPQueryController {
         try {
             log.debug("Removing Async query {}", id);
             return queryService.kill(id)
-                               .thenApply(u -> createResponse(HttpStatus.OK))
-                               .exceptionally(HTTPQueryController::unavailable);
+                               .thenApply(u -> ok())
+                               .exceptionally(this::internalError);
         } catch (Exception e) {
-            log.error("Error", e);
-            return failWith(unavailable());
+            return failWith(internalError(e));
         }
     }
 
-    private static CompletableFuture<ResponseEntity<Object>> createQueryResponse(PubSubMessage message, String id, String query) {
+    private CompletableFuture<ResponseEntity<Object>> createQueryResponse(PubSubMessage message, String id, String query) {
         if (message == null) {
             log.error("Unable to create response for id: {}, query: {}", id, query);
-            return failWith(unavailable());
+            return failWith(internalError(new RuntimeException("Unable to create query")));
         }
         log.debug("Creating response for id: {}", id);
-        return completedFuture(createResponse(HttpStatus.CREATED, new QueryResponse(id, query, System.currentTimeMillis())));
+        return completedFuture(respondWith(Metric.CREATED, new QueryResponse(id, query, System.currentTimeMillis())));
     }
 
-    private static CompletableFuture<ResponseEntity<Object>> failWith(QueryError error, HttpStatus status) {
-        return failWith(createResponse(status, error));
+    private CompletableFuture<ResponseEntity<Object>> failWith(ResponseEntity<Object> error) {
+        return completedFuture(error);
     }
 
-    private static CompletableFuture<ResponseEntity<Object>> failWith(ResponseEntity<Object> object) {
-        return completedFuture(object);
+    private CompletableFuture<ResponseEntity<Object>> failWith(QueryError error) {
+        return failWith(respondWith(Metric.BAD_REQUEST, error));
     }
 
-    private static <T> ResponseEntity<T> createResponse(HttpStatus status) {
-        return new ResponseEntity<>(status);
+    private ResponseEntity<Object> unavailable() {
+        return respondWith(Metric.UNAVAILABLE, QueryError.SERVICE_UNAVAILABLE);
     }
 
-    private static <T> ResponseEntity<T> createResponse(HttpStatus status, T object) {
-        return new ResponseEntity<>(object, status);
+    private ResponseEntity<Object> internalError(Throwable e) {
+        log.error("Error", e);
+        return respondWith(Metric.ERROR, QueryError.SERVICE_UNAVAILABLE);
     }
 
-    private static ResponseEntity<Object> unavailable(Throwable throwable) {
-        log.error("Exception", throwable);
-        return unavailable();
+    private ResponseEntity<Object> ok() {
+        return respondWith(Metric.OK, null);
     }
 
-    private static ResponseEntity<Object> unavailable() {
-        return new ResponseEntity<>(QueryError.SERVICE_UNAVAILABLE, HttpStatus.INTERNAL_SERVER_ERROR);
+    private <T> ResponseEntity<T> respondWith(Metric metric, T object) {
+        return returnWith(metric, new ResponseEntity<>(object, metric.toHTTPStatus()));
+    }
+
+    private <T> T returnWith(Metric status, T object) {
+        incrementMetric(STATUS_PREFIX, status);
+        return object;
     }
 }

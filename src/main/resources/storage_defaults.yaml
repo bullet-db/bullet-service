@@ -1,1 +1,1 @@
-bullet.storage.class.name: "com.yahoo.bullet.storage.NullStorageManager"
+bullet.storage.class.name: 'com.yahoo.bullet.storage.NullStorageManager'

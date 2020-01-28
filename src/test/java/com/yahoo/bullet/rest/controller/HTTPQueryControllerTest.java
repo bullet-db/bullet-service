@@ -36,6 +36,7 @@ import org.testng.annotations.Test;
 import java.util.concurrent.CompletableFuture;
 
 import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
+import static com.yahoo.bullet.TestHelpers.assertOnlyMetricEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -75,6 +76,10 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         assertJSONEquals(actualStripped, expectedStripped);
     }
 
+    private static String metric(HttpStatus httpStatus) {
+        return HTTPQueryController.STATUS_PREFIX + httpStatus;
+    }
+
     @BeforeMethod
     public void setup() {
         initMocks(this);
@@ -91,6 +96,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         String expected = "{'records':[],'meta':{'errors':[{'error':'Service temporarily unavailable'," +
                                                            "'resolutions':['Please try again later']}]}}";
         assertJSONEquals(response.get(), expected);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.SERVICE_UNAVAILABLE), 1L);
     }
 
     @Test
@@ -101,6 +107,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         verify(handlerService).addHandler(anyString(), argument.capture());
         argument.getValue().send(new PubSubMessage("", "bar"));
         Assert.assertEquals(response.get(), "bar");
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
     }
 
     @Test
@@ -111,6 +118,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         verify(handlerService).addHandler(anyString(), argument.capture());
         argument.getValue().send(new PubSubMessage("", "bar"));
         Assert.assertEquals(response.get(), "bar");
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
     }
 
     @Test
@@ -119,6 +127,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         String query = "{'window':{}}";
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
         assertJSONEquals(response.get(), QueryError.UNSUPPORTED_QUERY.toString());
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.BAD_REQUEST), 1L);
     }
 
     @Test
@@ -132,6 +141,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         verify(queryService).submit(anyString(), eq("bql query without window"));
         argument.getValue().send(new PubSubMessage("", "bar"));
         Assert.assertEquals(response.get(), "bar");
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
     }
 
     @Test
@@ -141,6 +151,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
         String expected = "{'records':[],'meta':{'errors':[{'error':'Too many concurrent queries in the system','resolutions':['Please try again later']}]}}";
         assertJSONEquals(response.get(), expected);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.TOO_MANY_REQUESTS), 1L);
     }
 
     @Test
@@ -153,6 +164,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
             "'resolutions':['Please provide a valid query']" +
             "}]}}";
         assertJSONEquals(response.get(), expected);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.BAD_REQUEST), 1L);
     }
 
     @Test
@@ -162,6 +174,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         CompletableFuture<String> response = controller.submitHTTPQuery(query);
         String expected = "{'records':[],'meta':{'errors':[{'error':'Failed to parse query','resolutions':['Please provide a valid query']}]}}";
         assertJSONEquals(response.get(), expected);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.BAD_REQUEST), 1L);
     }
 
     @Test
@@ -171,6 +184,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
         String expected = "data:{'records':[],'meta':{'errors':[{'error':'Service temporarily unavailable','resolutions':['Please try again later']}]}}\n\n";
         assertSSEJSONEquals(result, expected);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.SERVICE_UNAVAILABLE), 1L);
     }
 
     @Test
@@ -183,6 +197,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         Assert.assertEquals(result.getResponse().getContentAsString(), "data:bar\n\n");
         argument.getValue().send(new PubSubMessage("", "baz"));
         Assert.assertEquals(result.getResponse().getContentAsString(), "data:bar\n\ndata:baz\n\n");
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
     }
 
     @Test
@@ -194,6 +209,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
             "'error':'com.yahoo.bullet.bql.parser.ParsingException: line 1:1: missing SELECT'," +
             "'resolutions':['Please provide a valid query']}]}}\n\n";
         assertSSEJSONEquals(result, expected);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.BAD_REQUEST), 1L);
     }
 
     @Test
@@ -203,6 +219,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
         String expected = "data:{'records':[],'meta':{'errors':[{'error':'Failed to parse query','resolutions':['Please provide a valid query']}]}}\n\n";
         assertSSEJSONEquals(result, expected);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.BAD_REQUEST), 1L);
     }
 
     @Test
@@ -212,6 +229,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(query)).andReturn();
         String expected = "data:{'records':[],'meta':{'errors':[{'error':'Too many concurrent queries in the system','resolutions':['Please try again later']}]}}\n\n";
         assertSSEJSONEquals(result, expected);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.TOO_MANY_REQUESTS), 1L);
     }
 
     @Test
@@ -234,6 +252,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         Assert.assertEquals(queryResponse.getQuery(), "query");
         Assert.assertTrue(queryResponse.getCreateTime() >= start && queryResponse.getCreateTime() <= end);
         verifyZeroInteractions(handlerService);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
     }
 
     @Test
@@ -251,6 +270,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
             "}]}}";
         assertJSONEquals(response.getBody().toString(), expected);
         verifyZeroInteractions(handlerService);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.BAD_REQUEST), 1L);
     }
 
     @Test
@@ -265,6 +285,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         assertJSONEquals(queryError.toString(), QueryError.INVALID_QUERY.toString());
         verifyZeroInteractions(queryService);
         verifyZeroInteractions(handlerService);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.BAD_REQUEST), 1L);
     }
 
     @Test
@@ -272,11 +293,12 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         doReturn(false).when(statusService).isBackendStatusOk();
         ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
         Assert.assertNotNull((response));
-        Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.SERVICE_UNAVAILABLE);
         QueryError queryError = (QueryError) response.getBody();
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
         verifyZeroInteractions(queryService);
         verifyZeroInteractions(handlerService);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.SERVICE_UNAVAILABLE), 1L);
     }
 
     @Test
@@ -291,6 +313,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
         verify(queryService).submit(anyString(), eq("query"));
         verifyZeroInteractions(handlerService);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.INTERNAL_SERVER_ERROR), 1L);
     }
 
     @Test
@@ -307,6 +330,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
         verify(queryService).submit(anyString(), eq("query"));
         verifyZeroInteractions(handlerService);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.INTERNAL_SERVER_ERROR), 1L);
     }
 
     @Test
@@ -316,6 +340,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         Assert.assertNotNull((response));
         Assert.assertEquals(response.getStatusCode(), HttpStatus.OK);
         Assert.assertNull((response.getBody()));
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.OK), 1L);
     }
 
     @Test
@@ -323,11 +348,12 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         doReturn(false).when(statusService).isBackendStatusOk();
         ResponseEntity<Object> response = controller.deleteAsyncQuery("id").get();
         Assert.assertNotNull((response));
-        Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.SERVICE_UNAVAILABLE);
         QueryError queryError = (QueryError) response.getBody();
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
         verifyZeroInteractions(queryService);
         verifyZeroInteractions(handlerService);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.SERVICE_UNAVAILABLE), 1L);
     }
 
     @Test
@@ -340,6 +366,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
         verify(queryService).kill(eq("id"));
         verifyZeroInteractions(handlerService);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.INTERNAL_SERVER_ERROR), 1L);
     }
 
     @Test
@@ -355,5 +382,6 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
         verify(queryService).kill(eq("id"));
         verifyZeroInteractions(handlerService);
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.INTERNAL_SERVER_ERROR), 1L);
     }
 }

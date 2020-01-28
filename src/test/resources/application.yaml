@@ -24,6 +24,10 @@ bullet:
     message.send.time.limit.secs: 10
   async:
     enabled: false
+  metric:
+    enabled: true
+    publish.interval.ms: 60000
+    config: 'metric_defaults.yaml'
   endpoint:
     bql-to-json: /bql-to-json
     http: /http-query
