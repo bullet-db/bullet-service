@@ -5,20 +5,20 @@ bullet:
     retries: 10
     enabled: true
   schema:
-    file: /test_columns.json
-    version: 1.2
+    file: 'test_fields.json'
+    version: '1.2'
   pubsub:
     subscribers: 1
     publishers: 1
-    config: test_pubsub_defaults.yaml
+    config: 'test_pubsub_defaults.yaml'
     sleep-ms: 1
   storage:
-    config: test_storage_defaults.yaml
+    config: 'test_storage_defaults.yaml'
   websocket:
-    server.destination.prefix: /server
-    server.destination: /request
-    client.destination.prefix: /client
-    client.destination: /response
+    server.destination.prefix: '/server'
+    server.destination: '/request'
+    client.destination.prefix: '/client'
+    client.destination: '/response'
     session.buffer.size.kb: 1024
     message.size.limit.kb: 64
     message.send.time.limit.secs: 10
@@ -29,11 +29,11 @@ bullet:
     publish.interval.ms: 60000
     config: 'metric_defaults.yaml'
   endpoint:
-    bql-to-json: /bql-to-json
-    http: /http-query
-    sse: /sse-query
-    websocket: /ws-query
-    async: /async-query
+    bql-to-json: '/bql-to-json'
+    http: '/http-query'
+    sse: '/sse-query'
+    websocket: '/ws-query'
+    async: '/async-query'
 
 logging:
   level:

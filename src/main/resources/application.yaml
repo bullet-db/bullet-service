@@ -19,8 +19,8 @@ bullet:
   # This module serves the schema of the data. This is primarily used by the UI to provide its type aware query building
   schema:
     # The fully qualified path to your schema file
-    file: 'sample_columns.json'
-    version: '0.1'
+    file: 'sample_fields.json'
+    version: '1.0'
 
   # The following configure the PubSub module used by the API. This is the mechanism by the which the API (service)
   # talks to the backend. The config picks the com.yahoo.bullet.pubsub.PubSub implementation being used.

@@ -31,7 +31,7 @@ public class SchemaController {
      *
      * @return The JSON API schema.
      */
-    @GetMapping(path = "/columns", produces = { JSON_API_HEADER, MediaType.APPLICATION_JSON_VALUE })
+    @GetMapping(path = "/fields", produces = { JSON_API_HEADER, MediaType.APPLICATION_JSON_VALUE })
     public String getJSONSchema() {
         return schemaService.getSchema();
     }

@@ -16,6 +16,6 @@ import java.util.Map;
 @NoArgsConstructor @AllArgsConstructor
 @Getter @Setter
 public class JSONAPIDocument {
-    private List<JSONAPIColumn> data;
+    private List<JSONAPIField> data;
     private Map<String, Object> meta;
 }
