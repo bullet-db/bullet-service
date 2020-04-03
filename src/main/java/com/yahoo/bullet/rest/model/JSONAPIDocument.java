@@ -5,7 +5,6 @@
  */
 package com.yahoo.bullet.rest.model;
 
-import com.yahoo.bullet.rest.model.JSONAPIField;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
