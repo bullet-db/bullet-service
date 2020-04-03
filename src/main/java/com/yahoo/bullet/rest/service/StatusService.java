@@ -5,6 +5,8 @@
  */
 package com.yahoo.bullet.rest.service;
 
+import com.yahoo.bullet.parsing.Aggregation;
+import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.rest.query.QueryError;
@@ -60,10 +62,15 @@ public class StatusService implements Runnable {
         }
     }
 
-    static final String TICK_QUERY = "{'aggregation':{'type':'RAW','size':1},'duration':1}";
+    static final Query TICK_QUERY = new Query();
+    static {
+        TICK_QUERY.setAggregation(new Aggregation(1, Aggregation.Type.RAW));
+        TICK_QUERY.setDuration(1L);
+    }
 
     private QueryService queryService;
     private HandlerService handlerService;
+    private int maxConcurrentQueries;
     private long period;
     private long retries;
     private long count;
@@ -83,13 +90,15 @@ public class StatusService implements Runnable {
     public StatusService(QueryService queryService, HandlerService handlerService,
                          @Value("${bullet.backend.status.tick-ms}") long period,
                          @Value("${bullet.backend.status.retries}") long retries,
-                         @Value("${bullet.backend.status.enabled}") Boolean enabled) {
+                         @Value("${bullet.backend.status.enabled}") Boolean enabled,
+                         @Value("${bullet.max.concurrent.queries}") int maxConcurrentQueries) {
         this.queryService = queryService;
         this.handlerService = handlerService;
         this.period = period;
         this.retries = retries;
         this.count = 0;
         this.backendStatusOk = true;
+        this.maxConcurrentQueries = maxConcurrentQueries;
 
         if (enabled != null && enabled) {
             Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this, period, period, TimeUnit.MILLISECONDS);
@@ -115,5 +124,14 @@ public class StatusService implements Runnable {
             log.error("Backend is not up! Failing all queries and refusing to accept new queries");
             handlerService.failAllHandlers();
         }
+    }
+
+    /**
+     * This checks if the configured max.concurrent.queries limit has been exceeded.
+     *
+     * @return A boolean indicating whether or not the query limit has been reached.
+     */
+    public boolean queryLimitReached() {
+        return handlerService.count() >= maxConcurrentQueries;
     }
 }

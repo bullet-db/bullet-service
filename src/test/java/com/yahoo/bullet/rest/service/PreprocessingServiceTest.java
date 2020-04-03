@@ -6,7 +6,7 @@
 package com.yahoo.bullet.rest.service;
 
 import com.google.gson.JsonSyntaxException;
-import com.yahoo.bullet.rest.common.BQLException;
+import com.yahoo.bullet.parsing.Query;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -15,27 +15,28 @@ import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
 import static org.mockito.Mockito.doReturn;
 
 public class PreprocessingServiceTest {
+    /*
     @Test
     public void testConvertIfBQLDoesNothingToJSON() throws Exception {
         PreprocessingService preprocessingService = new PreprocessingService(new HandlerService(), 500);
-        String query = "{}";
-        String newQuery = preprocessingService.convertIfBQL(query);
+        Query query = "{}";
+        Query newQuery = preprocessingService.toQuery(query);
         assertJSONEquals(newQuery, query);
     }
 
     @Test
     public void testConvertIfBQLConverts() throws Exception {
         PreprocessingService preprocessingService = new PreprocessingService(new HandlerService(), 500);
-        String query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
-        String newQuery = preprocessingService.convertIfBQL(query);
+        Query query = "SELECT * FROM STREAM(30000, TIME) LIMIT 1;";
+        Query newQuery = preprocessingService.toQuery(query);
         assertJSONEquals(newQuery, "{'aggregation':{'size':1,'type':'RAW'},'duration':30000}");
     }
 
     @Test(expectedExceptions = BQLException.class)
     public void testConvertIfBQLThrowsIfQueryBad() throws Exception {
         PreprocessingService preprocessingService = new PreprocessingService(new HandlerService(), 500);
-        String query = "garbage";
-        preprocessingService.convertIfBQL(query);
+        Query query = "garbage";
+        preprocessingService.toQuery(query);
     }
 
     @Test
@@ -74,4 +75,5 @@ public class PreprocessingServiceTest {
         PreprocessingService preprocessingService = new PreprocessingService(handlerService, 500);
         Assert.assertFalse(preprocessingService.queryLimitReached());
     }
+     */
 }

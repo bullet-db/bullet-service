@@ -5,19 +5,19 @@
  */
 package com.yahoo.bullet.rest.controller;
 
+import com.yahoo.bullet.bql.BQLResult;
 import com.yahoo.bullet.common.metrics.MetricCollector;
 import com.yahoo.bullet.common.metrics.MetricPublisher;
+import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.PubSubMessage;
-import com.yahoo.bullet.rest.common.BQLException;
 import com.yahoo.bullet.rest.common.Metric;
 import com.yahoo.bullet.rest.common.Utils;
-import com.yahoo.bullet.rest.model.BQLError;
 import com.yahoo.bullet.rest.model.QueryResponse;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
 import com.yahoo.bullet.rest.service.HandlerService;
-import com.yahoo.bullet.rest.service.PreprocessingService;
+import com.yahoo.bullet.rest.service.BQLService;
 import com.yahoo.bullet.rest.service.QueryService;
 import com.yahoo.bullet.rest.service.StatusService;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 public class HTTPQueryController extends MetricController {
     private QueryService queryService;
     private HandlerService handlerService;
-    private PreprocessingService preprocessingService;
+    private BQLService bqlService;
     private StatusService statusService;
 
     static final String STATUS_PREFIX = "api.http.status.code.";
@@ -52,18 +52,18 @@ public class HTTPQueryController extends MetricController {
      *
      * @param handlerService The {@link HandlerService} to use.
      * @param queryService The {@link QueryService} to use.
-     * @param preprocessingService The {@link PreprocessingService} to use.
+     * @param bqlService The {@link BQLService} to use.
      * @param statusService The {@link StatusService} to use.
      * @param metricPublisher The {@link MetricPublisher} to use. It can be null.
      */
     @Autowired
     public HTTPQueryController(HandlerService handlerService, QueryService queryService,
-                               PreprocessingService preprocessingService, StatusService statusService,
+                               BQLService bqlService, StatusService statusService,
                                MetricPublisher metricPublisher) {
         super(metricPublisher, new MetricCollector(STATUSES));
         this.handlerService = handlerService;
         this.queryService = queryService;
-        this.preprocessingService = preprocessingService;
+        this.bqlService = bqlService;
         this.statusService = statusService;
     }
 
@@ -81,29 +81,25 @@ public class HTTPQueryController extends MetricController {
             handler.fail(QueryError.SERVICE_UNAVAILABLE);
             return returnWith(Metric.UNAVAILABLE, handler.getResult());
         }
-        if (preprocessingService.queryLimitReached()) {
+        if (statusService.queryLimitReached()) {
             handler.fail(QueryError.TOO_MANY_QUERIES);
             return returnWith(Metric.TOO_MANY_REQUESTS, handler.getResult());
         }
-        try {
-            if (preprocessingService.containsWindow(query)) {
-                handler.fail(QueryError.UNSUPPORTED_QUERY);
-                return returnWith(Metric.BAD_REQUEST, handler.getResult());
-            } else {
-                query = preprocessingService.convertIfBQL(query);
-                String id = Utils.getNewQueryID();
-                log.debug("Submitting HTTP query {}: {}", id, query);
-                handlerService.addHandler(id, handler);
-                queryService.submit(id, query);
-                return returnWith(Metric.CREATED, handler.getResult());
-            }
-        } catch (BQLException e) {
-            handler.fail(new BQLError(e));
-            return returnWith(Metric.BAD_REQUEST, handler.getResult());
-        } catch (Exception e) {
-            handler.fail(QueryError.INVALID_QUERY);
+        BQLResult result = bqlService.toQuery(query);
+        if (result.hasErrors()) {
+            handler.fail(new QueryError(result.getErrors()));
             return returnWith(Metric.BAD_REQUEST, handler.getResult());
         }
+        Query bulletQuery = result.getQuery();
+        if (bulletQuery.getWindow() != null) {
+            handler.fail(QueryError.UNSUPPORTED_QUERY);
+            return returnWith(Metric.BAD_REQUEST, handler.getResult());
+        }
+        String id = Utils.getNewQueryID();
+        log.debug("Submitting HTTP query {}: {}", id, query);
+        handlerService.addHandler(id, handler);
+        queryService.submit(id, bulletQuery);
+        return returnWith(Metric.CREATED, handler.getResult());
     }
 
     /**
@@ -122,23 +118,19 @@ public class HTTPQueryController extends MetricController {
             handler.fail(QueryError.SERVICE_UNAVAILABLE);
             return returnWith(Metric.UNAVAILABLE, sseEmitter);
         }
-        if (preprocessingService.queryLimitReached()) {
+        if (statusService.queryLimitReached()) {
             handler.fail(QueryError.TOO_MANY_QUERIES);
             return returnWith(Metric.TOO_MANY_REQUESTS, sseEmitter);
         }
-        try {
-            query = preprocessingService.convertIfBQL(query);
-            log.debug("Submitting SSE query {}: {}", id, query);
-            handlerService.addHandler(id, handler);
-            queryService.submit(id, query);
-            return returnWith(Metric.CREATED, sseEmitter);
-        } catch (BQLException e) {
-            handler.fail(new BQLError(e));
-            return returnWith(Metric.BAD_REQUEST, sseEmitter);
-        } catch (Exception e) {
-            handler.fail(QueryError.INVALID_QUERY);
+        BQLResult result = bqlService.toQuery(query);
+        if (result.hasErrors()) {
+            handler.fail(new QueryError(result.getErrors()));
             return returnWith(Metric.BAD_REQUEST, sseEmitter);
         }
+        log.debug("Submitting SSE query {}: {}", id, query);
+        handlerService.addHandler(id, handler);
+        queryService.submit(id, result.getQuery());
+        return returnWith(Metric.CREATED, sseEmitter);
     }
 
     /**
@@ -152,18 +144,16 @@ public class HTTPQueryController extends MetricController {
         if (!statusService.isBackendStatusOk()) {
             return failWith(unavailable());
         }
-        try {
-            final String query = preprocessingService.convertIfBQL(asyncQuery);
-            final String id = Utils.getNewQueryID();
-            log.debug("Submitting Async query {}: {}", id, query);
-            return queryService.submit(id, query)
-                               .thenCompose(message -> createQueryResponse(message, id, query))
-                               .exceptionally(this::internalError);
-        } catch (BQLException e) {
-            return failWith(new BQLError(e));
-        } catch (Exception e) {
-            return failWith(QueryError.INVALID_QUERY);
+        BQLResult result = bqlService.toQuery(asyncQuery);
+        if (result.hasErrors()) {
+            return failWith(new QueryError(result.getErrors()));
         }
+        final Query query = result.getQuery();
+        final String id = Utils.getNewQueryID();
+        log.debug("Submitting Async query {}: {}", id, asyncQuery);
+        return queryService.submit(id, query)
+                           .thenCompose(message -> createQueryResponse(message, id, asyncQuery))
+                           .exceptionally(this::internalError);
     }
 
     /**

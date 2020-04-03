@@ -6,7 +6,7 @@
 package com.yahoo.bullet.rest.service;
 
 import com.google.gson.GsonBuilder;
-import com.yahoo.bullet.rest.schema.JSONAPIField;
+import com.yahoo.bullet.rest.model.JSONAPIField;
 import com.yahoo.bullet.typesystem.Schema;
 import com.yahoo.bullet.typesystem.Schema.Field;
 import org.testng.Assert;

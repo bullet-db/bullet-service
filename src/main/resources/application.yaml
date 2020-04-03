@@ -16,7 +16,8 @@ bullet:
     # The number of retries after a failed ping before the backend status is considered not ok
     retries: 10
 
-  # This module serves the schema of the data. This is primarily used by the UI to provide its type aware query building
+  # This module serves the schema of the data. This is used by the UI to provide its type aware query building as well as
+  # BQL module to provide type-awareness.
   schema:
     # The fully qualified path to your schema file
     file: 'sample_fields.json'
@@ -93,7 +94,6 @@ bullet:
 
   # The following configure the names of the various renamable public endpoints of the API
   endpoint:
-    bql-to-json: '/bql-to-json'
     http: '/http-query'
     sse: '/sse-query'
     websocket: '/ws-query'

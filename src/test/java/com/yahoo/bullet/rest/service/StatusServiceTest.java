@@ -28,7 +28,7 @@ public class StatusServiceTest {
             return null;
         }).when(handlerService).addHandler(anyString(), any());
 
-        StatusService statusService = new StatusService(queryService, handlerService, 30000L, 10L, false);
+        StatusService statusService = new StatusService(queryService, handlerService, 30000L, 10L, false, 500);
         Assert.assertTrue(statusService.isBackendStatusOk());
 
         // <= 10 fails -> status ok

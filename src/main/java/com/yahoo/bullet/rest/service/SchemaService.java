@@ -7,8 +7,8 @@ package com.yahoo.bullet.rest.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.yahoo.bullet.rest.schema.JSONAPIDocument;
-import com.yahoo.bullet.rest.schema.JSONAPIField;
+import com.yahoo.bullet.rest.model.JSONAPIDocument;
+import com.yahoo.bullet.rest.model.JSONAPIField;
 import com.yahoo.bullet.typesystem.Schema;
 import com.yahoo.bullet.typesystem.Schema.Field;
 import lombok.Getter;
@@ -59,9 +59,7 @@ import static java.util.stream.Collectors.toList;
  * }
  * </pre>
  */
-@Slf4j
-@Service
-@Getter
+@Slf4j @Service @Getter
 public class SchemaService {
     private String schema;
     private String version;
@@ -104,7 +102,7 @@ public class SchemaService {
      *
      * @param fields The List of fields that constitute the schema.
      */
-    public final void setSchema(List<Field> fields) {
+    private void setSchema(List<Field> fields) {
         Objects.requireNonNull(fields);
         List<JSONAPIField> mapped = fields.stream().map(JSONAPIField::from).collect(toList());
         JSONAPIDocument schema = new JSONAPIDocument(mapped, Collections.singletonMap(VERSION_KEY, getVersion()));

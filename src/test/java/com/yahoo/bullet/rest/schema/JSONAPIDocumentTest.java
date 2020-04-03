@@ -5,6 +5,7 @@
  */
 package com.yahoo.bullet.rest.schema;
 
+import com.yahoo.bullet.rest.model.JSONAPIDocument;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

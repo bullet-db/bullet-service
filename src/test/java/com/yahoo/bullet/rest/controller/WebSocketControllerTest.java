@@ -5,33 +5,16 @@
  */
 package com.yahoo.bullet.rest.controller;
 
-import com.yahoo.bullet.common.metrics.MetricPublisher;
-import com.yahoo.bullet.rest.model.WebSocketRequest;
-import com.yahoo.bullet.rest.model.WebSocketResponse;
-import com.yahoo.bullet.rest.service.HandlerService;
-import com.yahoo.bullet.rest.service.PreprocessingService;
-import com.yahoo.bullet.rest.service.StatusService;
-import com.yahoo.bullet.rest.service.WebSocketService;
-import org.mockito.ArgumentCaptor;
-import org.springframework.http.HttpStatus;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
-import static com.yahoo.bullet.TestHelpers.assertNoMetric;
 import static com.yahoo.bullet.TestHelpers.assertOnlyMetricEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 public class WebSocketControllerTest {
+    /*
     private WebSocketController controller;
     private WebSocketService webSocketService;
     private StatusService statusService;
@@ -160,4 +143,5 @@ public class WebSocketControllerTest {
         verify(webSocketService).killQuery(eq(sessionID), eq(queryID));
         assertNoMetric(controller.getMetricCollector().extractMetrics());
     }
+     */
 }
