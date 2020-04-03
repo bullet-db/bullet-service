@@ -10,6 +10,8 @@ import com.yahoo.bullet.bql.BulletQueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 public class BQLService {
     private BulletQueryBuilder bulletQueryBuilder;
@@ -21,6 +23,7 @@ public class BQLService {
      */
     @Autowired
     public BQLService(BulletQueryBuilder bulletQueryBuilder) {
+        Objects.requireNonNull(bulletQueryBuilder);
         this.bulletQueryBuilder = bulletQueryBuilder;
     }
 

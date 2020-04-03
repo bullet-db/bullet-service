@@ -14,6 +14,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -84,5 +85,23 @@ public class StatusServiceTest {
     public void testTickQueryHandlerTimeout() {
         TickQueryHandler queryHandler = new TickQueryHandler(0L);
         Assert.assertFalse(queryHandler.hasResult());
+    }
+
+    @Test
+    public void testQueryLimitReached() {
+        QueryService queryService = mock(QueryService.class);
+        HandlerService handlerService = mock(HandlerService.class);
+        doReturn(500).when(handlerService).count();
+        StatusService statusService = new StatusService(queryService, handlerService, 30000L, 10L, false, 500);
+        Assert.assertTrue(statusService.queryLimitReached());
+    }
+
+    @Test
+    public void testQueryLimitNotReached() {
+        QueryService queryService = mock(QueryService.class);
+        HandlerService handlerService = mock(HandlerService.class);
+        doReturn(499).when(handlerService).count();
+        StatusService statusService = new StatusService(queryService, handlerService, 30000L, 10L, false, 500);
+        Assert.assertFalse(statusService.queryLimitReached());
     }
 }
