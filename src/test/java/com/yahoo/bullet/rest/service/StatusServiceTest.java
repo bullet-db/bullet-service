@@ -29,18 +29,18 @@ public class StatusServiceTest {
         }).when(handlerService).addHandler(anyString(), any());
 
         StatusService statusService = new StatusService(queryService, handlerService, 30000L, 10L, false, 500);
-        Assert.assertTrue(statusService.isBackendStatusOk());
+        Assert.assertTrue(statusService.isBackendStatusOK());
 
         // <= 10 fails -> status ok
         for (int i = 0; i < 10; i++) {
             statusService.run();
         }
-        Assert.assertTrue(statusService.isBackendStatusOk());
+        Assert.assertTrue(statusService.isBackendStatusOK());
         verify(queryService, times(10)).submit(anyString(), eq(StatusService.TICK_QUERY));
 
         // > 10 fails (i.e. >= 10 retries) -> status not ok
         statusService.run();
-        Assert.assertFalse(statusService.isBackendStatusOk());
+        Assert.assertFalse(statusService.isBackendStatusOK());
         verify(queryService, times(11)).submit(anyString(), eq(StatusService.TICK_QUERY));
 
         doAnswer(invocationOnMock -> {
@@ -50,7 +50,7 @@ public class StatusServiceTest {
 
         // success -> status ok
         statusService.run();
-        Assert.assertTrue(statusService.isBackendStatusOk());
+        Assert.assertTrue(statusService.isBackendStatusOK());
         verify(queryService, times(12)).submit(anyString(), eq(StatusService.TICK_QUERY));
     }
 

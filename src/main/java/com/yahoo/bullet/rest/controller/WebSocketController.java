@@ -74,7 +74,7 @@ public class WebSocketController extends MetricController {
         String queryID = Utils.getNewQueryID();
         String sessionID = headerAccessor.getSessionId();
         WebSocketQueryHandler queryHandler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
-        if (!statusService.isBackendStatusOk()) {
+        if (!statusService.isBackendStatusOK()) {
             return failWith(QueryError.SERVICE_UNAVAILABLE, Metric.UNAVAILABLE, queryHandler);
         }
         if (statusService.queryLimitReached()) {

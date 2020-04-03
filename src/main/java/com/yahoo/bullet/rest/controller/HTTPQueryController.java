@@ -77,7 +77,7 @@ public class HTTPQueryController extends MetricController {
     @PostMapping(path = "${bullet.endpoint.http}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<String> submitHTTPQuery(@RequestBody String query) {
         HTTPQueryHandler handler = new HTTPQueryHandler();
-        if (!statusService.isBackendStatusOk()) {
+        if (!statusService.isBackendStatusOK()) {
             handler.fail(QueryError.SERVICE_UNAVAILABLE);
             return returnWith(Metric.UNAVAILABLE, handler.getResult());
         }
@@ -114,7 +114,7 @@ public class HTTPQueryController extends MetricController {
         SseEmitter sseEmitter = new SseEmitter();
         String id = Utils.getNewQueryID();
         SSEQueryHandler handler = new SSEQueryHandler(id, sseEmitter, queryService);
-        if (!statusService.isBackendStatusOk()) {
+        if (!statusService.isBackendStatusOK()) {
             handler.fail(QueryError.SERVICE_UNAVAILABLE);
             return returnWith(Metric.UNAVAILABLE, sseEmitter);
         }
@@ -141,7 +141,7 @@ public class HTTPQueryController extends MetricController {
      */
     @PostMapping(value = "${bullet.endpoint.async}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public CompletableFuture<ResponseEntity<Object>> submitAsyncQuery(@RequestBody String asyncQuery) {
-        if (!statusService.isBackendStatusOk()) {
+        if (!statusService.isBackendStatusOK()) {
             return failWith(unavailable());
         }
         BQLResult result = bqlService.toQuery(asyncQuery);
@@ -165,7 +165,7 @@ public class HTTPQueryController extends MetricController {
     @DeleteMapping(path = "${bullet.endpoint.async}/{id}")
     public CompletableFuture<ResponseEntity<Object>> deleteAsyncQuery(@PathVariable String id) {
         log.debug("Delete requested for id: {}", id);
-        if (!statusService.isBackendStatusOk()) {
+        if (!statusService.isBackendStatusOK()) {
             return failWith(unavailable());
         }
         try {

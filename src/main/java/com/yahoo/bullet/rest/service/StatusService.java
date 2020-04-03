@@ -75,7 +75,7 @@ public class StatusService implements Runnable {
     private long retries;
     private long count;
     @Getter
-    private boolean backendStatusOk;
+    private boolean backendStatusOK;
 
     /**
      * Creates an instance with a tick period and number of retries.
@@ -85,19 +85,20 @@ public class StatusService implements Runnable {
      * @param period Rate at which to ping backend in ms.
      * @param retries Number of times ping can fail before backend status is considered not ok.
      * @param enabled Whether this backend status service is enabled or not.
+     * @param maxConcurrentQueries Number of maximum simultaneous synchronous queries that can be run.
      */
     @Autowired
     public StatusService(QueryService queryService, HandlerService handlerService,
-                         @Value("${bullet.backend.status.tick-ms}") long period,
-                         @Value("${bullet.backend.status.retries}") long retries,
-                         @Value("${bullet.backend.status.enabled}") Boolean enabled,
-                         @Value("${bullet.query.synchronous.max.concurrent}") int maxConcurrentQueries) {
+                         @Value("${bullet.status.tick-ms}") long period,
+                         @Value("${bullet.status.retries}") long retries,
+                         @Value("${bullet.status.enabled}") Boolean enabled,
+                         @Value("${bullet.query.synchronous.max.concurrency}") int maxConcurrentQueries) {
         this.queryService = queryService;
         this.handlerService = handlerService;
         this.period = period;
         this.retries = retries;
         this.count = 0;
-        this.backendStatusOk = true;
+        this.backendStatusOK = true;
         this.maxConcurrentQueries = maxConcurrentQueries;
 
         if (enabled != null && enabled) {
@@ -115,12 +116,12 @@ public class StatusService implements Runnable {
 
         if (tickQueryHandler.hasResult()) {
             count = 0;
-            backendStatusOk = true;
+            backendStatusOK = true;
         } else {
             count++;
-            backendStatusOk = count <= retries;
+            backendStatusOK = count <= retries;
         }
-        if (!backendStatusOk) {
+        if (!backendStatusOK) {
             log.error("Backend is not up! Failing all queries and refusing to accept new queries");
             handlerService.failAllHandlers();
         }
