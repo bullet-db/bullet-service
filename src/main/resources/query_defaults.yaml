@@ -1,0 +1,17 @@
+# This file contains the various settings documented in bullet-core, relevant for query building. See
+# https://github.com/bullet-db/bullet-core/blob/master/src/main/resources/bullet_defaults.yaml for details
+bullet.query.default.duration.ms: .inf
+bullet.query.max.duration.ms: .inf
+bullet.query.aggregation.default.size: 500
+bullet.query.aggregation.max.size: 500
+bullet.query.aggregation.raw.max.size: 100
+bullet.query.aggregation.group.max.size: 500
+bullet.query.aggregation.distribution.max.points: 100
+bullet.query.window.disable: false
+bullet.query.window.min.emit.every.ms: 1000
+
+# This is generally the same schema file as provided in the application.yaml. If you omit this, the value provided there
+# will be used instead
+bullet.record.schema.file.name: sample_fields.json
+
+# You may also add any relevant settings for BQL here

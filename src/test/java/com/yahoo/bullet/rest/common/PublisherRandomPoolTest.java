@@ -29,6 +29,15 @@ public class PublisherRandomPoolTest {
     }
 
     @Test
+    public void testCloseCloses() throws Exception {
+        Publisher publisher = mock(Publisher.class);
+        List<Publisher> publishers = Collections.nCopies(5, publisher);
+        PublisherRandomPool pool = new PublisherRandomPool(publishers);
+        pool.close();
+        verify(publisher, times(5)).close();
+    }
+
+    @Test
     public void testExceptionWhileClosing() throws Exception {
         Publisher publisherA = mock(Publisher.class);
         doThrow(new RuntimeException("Testing")).when(publisherA).close();

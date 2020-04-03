@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 public class QueryService extends PubSubResponder {
     private StorageManager storage;
     private List<PubSubResponder> responders;
-    private RandomPool<Publisher> publishers;
+    private PublisherRandomPool publishers;
     private List<Reader> readers;
 
     private static final CompletableFuture<PubSubMessage> NONE = CompletableFuture.completedFuture(null);
@@ -142,7 +142,7 @@ public class QueryService extends PubSubResponder {
         readers.forEach(Reader::close);
         responders.forEach(PubSubResponder::close);
         storage.close();
-        publishers.clear();
+        publishers.close();
     }
 
     private CompletableFuture<PubSubMessage> store(String id, PubSubMessage message) {

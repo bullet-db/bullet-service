@@ -1,9 +1,11 @@
 bullet:
-  max.concurrent.queries: 500
   backend.status:
     tick-ms: 30000
     retries: 10
     enabled: true
+  query:
+    config: 'test_query_defaults.yaml'
+    synchronous.max.concurrent: 500
   schema:
     file: 'test_fields.json'
     version: '1.2'

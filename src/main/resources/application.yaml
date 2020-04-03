@@ -2,9 +2,6 @@
 # Bullet Web-Service settings
 ####################################################################################################################
 bullet:
-  # This controls the maximum number of Synchronous queries that can run concurrently. Any further queries submitted
-  # once this limit is reached causes the API to return a 5xx. Note that this does not affect Asynchronous queries
-  max.concurrent.queries: 500
 
   # This module checks if the backend is operational and turns off the service if the backend is not reachable. It will
   # reenable the API if the backend is reachable after. It polls the backend with a custom query as the status check
@@ -16,8 +13,15 @@ bullet:
     # The number of retries after a failed ping before the backend status is considered not ok
     retries: 10
 
-  # This module serves the schema of the data. This is used by the UI to provide its type aware query building as well as
-  # BQL module to provide type-awareness.
+  # The various query configurations
+  query:
+    # The path to the config containing the various Bullet and BQL configurations
+    config: 'query_defaults.yaml'
+    # This controls the maximum number of Synchronous queries that can run concurrently. Any further queries submitted
+    # once this limit is reached causes the API to return a 5xx. Note that this does not affect Asynchronous queries
+    synchronous.max.concurrent: 500
+
+  # This module serves the schema of the data. This is used by the UI to provide its type aware query building as well as # BQL module to provide type-awareness.
   schema:
     # The fully qualified path to your schema file
     file: 'sample_fields.json'
@@ -30,7 +34,7 @@ bullet:
     subscribers: 1
     # The number of publisher publishing queries to the PubSub
     publishers: 1
-    # The file containing settings required by the PubSub implementation being used.
+    # The file containing settings required by the PubSub implementation being used
     config: 'pubsub_defaults.yaml'
     # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
     sleep-ms: 1

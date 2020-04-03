@@ -91,7 +91,7 @@ public class StatusService implements Runnable {
                          @Value("${bullet.backend.status.tick-ms}") long period,
                          @Value("${bullet.backend.status.retries}") long retries,
                          @Value("${bullet.backend.status.enabled}") Boolean enabled,
-                         @Value("${bullet.max.concurrent.queries}") int maxConcurrentQueries) {
+                         @Value("${bullet.query.synchronous.max.concurrent}") int maxConcurrentQueries) {
         this.queryService = queryService;
         this.handlerService = handlerService;
         this.period = period;
@@ -127,7 +127,7 @@ public class StatusService implements Runnable {
     }
 
     /**
-     * This checks if the configured max.concurrent.queries limit has been exceeded.
+     * This checks if the configured max concurrent queries limit has been exceeded.
      *
      * @return A boolean indicating whether or not the query limit has been reached.
      */

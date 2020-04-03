@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 @Slf4j
-public class PublisherRandomPool extends RandomPool<Publisher> {
+public class PublisherRandomPool extends RandomPool<Publisher> implements AutoCloseable {
     private List<Publisher> publishers;
 
     /**
@@ -35,5 +35,10 @@ public class PublisherRandomPool extends RandomPool<Publisher> {
             }
         }
         publishers = null;
+    }
+
+    @Override
+    public void close() {
+        clear();
     }
 }

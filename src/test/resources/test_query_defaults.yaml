@@ -1,0 +1,11 @@
+bullet.query.default.duration.ms: .inf
+bullet.query.max.duration.ms: .inf
+bullet.query.aggregation.default.size: 500
+bullet.query.aggregation.max.size: 500
+bullet.query.aggregation.raw.max.size: 100
+bullet.query.aggregation.group.max.size: 500
+bullet.query.aggregation.distribution.max.points: 100
+bullet.query.window.disable: false
+bullet.query.window.min.emit.every.ms: 1000
+bullet.record.schema.file.name: test_fields.json
+
