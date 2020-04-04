@@ -5,6 +5,7 @@
  */
 package com.yahoo.bullet.rest.service;
 
+import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.query.QueryHandler;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
@@ -16,6 +17,8 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static com.yahoo.bullet.rest.TestHelpers.assertEqualsSampleQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getSampleQuery;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -24,7 +27,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class WebSocketServiceTest {
-    /*
     private WebSocketService webSocketService;
     private SimpMessagingTemplate simpMessagingTemplate;
     private HandlerService handlerService;
@@ -80,11 +82,14 @@ public class WebSocketServiceTest {
         String sessionID = "sessionID";
         String queryID = "queryID";
         WebSocketQueryHandler handler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
-        webSocketService.submitQuery(queryID, sessionID, "foo", handler);
+        webSocketService.submitQuery(queryID, sessionID, getSampleQuery(), handler);
 
+        ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
         ArgumentCaptor<QueryHandler> handlerCaptor = ArgumentCaptor.forClass(QueryHandler.class);
-        verify(queryService).submit(eq(queryID), eq("foo"));
+        verify(queryService).submit(eq(queryID), queryCaptor.capture());
         verify(handlerService).addHandler(eq(queryID), handlerCaptor.capture());
+
+        assertEqualsSampleQuery(queryCaptor.getValue());
         Assert.assertSame(handlerCaptor.getValue(), handler);
         Assert.assertTrue(webSocketService.getSessionIDMap().containsKey(sessionID));
     }
@@ -101,5 +106,4 @@ public class WebSocketServiceTest {
 
         verify(simpMessagingTemplate).convertAndSendToUser("sessionID", "/response", response, (MessageHeaders) null);
     }
-     */
 }

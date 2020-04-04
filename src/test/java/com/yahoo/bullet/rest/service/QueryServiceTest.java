@@ -6,7 +6,6 @@
 package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.common.SerializerDeserializer;
-import com.yahoo.bullet.parsing.Aggregation;
 import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
@@ -28,6 +27,7 @@ import static com.yahoo.bullet.rest.TestHelpers.assertMessageEquals;
 import static com.yahoo.bullet.rest.TestHelpers.emptyStorage;
 import static com.yahoo.bullet.rest.TestHelpers.failingPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.failingStorage;
+import static com.yahoo.bullet.rest.TestHelpers.getSampleQuery;
 import static com.yahoo.bullet.rest.TestHelpers.metadataModifyingPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.mockPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.mockStorage;
@@ -49,11 +49,7 @@ public class QueryServiceTest {
     private PubSubResponder responder;
     private List<PubSubResponder> responders;
 
-    private static final Query SAMPLE = new Query();
-    static {
-        SAMPLE.setAggregation(new Aggregation(1, Aggregation.Type.RAW));
-        SAMPLE.setDuration(1000L);
-    }
+    private static final Query SAMPLE =  getSampleQuery();
     private static final byte[] SAMPLE_SERIALIZED = SerializerDeserializer.toBytes(SAMPLE);
 
     private void assertMessageResponded(PubSubResponder responderMock, PubSubMessage expected) {

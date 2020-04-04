@@ -5,16 +5,12 @@
  */
 package com.yahoo.bullet.rest.controller;
 
-import com.yahoo.bullet.bql.BulletQueryBuilder;
-import com.yahoo.bullet.common.BulletConfig;
 import com.yahoo.bullet.common.metrics.MetricPublisher;
-import com.yahoo.bullet.parsing.Aggregation;
 import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.rest.model.WebSocketRequest;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.service.BQLService;
-import com.yahoo.bullet.rest.service.HandlerService;
 import com.yahoo.bullet.rest.service.StatusService;
 import com.yahoo.bullet.rest.service.WebSocketService;
 import org.mockito.ArgumentCaptor;
@@ -27,6 +23,9 @@ import org.testng.annotations.Test;
 import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
 import static com.yahoo.bullet.TestHelpers.assertNoMetric;
 import static com.yahoo.bullet.TestHelpers.assertOnlyMetricEquals;
+import static com.yahoo.bullet.rest.TestHelpers.assertEqualsSampleQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getQueryBuilder;
+import static com.yahoo.bullet.rest.TestHelpers.getSampleBQLQuery;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -41,8 +40,6 @@ public class WebSocketControllerTest {
     private StatusService statusService;
     private BQLService bqlService;
     private MetricPublisher metricPublisher;
-
-    private static final BulletQueryBuilder QUERY_BUILDER = new BulletQueryBuilder(new BulletConfig());
 
     private static SimpMessageHeaderAccessor getMockMessageAccessor(String sessionID) {
         SimpMessageHeaderAccessor headerAccessor = mock(SimpMessageHeaderAccessor.class);
@@ -68,7 +65,7 @@ public class WebSocketControllerTest {
         doReturn(false).when(statusService).queryLimitReached();
 
         webSocketService = mock(WebSocketService.class);
-        bqlService = new BQLService(QUERY_BUILDER);
+        bqlService = new BQLService(getQueryBuilder());
         metricPublisher = mock(MetricPublisher.class);
         controller = new WebSocketController(webSocketService, bqlService, statusService, metricPublisher);
     }
@@ -95,8 +92,7 @@ public class WebSocketControllerTest {
 
     @Test
     public void testSubmitNewQuery() {
-        String query = "SELECT * FROM STREAM(1000, TIME) LIMIT 1;";
-        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, query);
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, getSampleBQLQuery());
         String sessionID = "sessionID";
         SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
@@ -104,24 +100,16 @@ public class WebSocketControllerTest {
         ArgumentCaptor<Query> argument = ArgumentCaptor.forClass(Query.class);
 
         verify(webSocketService).submitQuery(anyString(), eq(sessionID), argument.capture(), any());
-        Query actual = argument.getValue();
 
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
-        Assert.assertEquals(actual.getAggregation().getType(), Aggregation.Type.RAW);
-        Assert.assertEquals(actual.getAggregation().getSize(), (Integer) 1);
-        Assert.assertEquals(actual.getDuration(), (Long) 1000L);
-        Assert.assertNull(actual.getFilter());
-        Assert.assertNull(actual.getProjection());
-        Assert.assertNull(actual.getWindow());
-        Assert.assertNull(actual.getPostAggregations());
+        assertEqualsSampleQuery(argument.getValue());
     }
 
     @Test
     public void testSubmitQueryTooManyQueries() {
         doReturn(true).when(statusService).queryLimitReached();
 
-        String query = "SELECT * FROM STREAM(1000, TIME) LIMIT 1;";
-        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, query);
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, getSampleBQLQuery());
         String sessionID = "sessionID";
         SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
