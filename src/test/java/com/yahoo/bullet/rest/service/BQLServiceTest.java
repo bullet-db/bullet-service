@@ -12,16 +12,16 @@ import org.testng.annotations.Test;
 
 import java.util.List;
 
-import static com.yahoo.bullet.rest.TestHelpers.assertEqualsSampleQuery;
+import static com.yahoo.bullet.rest.TestHelpers.assertEqualsQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getInvalidBQLQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getQueryBuilder;
-import static com.yahoo.bullet.rest.TestHelpers.getSampleBQLQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getBQLQuery;
 
 public class BQLServiceTest {
     @Test
     public void testBQLError() {
         BQLService bqlService = new BQLService(getQueryBuilder());
-        String bqlQuery = "SELECT * FROM STREAM(3000, TIME) WHERE 1 + 'foo';";
-        BQLResult result  = bqlService.toQuery(bqlQuery);
+        BQLResult result  = bqlService.toQuery(getInvalidBQLQuery());
         Assert.assertTrue(result.hasErrors());
         List<BulletError> errors = result.getErrors();
         Assert.assertEquals(errors.size(), 1);
@@ -31,9 +31,9 @@ public class BQLServiceTest {
     @Test
     public void testBQLConversion() {
         BQLService bqlService = new BQLService(getQueryBuilder());
-        BQLResult result  = bqlService.toQuery(getSampleBQLQuery());
+        BQLResult result  = bqlService.toQuery(getBQLQuery());
         Assert.assertFalse(result.hasErrors());
         Assert.assertNull(result.getErrors());
-        assertEqualsSampleQuery(result.getQuery());
+        assertEqualsQuery(result.getQuery());
     }
 }

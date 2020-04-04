@@ -5,7 +5,6 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.common.RandomPool;
 import com.yahoo.bullet.common.SerializerDeserializer;
 import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.Metadata;

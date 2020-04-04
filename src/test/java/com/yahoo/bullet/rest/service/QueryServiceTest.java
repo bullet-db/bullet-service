@@ -27,7 +27,7 @@ import static com.yahoo.bullet.rest.TestHelpers.assertMessageEquals;
 import static com.yahoo.bullet.rest.TestHelpers.emptyStorage;
 import static com.yahoo.bullet.rest.TestHelpers.failingPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.failingStorage;
-import static com.yahoo.bullet.rest.TestHelpers.getSampleQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getQuery;
 import static com.yahoo.bullet.rest.TestHelpers.metadataModifyingPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.mockPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.mockStorage;
@@ -49,7 +49,7 @@ public class QueryServiceTest {
     private PubSubResponder responder;
     private List<PubSubResponder> responders;
 
-    private static final Query SAMPLE =  getSampleQuery();
+    private static final Query SAMPLE =  getQuery();
     private static final byte[] SAMPLE_SERIALIZED = SerializerDeserializer.toBytes(SAMPLE);
 
     private void assertMessageResponded(PubSubResponder responderMock, PubSubMessage expected) {

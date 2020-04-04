@@ -7,7 +7,6 @@ package com.yahoo.bullet.rest;
 
 import com.yahoo.bullet.bql.BulletQueryBuilder;
 import com.yahoo.bullet.common.BulletConfig;
-import com.yahoo.bullet.common.SerializerDeserializer;
 import com.yahoo.bullet.parsing.Aggregation;
 import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.Metadata;
@@ -29,12 +28,8 @@ import static org.mockito.Mockito.mock;
 
 public class TestHelpers {
     private static final BulletQueryBuilder QUERY_BUILDER = new BulletQueryBuilder(new BulletConfig());
+    private static final String INVALID_QUERY_BQL = "SELECT * FROM STREAM(1000, TIME) WHERE 1 + 'foo';";
     private static final String SAMPLE_QUERY_BQL = "SELECT * FROM STREAM(1000, TIME) LIMIT 1;";
-    private static final Query SAMPLE_QUERY = new Query();
-    static {
-        SAMPLE_QUERY .setAggregation(new Aggregation(1, Aggregation.Type.RAW));
-        SAMPLE_QUERY .setDuration(1000L);
-    }
 
     public static class CustomMetadata extends Metadata {
         private static final long serialVersionUID = 6927372987820050551L;
@@ -126,15 +121,22 @@ public class TestHelpers {
         return QUERY_BUILDER;
     }
 
-    public static String getSampleBQLQuery() {
+    public static String getInvalidBQLQuery() {
+        return INVALID_QUERY_BQL;
+    }
+
+    public static String getBQLQuery() {
         return SAMPLE_QUERY_BQL;
     }
 
-    public static Query getSampleQuery() {
-        return SAMPLE_QUERY;
+    public static Query getQuery() {
+        Query query = new Query();
+        query.setAggregation(new Aggregation(1, Aggregation.Type.RAW));
+        query.setDuration(1000L);
+        return query;
     }
 
-    public static void assertEqualsSampleQuery(Query actual) {
+    public static void assertEqualsQuery(Query actual) {
         Assert.assertEquals(actual.getAggregation().getType(), Aggregation.Type.RAW);
         Assert.assertEquals(actual.getAggregation().getSize(), (Integer) 1);
         Assert.assertEquals(actual.getDuration(), (Long) 1000L);

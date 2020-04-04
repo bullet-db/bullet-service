@@ -23,9 +23,10 @@ import org.testng.annotations.Test;
 import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
 import static com.yahoo.bullet.TestHelpers.assertNoMetric;
 import static com.yahoo.bullet.TestHelpers.assertOnlyMetricEquals;
-import static com.yahoo.bullet.rest.TestHelpers.assertEqualsSampleQuery;
+import static com.yahoo.bullet.rest.TestHelpers.assertEqualsQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getInvalidBQLQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getQueryBuilder;
-import static com.yahoo.bullet.rest.TestHelpers.getSampleBQLQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getBQLQuery;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -92,7 +93,7 @@ public class WebSocketControllerTest {
 
     @Test
     public void testSubmitNewQuery() {
-        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, getSampleBQLQuery());
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, getBQLQuery());
         String sessionID = "sessionID";
         SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
@@ -102,14 +103,14 @@ public class WebSocketControllerTest {
         verify(webSocketService).submitQuery(anyString(), eq(sessionID), argument.capture(), any());
 
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
-        assertEqualsSampleQuery(argument.getValue());
+        assertEqualsQuery(argument.getValue());
     }
 
     @Test
     public void testSubmitQueryTooManyQueries() {
         doReturn(true).when(statusService).queryLimitReached();
 
-        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, getSampleBQLQuery());
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, getBQLQuery());
         String sessionID = "sessionID";
         SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
@@ -121,8 +122,7 @@ public class WebSocketControllerTest {
 
     @Test
     public void testSubmitBadQuery() {
-        String query = "SELECT * FROM STREAM(1000, TIME) WHERE 1 + 'foo';";
-        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, query);
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, getInvalidBQLQuery());
         String sessionID = "sessionID";
         SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
