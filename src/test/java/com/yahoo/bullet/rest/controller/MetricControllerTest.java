@@ -11,7 +11,6 @@ import com.yahoo.bullet.rest.common.Metric;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static com.yahoo.bullet.TestHelpers.assertNoMetric;
 import static com.yahoo.bullet.TestHelpers.assertOnlyMetricEquals;
 import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
