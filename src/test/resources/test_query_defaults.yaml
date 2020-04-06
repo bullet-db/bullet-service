@@ -8,4 +8,3 @@ bullet.query.aggregation.distribution.max.points: 100
 bullet.query.window.disable: false
 bullet.query.window.min.emit.every.ms: 1000
 bullet.record.schema.file.name: sample_fields.json
-
