@@ -36,7 +36,7 @@ import static java.util.stream.Collectors.toList;
  * Each entry in data is of the form:
  *     {
  *         "id": "a string id",
- *         "type": "column",
+ *         "type": "field",
  *         "attributes": {
  *              "name": "the field name",
  *              "type": "one of BOOLEAN, INTEGER, LONG, FLOAT, DOUBLE, STRING, BOOLEAN_MAP, INTEGER_MAP, LONG_MAP,

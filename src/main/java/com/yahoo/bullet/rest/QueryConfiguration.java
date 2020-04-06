@@ -23,7 +23,7 @@ public class QueryConfiguration {
      * @return A created, valid {@link BQLConfig}.
      */
     @Bean
-    public BQLConfig bqlConfig(@Value("bullet.query.config") String configPath,
+    public BQLConfig bqlConfig(@Value("${bullet.query.config}") String configPath,
                                @Value("${bullet.schema.file}") String schemaPath) {
         BQLConfig config = new BQLConfig(configPath);
         // Set the schema file to the schema regardless

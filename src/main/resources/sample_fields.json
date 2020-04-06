@@ -47,7 +47,7 @@
     {
         "name": "j",
         "type": "INTEGER_MAP_LIST",
-        "description": "This is a list of map of floats"
+        "description": "This is a list of map of integers"
     },
     {
         "name": "k",
