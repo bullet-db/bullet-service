@@ -5,6 +5,10 @@
  */
 package com.yahoo.bullet.rest;
 
+import com.yahoo.bullet.bql.BulletQueryBuilder;
+import com.yahoo.bullet.common.BulletConfig;
+import com.yahoo.bullet.parsing.Aggregation;
+import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Publisher;
@@ -23,6 +27,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 public class TestHelpers {
+    private static final BulletQueryBuilder QUERY_BUILDER = new BulletQueryBuilder(new BulletConfig());
+    private static final String INVALID_QUERY_BQL = "SELECT * FROM STREAM(1000, TIME) WHERE 1 + 'foo';";
+    private static final String SAMPLE_QUERY_BQL = "SELECT * FROM STREAM(1000, TIME) LIMIT 1;";
+
     public static class CustomMetadata extends Metadata {
         private static final long serialVersionUID = 6927372987820050551L;
         @Getter
@@ -107,5 +115,34 @@ public class TestHelpers {
         }
         Assert.assertEquals(actualMetadata.getSignal(), expectedMetadata.getSignal());
         Assert.assertEquals(actualMetadata.getContent(), expectedMetadata.getContent());
+    }
+
+    public static BulletQueryBuilder getQueryBuilder() {
+        return QUERY_BUILDER;
+    }
+
+    public static String getInvalidBQLQuery() {
+        return INVALID_QUERY_BQL;
+    }
+
+    public static String getBQLQuery() {
+        return SAMPLE_QUERY_BQL;
+    }
+
+    public static Query getQuery() {
+        Query query = new Query();
+        query.setAggregation(new Aggregation(1, Aggregation.Type.RAW));
+        query.setDuration(1000L);
+        return query;
+    }
+
+    public static void assertEqualsQuery(Query actual) {
+        Assert.assertEquals(actual.getAggregation().getType(), Aggregation.Type.RAW);
+        Assert.assertEquals(actual.getAggregation().getSize(), (Integer) 1);
+        Assert.assertEquals(actual.getDuration(), (Long) 1000L);
+        Assert.assertNull(actual.getFilter());
+        Assert.assertNull(actual.getProjection());
+        Assert.assertNull(actual.getWindow());
+        Assert.assertNull(actual.getPostAggregations());
     }
 }

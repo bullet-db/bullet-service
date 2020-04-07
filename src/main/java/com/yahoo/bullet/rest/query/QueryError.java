@@ -10,6 +10,9 @@ import com.yahoo.bullet.result.Clip;
 import com.yahoo.bullet.result.Meta;
 import lombok.Getter;
 
+import java.util.Collections;
+import java.util.List;
+
 @Getter
 public class QueryError {
     public static final QueryError TOO_MANY_QUERIES = new QueryError("Too many concurrent queries in the system", "Please try again later");
@@ -20,8 +23,7 @@ public class QueryError {
                        "Please provide a valid query without a window, or use the SSE or WS endpoints to submit queries with windows");
     public static final QueryError SERVICE_UNAVAILABLE = new QueryError("Service temporarily unavailable", "Please try again later");
 
-    private String error;
-    private String resolution;
+    private List<BulletError> errors;
 
     /**
      * Constructor that takes an error message and resolution for it.
@@ -30,12 +32,20 @@ public class QueryError {
      * @param resolution The resolution that can be taken.
      */
     public QueryError(String error, String resolution) {
-        this.error = error;
-        this.resolution = resolution;
+        this.errors = Collections.singletonList(BulletError.makeError(error, resolution));
+    }
+
+    /**
+     * Constructor that takes a {@link List} of {@link BulletError}.
+     *
+     * @param errors The list of errors to use.
+     */
+    public QueryError(List<BulletError> errors) {
+        this.errors = errors;
     }
 
     @Override
     public String toString() {
-        return Clip.of(Meta.of(BulletError.makeError(error, resolution))).asJSON();
+        return Clip.of(Meta.of(errors)).asJSON();
     }
 }

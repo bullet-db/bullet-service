@@ -5,6 +5,7 @@
  */
 package com.yahoo.bullet.rest.service;
 
+import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.query.QueryHandler;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
@@ -16,6 +17,8 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static com.yahoo.bullet.rest.TestHelpers.assertEqualsQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getQuery;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -79,11 +82,14 @@ public class WebSocketServiceTest {
         String sessionID = "sessionID";
         String queryID = "queryID";
         WebSocketQueryHandler handler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
-        webSocketService.submitQuery(queryID, sessionID, "foo", handler);
+        webSocketService.submitQuery(queryID, sessionID, getQuery(), handler);
 
+        ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
         ArgumentCaptor<QueryHandler> handlerCaptor = ArgumentCaptor.forClass(QueryHandler.class);
-        verify(queryService).submit(eq(queryID), eq("foo"));
+        verify(queryService).submit(eq(queryID), queryCaptor.capture());
         verify(handlerService).addHandler(eq(queryID), handlerCaptor.capture());
+
+        assertEqualsQuery(queryCaptor.getValue());
         Assert.assertSame(handlerCaptor.getValue(), handler);
         Assert.assertTrue(webSocketService.getSessionIDMap().containsKey(sessionID));
     }

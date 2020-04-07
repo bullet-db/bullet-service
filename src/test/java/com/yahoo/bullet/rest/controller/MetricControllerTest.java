@@ -25,6 +25,9 @@ public class MetricControllerTest {
     @Test
     public void testDisablingMetrics() {
         MetricController controller = new TestMetricController(null, null);
+        controller.incrementMetric("prefix." + Metric.COUNT);
+        controller.incrementMetric("prefix.", Metric.UNAVAILABLE);
+        controller.publishMetrics();
         Assert.assertFalse(controller.isMetricEnabled());
         Assert.assertNull(controller.getMetricPublisher());
         Assert.assertNull(controller.getMetricCollector());
@@ -38,7 +41,7 @@ public class MetricControllerTest {
         Assert.assertSame(controller.getMetricCollector(), collector);
         Assert.assertTrue(controller.isMetricEnabled());
         controller.incrementMetric("prefix.", Metric.COUNT);
-        controller.incrementMetric("prefix." + Metric.COUNT.toString());
-        assertOnlyMetricEquals(collector, "prefix." + Metric.COUNT.toString(), 2L);
+        controller.incrementMetric("prefix." + Metric.COUNT);
+        assertOnlyMetricEquals(collector, "prefix." + Metric.COUNT, 2L);
     }
 }

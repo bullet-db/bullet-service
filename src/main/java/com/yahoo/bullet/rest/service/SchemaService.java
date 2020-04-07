@@ -7,21 +7,16 @@ package com.yahoo.bullet.rest.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import com.yahoo.bullet.rest.schema.Column;
-import com.yahoo.bullet.rest.schema.JSONAPIColumn;
-import com.yahoo.bullet.rest.schema.JSONAPIDocument;
+import com.yahoo.bullet.rest.model.JSONAPIDocument;
+import com.yahoo.bullet.rest.model.JSONAPIField;
+import com.yahoo.bullet.typesystem.Schema;
+import com.yahoo.bullet.typesystem.Schema.Field;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -29,7 +24,7 @@ import java.util.Objects;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Manages access to and provides the schema for the columns. Use {@link #setSchema(List)} to set the schema.
+ * Manages access to and provides the schema for the fields. Use {@link #setSchema(List)} to set the schema.
  *
  * The schema is of the form:
  * <pre>
@@ -41,24 +36,30 @@ import static java.util.stream.Collectors.toList;
  * Each entry in data is of the form:
  *     {
  *         "id": "a string id",
- *         "type": "column",
+ *         "type": "field",
  *         "attributes": {
- *              "name": "the column name",
- *              "type": "one of ("BOOLEAN", "LONG", "DOUBLE", "STRING", "MAP", "LIST")",
- *              "subtype": "required for MAP/LIST type. One of ("BOOLEAN", "LONG", "DOUBLE", "STRING") if type is MAP
- *                          or MAP if type is LIST"
+ *              "name": "the field name",
+ *              "type": "one of BOOLEAN, INTEGER, LONG, FLOAT, DOUBLE, STRING, BOOLEAN_MAP, INTEGER_MAP, LONG_MAP,
+ *                       FLOAT_MAP, DOUBLE_MAP, STRING_MAP, BOOLEAN_MAP_MAP, INTEGER_MAP_MAP, LONG_MAP_MAP,
+ *                       FLOAT_MAP_MAP, DOUBLE_MAP_MAP, STRING_MAP_MAP, BOOLEAN_LIST, INTEGER_LIST, LONG_LIST,
+ *                       FLOAT_LIST, DOUBLE_LIST, STRING_LIST, BOOLEAN_MAP_LIST, INTEGER_MAP_LIST, LONG_MAP_LIST,
+ *                       FLOAT_MAP_LIST, DOUBLE_MAP_LIST, STRING_MAP_LIST"
  *              "description": "an optional description of this column",
- *              "enumerations": [ include enumerated subfields (column must be of type MAP) of the form
+ *              "subFields": [ include enumerated subfields (field must be of type MAP) of the form
  *                  {"name": "the name of the subfield", "description": "a description for it"}
+ *              ]
+ *              "subSubFields": [ include enumerated subSubfields (field must be of type MAP_MAP) of the form
+ *                  {"name": "the name of the subsubfield", "description": "a description for it"}
+ *              ]
+ *              "subListFields": [ include enumerated subListfields (field must be of type MAP_LIST) of the form
+ *                  {"name": "the name of the sublistfield", "description": "a description for it"}
  *              ]
  *         }
  *     }
  * }
  * </pre>
  */
-@Slf4j
-@Service
-@Getter
+@Slf4j @Service @Getter
 public class SchemaService {
     private String schema;
     private String version;
@@ -92,45 +93,26 @@ public class SchemaService {
     @Autowired
     public SchemaService(@Value("${bullet.schema.version}") String version, @Value("${bullet.schema.file}") String filePath) {
         this.version = version;
-        setSchema(getColumns(filePath));
+        setSchema(loadFields(filePath));
     }
 
     /**
-     * Sets the schema from a List of {@link Column}. It validates the columns and throws a RuntimeException if any.
-     * It validates and converts the Column to match the JSON API specification.
+     * Sets the schema from a List of {@link Field}. It validates the fields and throws a RuntimeException if any.
+     * It validates and converts the Field to match the JSON API specification.
      *
-     * @param columns The List of columns that constitute the schema.
+     * @param fields The List of fields that constitute the schema.
      */
-    public final void setSchema(List<Column> columns) {
-        Objects.requireNonNull(columns);
-        List<JSONAPIColumn> mapped = columns.stream().map(SchemaService::convert).collect(toList());
+    private void setSchema(List<Field> fields) {
+        Objects.requireNonNull(fields);
+        List<JSONAPIField> mapped = fields.stream().map(JSONAPIField::from).collect(toList());
         JSONAPIDocument schema = new JSONAPIDocument(mapped, Collections.singletonMap(VERSION_KEY, getVersion()));
         this.schema = GSON.toJson(schema);
         log.info("Schema: {}", this.schema);
     }
 
-    private List<Column> getColumns(String path) {
-        log.info("Parsing json from read file");
-        List<Column> columns = GSON.fromJson(getReader(path), new TypeToken<List<Column>>() { }.getType());
-        log.info("Read columns : {}", columns);
-        return columns;
-    }
-
-    private static JSONAPIColumn convert(Column column) {
-        Objects.requireNonNull(column);
-        if (!column.isValid())  {
-            throw new RuntimeException("Invalid column: " + GSON.toJson(column));
-        }
-        return JSONAPIColumn.from(column);
-    }
-
-    private Reader getReader(String path) {
-        log.info("Loading columns from file : {}", path);
-        try {
-            return new FileReader(new File(path));
-        } catch (IOException ioe) {
-            log.warn("Unable to read schema from file path: {}. Trying classpath instead...", path);
-            return new InputStreamReader(getClass().getResourceAsStream(path));
-        }
+    private List<Field> loadFields(String path) {
+        Schema schema = new Schema(path);
+        log.info("Read {} fields", schema.size());
+        return schema.getFields();
     }
 }

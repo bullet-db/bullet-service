@@ -5,7 +5,8 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.common.RandomPool;
+import com.yahoo.bullet.common.SerializerDeserializer;
+import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.PubSubResponder;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
 public class QueryService extends PubSubResponder {
     private StorageManager storage;
     private List<PubSubResponder> responders;
-    private RandomPool<Publisher> publishers;
+    private PublisherRandomPool publishers;
     private List<Reader> readers;
 
     private static final CompletableFuture<PubSubMessage> NONE = CompletableFuture.completedFuture(null);
@@ -69,9 +70,9 @@ public class QueryService extends PubSubResponder {
      * @param query The query to send.
      * @return A {@link CompletableFuture} that resolves to the sent {@link PubSubMessage} or null if it could not be sent.
      */
-    public CompletableFuture<PubSubMessage> submit(String id, String query) {
+    public CompletableFuture<PubSubMessage> submit(String id, Query query) {
         log.debug("Submitting query {}", id);
-        PubSubMessage message = new PubSubMessage(id, query);
+        PubSubMessage message = new PubSubMessage(id, SerializerDeserializer.toBytes(query));
         // Publish then store. Publishing might change the message. Store the sent result
         return publish(message).thenComposeAsync(sent -> store(id, sent))
                                .thenApply(sent -> onSubmit(id, sent))
@@ -140,7 +141,7 @@ public class QueryService extends PubSubResponder {
         readers.forEach(Reader::close);
         responders.forEach(PubSubResponder::close);
         storage.close();
-        publishers.clear();
+        publishers.close();
     }
 
     private CompletableFuture<PubSubMessage> store(String id, PubSubMessage message) {

@@ -14,6 +14,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,19 +29,19 @@ public class StatusServiceTest {
             return null;
         }).when(handlerService).addHandler(anyString(), any());
 
-        StatusService statusService = new StatusService(queryService, handlerService, 30000L, 10L, false);
-        Assert.assertTrue(statusService.isBackendStatusOk());
+        StatusService statusService = new StatusService(queryService, handlerService, 30000L, 10L, false, 500);
+        Assert.assertTrue(statusService.isBackendStatusOK());
 
         // <= 10 fails -> status ok
         for (int i = 0; i < 10; i++) {
             statusService.run();
         }
-        Assert.assertTrue(statusService.isBackendStatusOk());
+        Assert.assertTrue(statusService.isBackendStatusOK());
         verify(queryService, times(10)).submit(anyString(), eq(StatusService.TICK_QUERY));
 
         // > 10 fails (i.e. >= 10 retries) -> status not ok
         statusService.run();
-        Assert.assertFalse(statusService.isBackendStatusOk());
+        Assert.assertFalse(statusService.isBackendStatusOK());
         verify(queryService, times(11)).submit(anyString(), eq(StatusService.TICK_QUERY));
 
         doAnswer(invocationOnMock -> {
@@ -50,7 +51,7 @@ public class StatusServiceTest {
 
         // success -> status ok
         statusService.run();
-        Assert.assertTrue(statusService.isBackendStatusOk());
+        Assert.assertTrue(statusService.isBackendStatusOK());
         verify(queryService, times(12)).submit(anyString(), eq(StatusService.TICK_QUERY));
     }
 
@@ -84,5 +85,23 @@ public class StatusServiceTest {
     public void testTickQueryHandlerTimeout() {
         TickQueryHandler queryHandler = new TickQueryHandler(0L);
         Assert.assertFalse(queryHandler.hasResult());
+    }
+
+    @Test
+    public void testQueryLimitReached() {
+        QueryService queryService = mock(QueryService.class);
+        HandlerService handlerService = mock(HandlerService.class);
+        doReturn(500).when(handlerService).count();
+        StatusService statusService = new StatusService(queryService, handlerService, 30000L, 10L, false, 500);
+        Assert.assertTrue(statusService.queryLimitReached());
+    }
+
+    @Test
+    public void testQueryLimitNotReached() {
+        QueryService queryService = mock(QueryService.class);
+        HandlerService handlerService = mock(HandlerService.class);
+        doReturn(499).when(handlerService).count();
+        StatusService statusService = new StatusService(queryService, handlerService, 30000L, 10L, false, 500);
+        Assert.assertFalse(statusService.queryLimitReached());
     }
 }

@@ -6,10 +6,11 @@
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.common.metrics.MetricPublisher;
+import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.rest.model.WebSocketRequest;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
-import com.yahoo.bullet.rest.service.HandlerService;
-import com.yahoo.bullet.rest.service.PreprocessingService;
+import com.yahoo.bullet.rest.query.QueryError;
+import com.yahoo.bullet.rest.service.BQLService;
 import com.yahoo.bullet.rest.service.StatusService;
 import com.yahoo.bullet.rest.service.WebSocketService;
 import org.mockito.ArgumentCaptor;
@@ -22,10 +23,13 @@ import org.testng.annotations.Test;
 import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
 import static com.yahoo.bullet.TestHelpers.assertNoMetric;
 import static com.yahoo.bullet.TestHelpers.assertOnlyMetricEquals;
+import static com.yahoo.bullet.rest.TestHelpers.assertEqualsQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getInvalidBQLQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getQueryBuilder;
+import static com.yahoo.bullet.rest.TestHelpers.getBQLQuery;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -35,8 +39,7 @@ public class WebSocketControllerTest {
     private WebSocketController controller;
     private WebSocketService webSocketService;
     private StatusService statusService;
-    private HandlerService handlerService;
-    private PreprocessingService preprocessingService;
+    private BQLService bqlService;
     private MetricPublisher metricPublisher;
 
     private static SimpMessageHeaderAccessor getMockMessageAccessor(String sessionID) {
@@ -52,7 +55,6 @@ public class WebSocketControllerTest {
         return request;
     }
 
-
     private static String metric(HttpStatus httpStatus) {
         return WebSocketController.STATUS_PREFIX + httpStatus;
     }
@@ -60,23 +62,18 @@ public class WebSocketControllerTest {
     @BeforeMethod
     public void setup() {
         statusService = mock(StatusService.class);
-        doReturn(true).when(statusService).isBackendStatusOk();
-
-        handlerService = mock(HandlerService.class);
-        doReturn(0).when(handlerService).count();
+        doReturn(true).when(statusService).isBackendStatusOK();
+        doReturn(false).when(statusService).queryLimitReached();
 
         webSocketService = mock(WebSocketService.class);
-
-        preprocessingService = new PreprocessingService(handlerService, 500);
-
+        bqlService = new BQLService(getQueryBuilder());
         metricPublisher = mock(MetricPublisher.class);
-
-        controller = new WebSocketController(webSocketService, preprocessingService, statusService, metricPublisher);
+        controller = new WebSocketController(webSocketService, bqlService, statusService, metricPublisher);
     }
 
     @Test
     public void testWebSocketQueryWithBackendDown() {
-        doReturn(false).when(statusService).isBackendStatusOk();
+        doReturn(false).when(statusService).isBackendStatusOK();
 
         String sessionID = "sessionID";
         WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, "{}");
@@ -89,30 +86,31 @@ public class WebSocketControllerTest {
 
         WebSocketResponse response = argument.getValue();
         Assert.assertEquals(response.getType(), WebSocketResponse.Type.FAIL);
-        String expected = "{'records':[],'meta':{'errors':[{'error':'Service temporarily unavailable','resolutions':['Please try again later']}]}}";
+        String expected = QueryError.SERVICE_UNAVAILABLE.toString();
         assertJSONEquals(response.getContent(), expected);
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.SERVICE_UNAVAILABLE), 1L);
     }
 
     @Test
     public void testSubmitNewQuery() {
-        String query = "{}";
-        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, query);
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, getBQLQuery());
         String sessionID = "sessionID";
         SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
         controller.submitWebsocketQuery(request, headerAccessor);
+        ArgumentCaptor<Query> argument = ArgumentCaptor.forClass(Query.class);
 
-        verify(webSocketService).submitQuery(anyString(), eq(sessionID), eq(query), any());
+        verify(webSocketService).submitQuery(anyString(), eq(sessionID), argument.capture(), any());
+
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
+        assertEqualsQuery(argument.getValue());
     }
 
     @Test
     public void testSubmitQueryTooManyQueries() {
-        doReturn(500).when(handlerService).count();
+        doReturn(true).when(statusService).queryLimitReached();
 
-        String query = "{}";
-        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, query);
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, getBQLQuery());
         String sessionID = "sessionID";
         SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
@@ -124,8 +122,7 @@ public class WebSocketControllerTest {
 
     @Test
     public void testSubmitBadQuery() {
-        String query = "This is a bad query";
-        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, query);
+        WebSocketRequest request = getMockRequest(WebSocketRequest.Type.NEW_QUERY, getInvalidBQLQuery());
         String sessionID = "sessionID";
         SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
 
@@ -133,19 +130,6 @@ public class WebSocketControllerTest {
 
         verify(webSocketService, never()).submitQuery(any(), any(), any(), any());
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.BAD_REQUEST), 1L);
-    }
-
-    @Test
-    public void testSubmitBadQueryRuntimeException() {
-        WebSocketRequest request = mock(WebSocketRequest.class);
-        doReturn(WebSocketRequest.Type.NEW_QUERY).when(request).getType();
-        doThrow(new RuntimeException("Testing")).when(request).getContent();
-        String sessionID = "sessionID";
-        SimpMessageHeaderAccessor headerAccessor = getMockMessageAccessor(sessionID);
-
-        controller.submitWebsocketQuery(request, headerAccessor);
-
-        verify(webSocketService, never()).submitQuery(any(), any(), any(), any());
     }
 
     @Test

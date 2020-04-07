@@ -2,13 +2,10 @@
 # Bullet Web-Service settings
 ####################################################################################################################
 bullet:
-  # This controls the maximum number of Synchronous queries that can run concurrently. Any further queries submitted
-  # once this limit is reached causes the API to return a 5xx. Note that this does not affect Asynchronous queries
-  max.concurrent.queries: 500
 
   # This module checks if the backend is operational and turns off the service if the backend is not reachable. It will
-  # reenable the API if the backend is reachable after. It polls the backend with a custom query as the status check
-  backend.status:
+  # re-enable the API if the backend is reachable after. It polls the backend with a custom query as the status check
+  status:
     # Whether or not this service is enabled
     enabled: true
     # The timeout/interval in ms between pings to the backend
@@ -16,20 +13,28 @@ bullet:
     # The number of retries after a failed ping before the backend status is considered not ok
     retries: 10
 
-  # This module serves the schema of the data. This is primarily used by the UI to provide its type aware query building
+  # The various configurations for queries supported in the service
+  query:
+    # The path to the config containing the various Bullet and BQL configurations
+    config: 'query_defaults.yaml'
+    # This controls the maximum number of Synchronous queries that can run concurrently. Any further queries submitted
+    # once this limit is reached causes the API to return a 5xx. Note that this does not affect Asynchronous queries
+    synchronous.max.concurrency: 500
+
+  # This module serves the schema of the data. This is used by the UI to provide its type aware query building as well as # BQL module to provide type-awareness
   schema:
     # The fully qualified path to your schema file
-    file: 'sample_columns.json'
-    version: '0.1'
+    file: 'sample_fields.json'
+    version: '1.0'
 
   # The following configure the PubSub module used by the API. This is the mechanism by the which the API (service)
-  # talks to the backend. The config picks the com.yahoo.bullet.pubsub.PubSub implementation being used.
+  # talks to the backend. The config picks the com.yahoo.bullet.pubsub.PubSub implementation being used
   pubsub:
     # The number of subscriber instances (each creates a thread to read) reading responses from the PubSub
     subscribers: 1
     # The number of publisher publishing queries to the PubSub
     publishers: 1
-    # The file containing settings required by the PubSub implementation being used.
+    # The file containing settings required by the PubSub implementation being used
     config: 'pubsub_defaults.yaml'
     # The amount of time to sleep in ms between empty responses reads from the PubSub. Avoids busy waiting
     sleep-ms: 1
@@ -93,7 +98,6 @@ bullet:
 
   # The following configure the names of the various renamable public endpoints of the API
   endpoint:
-    bql-to-json: '/bql-to-json'
     http: '/http-query'
     sse: '/sse-query'
     websocket: '/ws-query'

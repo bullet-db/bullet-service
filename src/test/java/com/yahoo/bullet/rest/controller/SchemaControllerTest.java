@@ -13,13 +13,13 @@ import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
 public class SchemaControllerTest {
     @Test
     public void testDefaultResponse() {
-        SchemaService service = new SchemaService("1.2", "/test_columns.json");
+        SchemaService service = new SchemaService("1.2", "test_fields.json");
         SchemaController controller = new SchemaController(service);
         String actual = controller.getJSONSchema();
 
         String expected =
-            "{'data': [{'id':'test','type':'column'," +
-                       "'attributes':{'name':'test','type':'MAP','subtype':'STRING','description':'foo'}}]," +
+            "{'data': [{'id':'test','type':'field'," +
+                       "'attributes':{'name':'test','type':'STRING_MAP','description':'foo'}}]," +
              "'meta':{'version':'1.2'}}";
         assertJSONEquals(actual, expected);
     }
