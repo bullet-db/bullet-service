@@ -21,7 +21,7 @@ public class SchemaServiceTest {
     @Test
     public void testClasspathResource() {
         String expected =
-            "{'data': [{'id':'test','type':'field'," +
+            "{'data': [{'id':'test','type':'column'," +
                        "'attributes':{'name':'test','type':'STRING_MAP','description':'foo'}}]," +
              "'meta':{'version':'1.2'}}";
         SchemaService service = new SchemaService("1.2", "test_fields.json");
