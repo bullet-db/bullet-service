@@ -14,7 +14,7 @@ import lombok.Setter;
 @Getter @Setter
 public class JSONAPIField {
     private String id;
-    private String type = "field";
+    private String type = "column";
     private Field attributes;
 
     /**
