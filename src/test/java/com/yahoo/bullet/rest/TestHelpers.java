@@ -7,11 +7,14 @@ package com.yahoo.bullet.rest;
 
 import com.yahoo.bullet.bql.BulletQueryBuilder;
 import com.yahoo.bullet.common.BulletConfig;
-import com.yahoo.bullet.parsing.Aggregation;
-import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.Publisher;
+import com.yahoo.bullet.query.Projection;
+import com.yahoo.bullet.query.Query;
+import com.yahoo.bullet.query.Window;
+import com.yahoo.bullet.query.aggregations.AggregationType;
+import com.yahoo.bullet.query.aggregations.Raw;
 import com.yahoo.bullet.storage.StorageManager;
 import lombok.Getter;
 import org.testng.Assert;
@@ -130,19 +133,21 @@ public class TestHelpers {
     }
 
     public static Query getQuery() {
-        Query query = new Query();
-        query.setAggregation(new Aggregation(1, Aggregation.Type.RAW));
-        query.setDuration(1000L);
-        return query;
+        return new Query(new Projection(), null, new Raw(1), null, new Window(), 1000L);
+    }
+
+    public static Query getQueryWithWindow(Window window) {
+        return new Query(new Projection(), null, new Raw(1), null, window, 1000L);
     }
 
     public static void assertEqualsQuery(Query actual) {
-        Assert.assertEquals(actual.getAggregation().getType(), Aggregation.Type.RAW);
+        Assert.assertEquals(actual.getAggregation().getType(), AggregationType.RAW);
         Assert.assertEquals(actual.getAggregation().getSize(), (Integer) 1);
         Assert.assertEquals(actual.getDuration(), (Long) 1000L);
         Assert.assertNull(actual.getFilter());
-        Assert.assertNull(actual.getProjection());
-        Assert.assertNull(actual.getWindow());
+        Assert.assertNull(actual.getProjection().getFields());
+        Assert.assertEquals(actual.getProjection().getType(), Projection.Type.PASS_THROUGH);
+        Assert.assertNull(actual.getWindow().getType());
         Assert.assertNull(actual.getPostAggregations());
     }
 }

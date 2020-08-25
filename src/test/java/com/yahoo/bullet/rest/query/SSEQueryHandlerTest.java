@@ -34,18 +34,18 @@ public class SSEQueryHandlerTest {
 
     @Test
     public void testSendOnMessage() throws Exception {
-        PubSubMessage message = new PubSubMessage("id", "foo");
+        PubSubMessage message = new PubSubMessage("id", "foo", null);
 
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.send(message);
 
-        verify(sseEmitter).send(eq("foo"), eq(MediaType.APPLICATION_JSON));
+        verify(sseEmitter).send(eq(message.getContent()), eq(MediaType.APPLICATION_JSON));
         Assert.assertFalse(sseQueryHandler.isComplete());
     }
 
     @Test
     public void testSendOnException() throws Exception {
-        PubSubMessage message = new PubSubMessage("id", "foo");
+        PubSubMessage message = new PubSubMessage("id", "foo", null);
 
         doThrow(new IOException()).when(sseEmitter).send(message.getContent(), MediaType.APPLICATION_JSON);
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
@@ -59,7 +59,7 @@ public class SSEQueryHandlerTest {
     public void testSendAfterComplete() throws Exception {
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.complete();
-        sseQueryHandler.send(new PubSubMessage("id", "foo"));
+        sseQueryHandler.send(new PubSubMessage("id", "foo", null));
 
         verify(sseEmitter, never()).send(any(), any());
         verify(queryService, never()).kill(any());

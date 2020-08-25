@@ -5,7 +5,7 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.parsing.Query;
+import com.yahoo.bullet.query.Query;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
 import lombok.AccessLevel;

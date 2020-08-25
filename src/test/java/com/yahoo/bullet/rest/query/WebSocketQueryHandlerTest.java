@@ -33,7 +33,7 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
 
     @Test
     public void testSendOnMessage() {
-        PubSubMessage message = new PubSubMessage("id", "foo");
+        PubSubMessage message = new PubSubMessage("id", "foo", null);
 
         WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
         webSocketQueryHandler.send(message);
@@ -41,7 +41,7 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
         ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
         verify(webSocketService).sendResponse(eq("id"), argument.capture(), any());
         Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.MESSAGE);
-        Assert.assertEquals(argument.getValue().getContent(), message.getContent());
+        Assert.assertEquals(argument.getValue().getContent(), message.getContentAsString());
         Assert.assertFalse(webSocketQueryHandler.isComplete());
     }
 
@@ -55,7 +55,7 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
         ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
         verify(webSocketService).sendResponse(eq("id"), argument.capture(), any());
         Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.FAIL);
-        Assert.assertEquals(argument.getValue().getContent(), message.getContent());
+        Assert.assertEquals(argument.getValue().getContent(), message.getContentAsString());
         Assert.assertFalse(webSocketQueryHandler.isComplete());
     }
 
@@ -69,13 +69,13 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
         ArgumentCaptor<WebSocketResponse> argument = ArgumentCaptor.forClass(WebSocketResponse.class);
         verify(webSocketService).sendResponse(eq("id"), argument.capture(), any());
         Assert.assertEquals(argument.getValue().getType(), WebSocketResponse.Type.COMPLETE);
-        Assert.assertEquals(argument.getValue().getContent(), message.getContent());
+        Assert.assertEquals(argument.getValue().getContent(), message.getContentAsString());
         Assert.assertFalse(webSocketQueryHandler.isComplete());
     }
 
     @Test
     public void testSendAfterComplete() {
-        PubSubMessage message = new PubSubMessage("id", "foo");
+        PubSubMessage message = new PubSubMessage("id", "foo", null);
 
         WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
         webSocketQueryHandler.complete();

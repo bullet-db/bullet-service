@@ -8,9 +8,9 @@ package com.yahoo.bullet.rest.controller;
 import com.yahoo.bullet.bql.BQLResult;
 import com.yahoo.bullet.common.BulletError;
 import com.yahoo.bullet.common.SerializerDeserializer;
-import com.yahoo.bullet.parsing.Query;
-import com.yahoo.bullet.parsing.Window;
 import com.yahoo.bullet.pubsub.PubSubMessage;
+import com.yahoo.bullet.query.Query;
+import com.yahoo.bullet.query.Window;
 import com.yahoo.bullet.rest.model.QueryResponse;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
@@ -43,6 +43,7 @@ import static com.yahoo.bullet.TestHelpers.assertOnlyMetricEquals;
 import static com.yahoo.bullet.rest.TestHelpers.assertEqualsQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getBQLQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getQueryWithWindow;
 import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -128,25 +129,14 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         CompletableFuture<String> response = controller.submitHTTPQuery(getBQLQuery());
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
         verify(handlerService).addHandler(anyString(), argument.capture());
-        argument.getValue().send(new PubSubMessage("", "bar"));
-        Assert.assertEquals(response.get(), "bar");
-        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
-    }
-
-    @Test
-    public void testSubmitHTTPQueryWithNullWindow() throws Exception {
-        CompletableFuture<String> response = controller.submitHTTPQuery(getBQLQuery());
-        ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
-        verify(handlerService).addHandler(anyString(), argument.capture());
-        argument.getValue().send(new PubSubMessage("", "bar"));
+        argument.getValue().send(new PubSubMessage("", "bar", null));
         Assert.assertEquals(response.get(), "bar");
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
     }
 
     @Test
     public void testSubmitHTTPQueryWithWindow() throws Exception {
-        Query query = getQuery();
-        query.setWindow(new Window());
+        Query query = getQueryWithWindow(new Window(1, Window.Unit.RECORD));
         mockValidBQLResult(bqlService, query);
 
         CompletableFuture<String> response = controller.submitHTTPQuery("query");
@@ -179,7 +169,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
         verify(handlerService).addHandler(anyString(), argument.capture());
         verify(queryService).submit(anyString(), queryCaptor.capture());
-        argument.getValue().send(new PubSubMessage("", "bar"));
+        argument.getValue().send(new PubSubMessage("", "bar", null));
         Assert.assertEquals(response.get(), "bar");
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
         assertEqualsQuery(queryCaptor.getValue());
@@ -218,9 +208,9 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         MvcResult result = mockMVC.perform(post("/sse-query").contentType(MediaType.TEXT_PLAIN).content(getBQLQuery())).andReturn();
         ArgumentCaptor<SSEQueryHandler> argument = ArgumentCaptor.forClass(SSEQueryHandler.class);
         verify(handlerService).addHandler(anyString(), argument.capture());
-        argument.getValue().send(new PubSubMessage("", "bar"));
+        argument.getValue().send(new PubSubMessage("", "bar", null));
         Assert.assertEquals(result.getResponse().getContentAsString(), "data:bar\n\n");
-        argument.getValue().send(new PubSubMessage("", "baz"));
+        argument.getValue().send(new PubSubMessage("", "baz", null));
         Assert.assertEquals(result.getResponse().getContentAsString(), "data:bar\n\ndata:baz\n\n");
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
     }

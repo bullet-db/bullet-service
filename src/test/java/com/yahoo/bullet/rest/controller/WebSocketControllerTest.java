@@ -6,7 +6,7 @@
 package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.common.metrics.MetricPublisher;
-import com.yahoo.bullet.parsing.Query;
+import com.yahoo.bullet.query.Query;
 import com.yahoo.bullet.rest.model.WebSocketRequest;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.query.QueryError;

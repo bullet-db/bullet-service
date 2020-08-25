@@ -6,12 +6,12 @@
 package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.common.SerializerDeserializer;
-import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
+import com.yahoo.bullet.query.Query;
 import com.yahoo.bullet.rest.TestHelpers.CustomMetadata;
 import com.yahoo.bullet.storage.StorageManager;
 import org.mockito.ArgumentCaptor;
@@ -257,7 +257,7 @@ public class QueryServiceTest {
         StorageManager storage = emptyStorage();
         QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
 
-        PubSubMessage expected = new PubSubMessage("key", "test");
+        PubSubMessage expected = new PubSubMessage("key", "test", null);
         service.respond("key", expected);
         assertMessageResponded(responder, expected);
     }
