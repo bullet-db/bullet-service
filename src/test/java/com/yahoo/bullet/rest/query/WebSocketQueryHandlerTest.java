@@ -33,7 +33,7 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
 
     @Test
     public void testSendOnMessage() {
-        PubSubMessage message = new PubSubMessage("id", "foo", null);
+        PubSubMessage message = new PubSubMessage("id", "foo");
 
         WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
         webSocketQueryHandler.send(message);
@@ -75,7 +75,7 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
 
     @Test
     public void testSendAfterComplete() {
-        PubSubMessage message = new PubSubMessage("id", "foo", null);
+        PubSubMessage message = new PubSubMessage("id", "foo");
 
         WebSocketQueryHandler webSocketQueryHandler = new WebSocketQueryHandler(webSocketService, "id", "foo");
         webSocketQueryHandler.complete();

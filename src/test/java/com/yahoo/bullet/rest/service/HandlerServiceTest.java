@@ -115,7 +115,7 @@ public class HandlerServiceTest {
         HandlerService service = new HandlerService();
         service.addHandler("id", handler);
 
-        PubSubMessage message = new PubSubMessage("id", "content", null);
+        PubSubMessage message = new PubSubMessage("id", "content");
         service.respond("id", message);
         verify(handler, times(2)).isComplete();
         verify(handler).send(eq(message));

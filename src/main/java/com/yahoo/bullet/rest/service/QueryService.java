@@ -12,6 +12,7 @@ import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.query.Query;
+import com.yahoo.bullet.rest.PubSubConfiguration.PubSubResponderList;
 import com.yahoo.bullet.rest.common.PublisherRandomPool;
 import com.yahoo.bullet.rest.common.Reader;
 import com.yahoo.bullet.rest.common.Utils;
@@ -27,8 +28,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-@Slf4j
-@Service
+@Service @Slf4j
 public class QueryService extends PubSubResponder {
     private StorageManager storage;
     private List<PubSubResponder> responders;
@@ -43,21 +43,21 @@ public class QueryService extends PubSubResponder {
      * Constructor that takes various necessary components.
      *
      * @param storageManager The non-null {@link StorageManager} to use.
-     * @param responders The non-empty {@link List} of {@link PubSubResponder} to use.
+     * @param pubSubResponderList The non-null {@link PubSubResponderList} to use.
      * @param publishers The non-empty {@link List} of {@link Publisher} to use.
      * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
      * @param sleep The time to sleep between checking for messages from the pubsub.
      */
     @Autowired
-    public QueryService(StorageManager storageManager, List<PubSubResponder> responders, List<Publisher> publishers,
+    public QueryService(StorageManager storageManager, PubSubResponderList pubSubResponderList, List<Publisher> publishers,
                         List<Subscriber> subscribers, @Value("${bullet.pubsub.sleep-ms}") int sleep) {
         super(null);
         Objects.requireNonNull(storageManager);
-        Utils.checkNotEmpty(responders);
+        Objects.requireNonNull(pubSubResponderList);
         Utils.checkNotEmpty(publishers);
         Utils.checkNotEmpty(subscribers);
         this.storage = storageManager;
-        this.responders = responders;
+        this.responders = pubSubResponderList.getResponders();
         this.publishers = new PublisherRandomPool(publishers);
         this.readers = subscribers.stream().map(x -> new Reader(x, this, sleep)).collect(Collectors.toList());
         this.readers.forEach(Reader::start);

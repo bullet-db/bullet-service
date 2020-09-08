@@ -12,17 +12,24 @@ import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.service.HandlerService;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Configuration @Slf4j
 public class PubSubConfiguration {
+    @AllArgsConstructor @Getter
+    public static class PubSubResponderList {
+        public List<PubSubResponder> responders;
+    }
+
     /**
      * Creates a synchronous {@link PubSubResponder} instance.
      *
@@ -35,23 +42,19 @@ public class PubSubConfiguration {
     }
 
     @Bean @ConditionalOnMissingBean
-    public List<PubSubResponder> asyncResponders() {
-        log.info("Async responders are not configured. Using an empty list for async responders");
-        return new ArrayList<>();
+    public AsyncConfiguration.ResponderClasses responderClasses() {
+        log.info("Async responder classes are not configured.");
+        return null;
     }
 
-    /**
-     * Creates the {@link PubSubResponder} instances to use for responding to queries.
-     *
-     * @param syncResponder The required responder to use for synchronous queries.
-     * @param asyncResponders Other responders to use for asynchronous queries. Maybe empty.
-     * @return A {@link List} of {@link PubSubResponder} instances.
-     */
     @Bean
-    public List<PubSubResponder> responders(PubSubResponder syncResponder, List<PubSubResponder> asyncResponders) {
-        List<PubSubResponder> responders = new ArrayList<>(asyncResponders);
+    public PubSubResponderList responders(PubSubResponder syncResponder, AsyncConfiguration.ResponderClasses responderClasses) {
+        if (responderClasses == null) {
+            return new PubSubResponderList(Collections.singletonList(syncResponder));
+        }
+        List<PubSubResponder> responders = responderClasses.create();
         responders.add(syncResponder);
-        return responders;
+        return new PubSubResponderList(responders);
     }
 
     /**

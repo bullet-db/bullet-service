@@ -18,7 +18,7 @@ public class HTTPQueryHandlerTest {
         CompletableFuture<String> result = queryHandler.getResult();
         Assert.assertFalse(result.isDone());
 
-        queryHandler.send(new PubSubMessage("", "foo", null));
+        queryHandler.send(new PubSubMessage("", "foo"));
 
         Assert.assertTrue(result.isDone());
         Assert.assertFalse(result.isCancelled());
@@ -31,9 +31,9 @@ public class HTTPQueryHandlerTest {
         CompletableFuture<String> result = queryHandler.getResult();
         Assert.assertFalse(result.isDone());
 
-        queryHandler.send(new PubSubMessage("", "foo", null));
+        queryHandler.send(new PubSubMessage("", "foo"));
         queryHandler.complete();
-        queryHandler.send(new PubSubMessage("", "bar", null));
+        queryHandler.send(new PubSubMessage("", "bar"));
 
         Assert.assertTrue(result.isDone());
         Assert.assertFalse(result.isCancelled());

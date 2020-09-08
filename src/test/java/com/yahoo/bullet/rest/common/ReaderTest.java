@@ -105,7 +105,7 @@ public class ReaderTest {
     public void setup() {
         String randomID = UUID.randomUUID().toString();
         responder = new MockResponder();
-        mockMessage = new PubSubMessage(randomID, "foo", null);
+        mockMessage = new PubSubMessage(randomID, "foo");
     }
 
     @Test(timeOut = 10000)
