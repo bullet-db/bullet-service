@@ -47,6 +47,13 @@ public class PubSubConfiguration {
         return null;
     }
 
+    /**
+     * Creates a {@link PubSubResponderList} instance to use for responding to queries.
+     *
+     * @param syncResponder The required responder to use for synchronous queries.
+     * @param responderClasses The responders to use for asynchronous queries. May be empty.
+     * @return The list of {@link PubSubResponder} instances wrapped as a {@link PubSubResponderList}.
+     */
     @Bean
     public PubSubResponderList responders(PubSubResponder syncResponder, AsyncConfiguration.ResponderClasses responderClasses) {
         if (responderClasses == null) {

@@ -68,11 +68,12 @@ public class QueryService extends PubSubResponder {
      *
      * @param id The query ID of the query.
      * @param query The query to send.
+     * @param queryString The string representation of the query.
      * @return A {@link CompletableFuture} that resolves to the sent {@link PubSubMessage} or null if it could not be sent.
      */
-    public CompletableFuture<PubSubMessage> submit(String id, Query query) {
+    public CompletableFuture<PubSubMessage> submit(String id, Query query, String queryString) {
         log.debug("Submitting query {}", id);
-        PubSubMessage message = new PubSubMessage(id, SerializerDeserializer.toBytes(query));
+        PubSubMessage message = new PubSubMessage(id, SerializerDeserializer.toBytes(query), new Metadata(Metadata.Signal.CUSTOM, queryString));
         // Publish then store. Publishing might change the message. Store the sent result
         return publish(message).thenComposeAsync(sent -> store(id, sent))
                                .thenApply(sent -> onSubmit(id, sent))

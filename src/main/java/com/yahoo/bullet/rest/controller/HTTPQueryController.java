@@ -98,7 +98,7 @@ public class HTTPQueryController extends MetricController {
         String id = Utils.getNewQueryID();
         log.debug("Submitting HTTP query {}: {}", id, query);
         handlerService.addHandler(id, handler);
-        queryService.submit(id, bulletQuery);
+        queryService.submit(id, bulletQuery, result.getBql());
         return returnWith(Metric.CREATED, handler.getResult());
     }
 
@@ -129,7 +129,7 @@ public class HTTPQueryController extends MetricController {
         }
         log.debug("Submitting SSE query {}: {}", id, query);
         handlerService.addHandler(id, handler);
-        queryService.submit(id, result.getQuery());
+        queryService.submit(id, result.getQuery(), result.getBql());
         return returnWith(Metric.CREATED, sseEmitter);
     }
 
@@ -151,7 +151,7 @@ public class HTTPQueryController extends MetricController {
         final Query query = result.getQuery();
         final String id = Utils.getNewQueryID();
         log.debug("Submitting Async query {}: {}", id, asyncQuery);
-        return queryService.submit(id, query)
+        return queryService.submit(id, query, result.getBql())
                            .thenCompose(message -> createQueryResponse(message, id, asyncQuery))
                            .exceptionally(this::internalError);
     }

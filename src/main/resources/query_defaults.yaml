@@ -10,8 +10,7 @@ bullet.query.aggregation.distribution.max.points: 100
 bullet.query.window.disable: false
 bullet.query.window.min.emit.every.ms: 1000
 
-# This is generally the same schema file as provided in the application.yaml. If you omit this, the value provided there
-# will be used instead
+# This is generally the same schema file as provided in the application.yaml.
 bullet.record.schema.file.name: sample_fields.json
 
 # You may also add any relevant settings for BQL here

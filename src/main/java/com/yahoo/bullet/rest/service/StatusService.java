@@ -110,7 +110,7 @@ public class StatusService implements Runnable {
 
         String id = Utils.getNewQueryID();
         handlerService.addHandler(id, tickQueryHandler);
-        queryService.submit(id, TICK_QUERY);
+        queryService.submit(id, TICK_QUERY, null);
 
         if (tickQueryHandler.hasResult()) {
             count = 0;
