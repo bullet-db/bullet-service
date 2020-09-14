@@ -69,23 +69,7 @@ public class SchemaService {
 
     /**
      * Constructor that takes in a a string file path and a version string and loads the contents of the file.
-     *
-     * The file is expected to contain a JSON array with entries in the following format:
-     *
-     * <pre>
-     * {@code
-     *     {
-     *         "name": "the column name",
-     *         "type": "one of ("BOOLEAN", "INTEGER", "LONG", "FLOAT", "DOUBLE", "STRING", "MAP", "LIST")",
-     *         "subtype": "required for MAP/LIST type. One of ("BOOLEAN", "INTEGER", "LONG", "FLOAT", "DOUBLE",
-     *                    "STRING", "MAP") if type is LIST or MAP",
-     *         "description": "an optional description of this column",
-     *         "enumerations": [ include known subfields in this column (must be of type MAP) of the form
-     *                           {"name": "the name of the subfield", "description": "a description for it"}
-     *                         ]
-     *     }
-     * }
-     * </pre>
+     * The file is expected to contain a JSON array with field entries.
      *
      * @param version The schema version.
      * @param filePath The filePath to the file.

@@ -18,7 +18,7 @@ public class SchemaControllerTest {
         String actual = controller.getJSONSchema();
 
         String expected =
-            "{'data': [{'id':'test','type':'field'," +
+            "{'data': [{'id':'test','type':'column'," +
                        "'attributes':{'name':'test','type':'STRING_MAP','description':'foo'}}]," +
              "'meta':{'version':'1.2'}}";
         assertJSONEquals(actual, expected);
