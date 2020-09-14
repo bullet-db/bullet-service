@@ -32,7 +32,7 @@ import static org.mockito.Mockito.mock;
 public class TestHelpers {
     private static final BulletQueryBuilder QUERY_BUILDER = new BulletQueryBuilder(new BulletConfig());
     private static final String INVALID_QUERY_BQL = "SELECT * FROM STREAM(1000, TIME) WHERE 1 + 'foo';";
-    private static final String SAMPLE_QUERY_BQL = "SELECT * FROM STREAM(1000, TIME) LIMIT 1;";
+    private static final String SAMPLE_QUERY_BQL = "SELECT * FROM STREAM(1000, TIME) LIMIT 1";
 
     public static class CustomMetadata extends Metadata {
         private static final long serialVersionUID = 6927372987820050551L;
@@ -149,5 +149,9 @@ public class TestHelpers {
         Assert.assertEquals(actual.getProjection().getType(), Projection.Type.PASS_THROUGH);
         Assert.assertNull(actual.getWindow().getType());
         Assert.assertNull(actual.getPostAggregations());
+    }
+
+    public static void assertEqualsBql(String actual) {
+        Assert.assertEquals(actual, SAMPLE_QUERY_BQL);
     }
 }

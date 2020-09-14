@@ -148,10 +148,9 @@ public class HTTPQueryController extends MetricController {
         if (result.hasErrors()) {
             return failWith(new QueryError(result.getErrors()));
         }
-        final Query query = result.getQuery();
         final String id = Utils.getNewQueryID();
         log.debug("Submitting Async query {}: {}", id, asyncQuery);
-        return queryService.submit(id, query, result.getBql())
+        return queryService.submit(id, result.getQuery(), result.getBql())
                            .thenCompose(message -> createQueryResponse(message, id, asyncQuery))
                            .exceptionally(this::internalError);
     }

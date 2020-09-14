@@ -17,7 +17,9 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static com.yahoo.bullet.rest.TestHelpers.assertEqualsBql;
 import static com.yahoo.bullet.rest.TestHelpers.assertEqualsQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getBQLQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getQuery;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -82,14 +84,16 @@ public class WebSocketServiceTest {
         String sessionID = "sessionID";
         String queryID = "queryID";
         WebSocketQueryHandler handler = new WebSocketQueryHandler(webSocketService, sessionID, queryID);
-        webSocketService.submitQuery(queryID, sessionID, getQuery(), handler);
+        webSocketService.submitQuery(queryID, sessionID, getQuery(), getBQLQuery(), handler);
 
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
+        ArgumentCaptor<String> bqlCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<QueryHandler> handlerCaptor = ArgumentCaptor.forClass(QueryHandler.class);
-        verify(queryService).submit(eq(queryID), queryCaptor.capture());
+        verify(queryService).submit(eq(queryID), queryCaptor.capture(), bqlCaptor.capture());
         verify(handlerService).addHandler(eq(queryID), handlerCaptor.capture());
 
         assertEqualsQuery(queryCaptor.getValue());
+        assertEqualsBql(bqlCaptor.getValue());
         Assert.assertSame(handlerCaptor.getValue(), handler);
         Assert.assertTrue(webSocketService.getSessionIDMap().containsKey(sessionID));
     }

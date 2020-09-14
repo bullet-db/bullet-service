@@ -28,6 +28,7 @@ import static com.yahoo.bullet.rest.TestHelpers.assertMessageEquals;
 import static com.yahoo.bullet.rest.TestHelpers.emptyStorage;
 import static com.yahoo.bullet.rest.TestHelpers.failingPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.failingStorage;
+import static com.yahoo.bullet.rest.TestHelpers.getBQLQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getQuery;
 import static com.yahoo.bullet.rest.TestHelpers.metadataModifyingPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.mockPublisher;
@@ -50,8 +51,10 @@ public class QueryServiceTest {
     private PubSubResponder responder;
     private PubSubConfiguration.PubSubResponderList pubSubResponderList;
 
-    private static final Query SAMPLE =  getQuery();
+    private static final Query SAMPLE = getQuery();
+    private static final String SAMPLE_BQL = getBQLQuery();
     private static final byte[] SAMPLE_SERIALIZED = SerializerDeserializer.toBytes(SAMPLE);
+    private static final Metadata SAMPLE_METADATA = new Metadata(Metadata.Signal.CUSTOM, SAMPLE_BQL);
 
     private void assertMessageResponded(PubSubResponder responderMock, PubSubMessage expected) {
         ArgumentCaptor<PubSubMessage> messageCaptor = ArgumentCaptor.forClass(PubSubMessage.class);
@@ -92,8 +95,8 @@ public class QueryServiceTest {
         StorageManager storage = mockStorage();
         QueryService service = new QueryService(storage, pubSubResponderList, publishers, subscribers, 1);
 
-        PubSubMessage result = service.submit("key", SAMPLE).get();
-        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED);
+        PubSubMessage result = service.submit("key", SAMPLE, getBQLQuery()).get();
+        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED, SAMPLE_METADATA);
         assertMessageEquals(result, expected);
         verify(storage).putObject("key", expected);
         assertMessageSent(publisher, expected);
@@ -106,9 +109,9 @@ public class QueryServiceTest {
         StorageManager storage = mockStorage();
         QueryService service = new QueryService(storage, pubSubResponderList, publishers, subscribers, 1);
 
-        PubSubMessage result = service.submit("key", SAMPLE).get();
+        PubSubMessage result = service.submit("key", SAMPLE, SAMPLE_BQL).get();
         // We will answer with a CustomMetadata but the original metadata has nothing anyway
-        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED, new Metadata());
+        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED, SAMPLE_METADATA);
         assertMessageEquals(result, expected);
 
         ArgumentCaptor<PubSubMessage> messageCaptor = ArgumentCaptor.forClass(PubSubMessage.class);
@@ -121,13 +124,13 @@ public class QueryServiceTest {
 
     @Test
     public void testSubmissionDoesNotPersistIfPublishingFailed() throws Exception {
-        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED);
+        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED, SAMPLE_METADATA);
         publisher = failingPublisher();
         publishers = singletonList(publisher);
         StorageManager storage = mockStorage();
         QueryService service = new QueryService(storage, pubSubResponderList, publishers, subscribers, 1);
 
-        PubSubMessage result = service.submit("key", SAMPLE).get();
+        PubSubMessage result = service.submit("key", SAMPLE, SAMPLE_BQL).get();
         Assert.assertNull(result);
         assertMessageSent(publisher, expected);
         verifyZeroInteractions(storage);
@@ -135,11 +138,11 @@ public class QueryServiceTest {
 
     @Test
     public void testSubmissionIsKilledIfPersistingFailed() throws Exception {
-        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED);
+        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED, SAMPLE_METADATA);
         StorageManager storage = failingStorage();
         QueryService service = new QueryService(storage, pubSubResponderList, publishers, subscribers, 1);
 
-        PubSubMessage result = service.submit("key", SAMPLE).get();
+        PubSubMessage result = service.submit("key", SAMPLE, SAMPLE_BQL).get();
         Assert.assertNull(result);
 
         ArgumentCaptor<PubSubMessage> messageCaptor = ArgumentCaptor.forClass(PubSubMessage.class);
@@ -156,7 +159,7 @@ public class QueryServiceTest {
 
     @Test
     public void testQuerySubmissionDoubleFailureWhenTryingToKillAfterPersistingFailure() throws Exception {
-        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED);
+        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED, SAMPLE_METADATA);
         // Send the message but can't send the kill
         doReturn(expected).doThrow(new RuntimeException("Testing")).when(publisher).send(expected);
 
@@ -167,7 +170,7 @@ public class QueryServiceTest {
 
         QueryService service = new QueryService(storage, pubSubResponderList, publishers, subscribers, 1);
 
-        PubSubMessage result = service.submit("key", SAMPLE).get();
+        PubSubMessage result = service.submit("key", SAMPLE, SAMPLE_BQL).get();
         Assert.assertNull(result);
 
         assertMessageSent(publisher, expected);
