@@ -65,6 +65,7 @@ public class StatusService implements Runnable {
     }
 
     static final Query TICK_QUERY = new Query(new Projection(), null, new Raw(1), null, new Window(), 1L);
+    static final String TICK_STRING = "Webservice status tick";
 
     private QueryService queryService;
     private HandlerService handlerService;
@@ -110,7 +111,7 @@ public class StatusService implements Runnable {
 
         String id = Utils.getNewQueryID();
         handlerService.addHandler(id, tickQueryHandler);
-        queryService.submit(id, TICK_QUERY, null);
+        queryService.submit(id, TICK_QUERY, TICK_STRING);
 
         if (tickQueryHandler.hasResult()) {
             count = 0;

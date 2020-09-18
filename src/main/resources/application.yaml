@@ -80,7 +80,7 @@ bullet:
     config: 'async_defaults.yaml'
     # The list of responders that extend the com.yahoo.bullet.pubsub.PubSubResponder class. Anything listed here will
     # be instantiated  and anything returning from the Bullet backend will be passed to it
-    responders:
+    responder:
       classes:
         # This responder uses the Publisher part of a com.yahoo.bullet.pubsub.PubSub (Kafka, Pulsar, your own, ...) to send results
         - 'com.yahoo.bullet.pubsub.BulletPubSubResponder'

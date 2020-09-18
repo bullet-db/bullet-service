@@ -42,6 +42,7 @@ public class AsyncConfiguration {
         List<PubSubResponder> create() {
             Objects.requireNonNull(config);
             Function<String, PubSubResponder> creator = createClass(config);
+
             return classes.stream().map(creator).collect(Collectors.toCollection(ArrayList::new));
         }
 
@@ -59,7 +60,8 @@ public class AsyncConfiguration {
      * @param config The String path to the config file.
      * @return The created instance.
      */
-    @Bean @ConfigurationProperties("bullet.async.responders")
+    @Bean
+    @ConfigurationProperties("bullet.async.responder")
     public ResponderClasses responderClasses(@Value("${bullet.async.config}") String config) {
         return new ResponderClasses(new BulletConfig(config));
     }

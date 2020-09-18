@@ -12,15 +12,11 @@ import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.query.Query;
-import com.yahoo.bullet.rest.PubSubConfiguration.PubSubResponderList;
 import com.yahoo.bullet.rest.common.PublisherRandomPool;
 import com.yahoo.bullet.rest.common.Reader;
 import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.storage.StorageManager;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
@@ -28,7 +24,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-@Service @Slf4j
+@Slf4j
 public class QueryService extends PubSubResponder {
     private StorageManager storage;
     private List<PubSubResponder> responders;
@@ -43,21 +39,20 @@ public class QueryService extends PubSubResponder {
      * Constructor that takes various necessary components.
      *
      * @param storageManager The non-null {@link StorageManager} to use.
-     * @param pubSubResponderList The non-null {@link PubSubResponderList} to use.
+     * @param responders The non-empty {@link List} of {@link PubSubResponder} to use.
      * @param publishers The non-empty {@link List} of {@link Publisher} to use.
      * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
      * @param sleep The time to sleep between checking for messages from the pubsub.
      */
-    @Autowired
-    public QueryService(StorageManager storageManager, PubSubResponderList pubSubResponderList, List<Publisher> publishers,
-                        List<Subscriber> subscribers, @Value("${bullet.pubsub.sleep-ms}") int sleep) {
+    public QueryService(StorageManager storageManager, List<PubSubResponder> responders, List<Publisher> publishers,
+                        List<Subscriber> subscribers, int sleep) {
         super(null);
         Objects.requireNonNull(storageManager);
-        Objects.requireNonNull(pubSubResponderList);
+        Objects.requireNonNull(responders);
         Utils.checkNotEmpty(publishers);
         Utils.checkNotEmpty(subscribers);
         this.storage = storageManager;
-        this.responders = pubSubResponderList.getResponders();
+        this.responders = responders;
         this.publishers = new PublisherRandomPool(publishers);
         this.readers = subscribers.stream().map(x -> new Reader(x, this, sleep)).collect(Collectors.toList());
         this.readers.forEach(Reader::start);
@@ -73,7 +68,7 @@ public class QueryService extends PubSubResponder {
      */
     public CompletableFuture<PubSubMessage> submit(String id, Query query, String queryString) {
         log.debug("Submitting query {}", id);
-        PubSubMessage message = new PubSubMessage(id, SerializerDeserializer.toBytes(query), new Metadata(Metadata.Signal.CUSTOM, queryString));
+        PubSubMessage message = new PubSubMessage(id, SerializerDeserializer.toBytes(query), new Metadata(null, queryString));
         // Publish then store. Publishing might change the message. Store the sent result
         return publish(message).thenComposeAsync(sent -> store(id, sent))
                                .thenApply(sent -> onSubmit(id, sent))
