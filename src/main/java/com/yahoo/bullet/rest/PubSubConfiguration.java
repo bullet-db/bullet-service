@@ -23,10 +23,12 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Collections;
 import java.util.List;
 
+import static com.yahoo.bullet.rest.AsyncConfiguration.ResponderClasses;
+
 @Configuration @Slf4j
 public class PubSubConfiguration {
     @Bean @ConditionalOnMissingBean
-    public AsyncConfiguration.ResponderClasses responderClasses() {
+    public ResponderClasses responderClasses() {
         log.info("Async responder classes are not configured.");
         return null;
     }
@@ -43,7 +45,7 @@ public class PubSubConfiguration {
      */
     @Bean
     public QueryService queryService(StorageManager storageManager, HandlerService handlerService,
-                                     AsyncConfiguration.ResponderClasses responderClasses, List<Publisher> publishers,
+                                     ResponderClasses responderClasses, List<Publisher> publishers,
                                      List<Subscriber> subscribers, @Value("${bullet.pubsub.sleep-ms}") int sleep) {
         List<PubSubResponder> responders;
         if (responderClasses == null) {
