@@ -37,12 +37,12 @@ public class StatusServiceTest {
             statusService.run();
         }
         Assert.assertTrue(statusService.isBackendStatusOK());
-        verify(queryService, times(10)).submit(anyString(), eq(StatusService.TICK_QUERY));
+        verify(queryService, times(10)).submit(anyString(), eq(StatusService.TICK_QUERY), anyString());
 
         // > 10 fails (i.e. >= 10 retries) -> status not ok
         statusService.run();
         Assert.assertFalse(statusService.isBackendStatusOK());
-        verify(queryService, times(11)).submit(anyString(), eq(StatusService.TICK_QUERY));
+        verify(queryService, times(11)).submit(anyString(), eq(StatusService.TICK_QUERY), anyString());
 
         doAnswer(invocationOnMock -> {
             ((QueryHandler) invocationOnMock.getArguments()[1]).send(null);
@@ -52,7 +52,7 @@ public class StatusServiceTest {
         // success -> status ok
         statusService.run();
         Assert.assertTrue(statusService.isBackendStatusOK());
-        verify(queryService, times(12)).submit(anyString(), eq(StatusService.TICK_QUERY));
+        verify(queryService, times(12)).submit(anyString(), eq(StatusService.TICK_QUERY), anyString());
     }
 
     @Test

@@ -5,7 +5,7 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.parsing.Query;
+import com.yahoo.bullet.query.Query;
 import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.query.WebSocketQueryHandler;
 import lombok.AccessLevel;
@@ -78,12 +78,13 @@ public class WebSocketService {
      * @param queryID The query ID to register request with.
      * @param sessionID The session ID to represent the client.
      * @param query The valid {@link Query} to submit.
+     * @param queryString The string representation of the query.
      * @param queryHandler The Query Handler to submit the query.
      */
-    public void submitQuery(String queryID, String sessionID, Query query, WebSocketQueryHandler queryHandler) {
+    public void submitQuery(String queryID, String sessionID, Query query, String queryString, WebSocketQueryHandler queryHandler) {
         sessionIDMap.put(sessionID, queryID);
         handlerService.addHandler(queryID, queryHandler);
-        queryService.submit(queryID, query);
+        queryService.submit(queryID, query, queryString);
     }
 
     /**

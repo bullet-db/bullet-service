@@ -8,8 +8,8 @@ package com.yahoo.bullet.rest.controller;
 import com.yahoo.bullet.bql.BQLResult;
 import com.yahoo.bullet.common.metrics.MetricCollector;
 import com.yahoo.bullet.common.metrics.MetricPublisher;
-import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.PubSubMessage;
+import com.yahoo.bullet.query.Query;
 import com.yahoo.bullet.rest.common.Metric;
 import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.rest.model.QueryResponse;
@@ -91,14 +91,14 @@ public class HTTPQueryController extends MetricController {
             return returnWith(Metric.BAD_REQUEST, handler.getResult());
         }
         Query bulletQuery = result.getQuery();
-        if (bulletQuery.getWindow() != null) {
+        if (bulletQuery.getWindow().getType() != null) {
             handler.fail(QueryError.UNSUPPORTED_QUERY);
             return returnWith(Metric.BAD_REQUEST, handler.getResult());
         }
         String id = Utils.getNewQueryID();
         log.debug("Submitting HTTP query {}: {}", id, query);
         handlerService.addHandler(id, handler);
-        queryService.submit(id, bulletQuery);
+        queryService.submit(id, bulletQuery, result.getBql());
         return returnWith(Metric.CREATED, handler.getResult());
     }
 
@@ -129,7 +129,7 @@ public class HTTPQueryController extends MetricController {
         }
         log.debug("Submitting SSE query {}: {}", id, query);
         handlerService.addHandler(id, handler);
-        queryService.submit(id, result.getQuery());
+        queryService.submit(id, result.getQuery(), result.getBql());
         return returnWith(Metric.CREATED, sseEmitter);
     }
 
@@ -148,10 +148,9 @@ public class HTTPQueryController extends MetricController {
         if (result.hasErrors()) {
             return failWith(new QueryError(result.getErrors()));
         }
-        final Query query = result.getQuery();
         final String id = Utils.getNewQueryID();
         log.debug("Submitting Async query {}: {}", id, asyncQuery);
-        return queryService.submit(id, query)
+        return queryService.submit(id, result.getQuery(), result.getBql())
                            .thenCompose(message -> createQueryResponse(message, id, asyncQuery))
                            .exceptionally(this::internalError);
     }

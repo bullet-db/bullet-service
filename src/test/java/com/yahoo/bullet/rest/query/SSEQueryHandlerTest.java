@@ -39,7 +39,7 @@ public class SSEQueryHandlerTest {
         SSEQueryHandler sseQueryHandler = new SSEQueryHandler("id", sseEmitter, queryService);
         sseQueryHandler.send(message);
 
-        verify(sseEmitter).send(eq("foo"), eq(MediaType.APPLICATION_JSON));
+        verify(sseEmitter).send(eq(message.getContent()), eq(MediaType.APPLICATION_JSON));
         Assert.assertFalse(sseQueryHandler.isComplete());
     }
 

@@ -18,20 +18,12 @@ public class QueryConfiguration {
     /**
      * Creates a {@link BQLConfig} for BQL.
      *
-     * @param configPath The path to the file to create a {@link com.yahoo.bullet.typesystem.Schema}.
-     * @param schemaPath The path to the file to create a {@link com.yahoo.bullet.typesystem.Schema}.
+     * @param configPath The String path to the config file.
      * @return A created, valid {@link BQLConfig}.
      */
     @Bean
-    public BQLConfig bqlConfig(@Value("${bullet.query.config}") String configPath,
-                               @Value("${bullet.schema.file}") String schemaPath) {
-        BQLConfig config = new BQLConfig(configPath);
-        // Set the schema file to the schema regardless
-        String schemaFile = config.getOrDefaultAs(BulletConfig.RECORD_SCHEMA_FILE_NAME, schemaPath, String.class);
-        log.info("Using {} for the BQL record schema", schemaFile);
-        config.set(BulletConfig.RECORD_SCHEMA_FILE_NAME, schemaFile);
-        config.validate();
-        return config;
+    public BQLConfig bqlConfig(@Value("${bullet.query.config}") String configPath) {
+        return new BQLConfig(configPath);
     }
 
     /**

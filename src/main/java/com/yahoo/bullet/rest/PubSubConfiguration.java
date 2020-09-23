@@ -12,46 +12,49 @@ import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.service.HandlerService;
+import com.yahoo.bullet.rest.service.QueryService;
+import com.yahoo.bullet.storage.StorageManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static com.yahoo.bullet.rest.AsyncConfiguration.ResponderClasses;
 
 @Configuration @Slf4j
 public class PubSubConfiguration {
-    /**
-     * Creates a synchronous {@link PubSubResponder} instance.
-     *
-     * @param handlerService The {@link HandlerService} to use.
-     * @return A responder to use for synchronous queries.
-     */
-    @Bean
-    public PubSubResponder syncResponder(HandlerService handlerService) {
-        return handlerService;
-    }
-
     @Bean @ConditionalOnMissingBean
-    public List<PubSubResponder> asyncResponders() {
-        log.info("Async responders are not configured. Using an empty list for async responders");
-        return new ArrayList<>();
+    public ResponderClasses responderClasses() {
+        log.info("Async responder classes are not configured.");
+        return null;
     }
 
     /**
-     * Creates the {@link PubSubResponder} instances to use for responding to queries.
+     * Creates a {@link QueryService} instance from various necessary components.
      *
-     * @param syncResponder The required responder to use for synchronous queries.
-     * @param asyncResponders Other responders to use for asynchronous queries. Maybe empty.
-     * @return A {@link List} of {@link PubSubResponder} instances.
+     * @param storageManager The non-null {@link StorageManager} to use.
+     * @param handlerService The {@link HandlerService} to use.
+     * @param responderClasses The responders to use for asynchronous queries. May be empty.
+     * @param publishers The non-empty {@link List} of {@link Publisher} to use.
+     * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
+     * @param sleep The time to sleep between checking for messages from the pubsub.
      */
     @Bean
-    public List<PubSubResponder> responders(PubSubResponder syncResponder, List<PubSubResponder> asyncResponders) {
-        List<PubSubResponder> responders = new ArrayList<>(asyncResponders);
-        responders.add(syncResponder);
-        return responders;
+    public QueryService queryService(StorageManager storageManager, HandlerService handlerService,
+                                     ResponderClasses responderClasses, List<Publisher> publishers,
+                                     List<Subscriber> subscribers, @Value("${bullet.pubsub.sleep-ms}") int sleep) {
+        List<PubSubResponder> responders;
+        if (responderClasses == null) {
+            responders = Collections.singletonList(handlerService);
+        } else {
+            responders = responderClasses.create();
+            responders.add(handlerService);
+        }
+        return new QueryService(storageManager, responders, publishers, subscribers, sleep);
     }
 
     /**

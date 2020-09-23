@@ -22,7 +22,7 @@ public class HTTPQueryHandler extends QueryHandler {
     @Override
     public void send(PubSubMessage message) {
         if (!isComplete()) {
-            result.complete(message.getContent());
+            result.complete(message.getContentAsString());
             complete();
         }
     }

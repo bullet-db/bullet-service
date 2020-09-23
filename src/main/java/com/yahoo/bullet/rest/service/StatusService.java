@@ -5,9 +5,11 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.parsing.Aggregation;
-import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.PubSubMessage;
+import com.yahoo.bullet.query.Projection;
+import com.yahoo.bullet.query.Query;
+import com.yahoo.bullet.query.Window;
+import com.yahoo.bullet.query.aggregations.Raw;
 import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.QueryHandler;
@@ -62,11 +64,8 @@ public class StatusService implements Runnable {
         }
     }
 
-    static final Query TICK_QUERY = new Query();
-    static {
-        TICK_QUERY.setAggregation(new Aggregation(1, Aggregation.Type.RAW));
-        TICK_QUERY.setDuration(1L);
-    }
+    static final Query TICK_QUERY = new Query(new Projection(), null, new Raw(1), null, new Window(), 1L);
+    static final String TICK_STRING = "Webservice status tick";
 
     private QueryService queryService;
     private HandlerService handlerService;
@@ -112,7 +111,7 @@ public class StatusService implements Runnable {
 
         String id = Utils.getNewQueryID();
         handlerService.addHandler(id, tickQueryHandler);
-        queryService.submit(id, TICK_QUERY);
+        queryService.submit(id, TICK_QUERY, TICK_STRING);
 
         if (tickQueryHandler.hasResult()) {
             count = 0;

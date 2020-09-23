@@ -15,9 +15,9 @@ public class QueryConfigurationTest {
     @Test
     public void testConfigurationDefault() {
         QueryConfiguration configuration = new QueryConfiguration();
-        BQLConfig config = configuration.bqlConfig(null, "test_fields.json");
+        BQLConfig config = configuration.bqlConfig(null);
         Assert.assertNotNull(config);
-        Assert.assertEquals(config.getAs(BulletConfig.RECORD_SCHEMA_FILE_NAME, String.class), "test_fields.json");
+        Assert.assertEquals(config.getAs(BulletConfig.RECORD_SCHEMA_FILE_NAME, String.class), null);
         Assert.assertEquals(config.getAs(BulletConfig.AGGREGATION_MAX_SIZE, Integer.class),
                             (Integer) BulletConfig.DEFAULT_AGGREGATION_MAX_SIZE);
     }
@@ -25,7 +25,7 @@ public class QueryConfigurationTest {
     @Test
     public void testConfiguration() {
         QueryConfiguration configuration = new QueryConfiguration();
-        BQLConfig config = configuration.bqlConfig("test_query_defaults.yaml", null);
+        BQLConfig config = configuration.bqlConfig("test_query_defaults.yaml");
         Assert.assertNotNull(config);
         Assert.assertEquals(config.getAs(BulletConfig.RECORD_SCHEMA_FILE_NAME, String.class), "sample_fields.json");
         Assert.assertEquals(config.getAs(BulletConfig.AGGREGATION_MAX_SIZE, Integer.class), (Integer) 1000);
@@ -34,7 +34,7 @@ public class QueryConfigurationTest {
     @Test
     public void testQueryBuilder() {
         QueryConfiguration configuration = new QueryConfiguration();
-        BulletQueryBuilder queryBuilder = configuration.bulletQueryBuilder(configuration.bqlConfig(null, null));
+        BulletQueryBuilder queryBuilder = configuration.bulletQueryBuilder(configuration.bqlConfig(null));
         Assert.assertNotNull(queryBuilder);
     }
 }

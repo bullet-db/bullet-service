@@ -86,7 +86,7 @@ public class WebSocketController extends MetricController {
             return failWith(new QueryError(result.getErrors()), Metric.BAD_REQUEST, queryHandler);
         }
         log.debug("Submitting websocket query {}: {}", queryID, bql);
-        webSocketService.submitQuery(queryID, sessionID, result.getQuery(), queryHandler);
+        webSocketService.submitQuery(queryID, sessionID, result.getQuery(), result.getBql(), queryHandler);
         incrementMetric(STATUS_PREFIX, Metric.CREATED);
         return true;
     }

@@ -25,8 +25,9 @@ public class UtilsTest {
 
     @Test
     public void testDonePubSubMessage() {
-        Assert.assertFalse(Utils.isDone(new PubSubMessage("id", "")));
-        Assert.assertFalse(Utils.isDone(new PubSubMessage("id", (byte[]) null, Signal.CUSTOM)));
+        Assert.assertFalse(Utils.isDone(new PubSubMessage()));
+        Assert.assertFalse(Utils.isDone(new PubSubMessage("id", Signal.CUSTOM)));
+        Assert.assertFalse(Utils.isDone(new PubSubMessage("id", null, Signal.CUSTOM)));
         Assert.assertFalse(Utils.isDone(new PubSubMessage("id", (byte[]) null, new Metadata(Signal.REPLAY, null))));
         Assert.assertFalse(Utils.isDone(new PubSubMessage("id", (byte[]) null, new Metadata(Signal.ACKNOWLEDGE, null))));
         Assert.assertFalse(Utils.isDone(new PubSubMessage("id", (byte[]) null, new Metadata(Signal.CUSTOM, null))));

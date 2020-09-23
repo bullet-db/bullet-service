@@ -6,20 +6,17 @@
 package com.yahoo.bullet.rest.service;
 
 import com.yahoo.bullet.common.SerializerDeserializer;
-import com.yahoo.bullet.parsing.Query;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
+import com.yahoo.bullet.query.Query;
 import com.yahoo.bullet.rest.common.PublisherRandomPool;
 import com.yahoo.bullet.rest.common.Reader;
 import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.storage.StorageManager;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
@@ -28,7 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
 public class QueryService extends PubSubResponder {
     private StorageManager storage;
     private List<PubSubResponder> responders;
@@ -48,12 +44,11 @@ public class QueryService extends PubSubResponder {
      * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
      * @param sleep The time to sleep between checking for messages from the pubsub.
      */
-    @Autowired
     public QueryService(StorageManager storageManager, List<PubSubResponder> responders, List<Publisher> publishers,
-                        List<Subscriber> subscribers, @Value("${bullet.pubsub.sleep-ms}") int sleep) {
+                        List<Subscriber> subscribers, int sleep) {
         super(null);
         Objects.requireNonNull(storageManager);
-        Utils.checkNotEmpty(responders);
+        Objects.requireNonNull(responders);
         Utils.checkNotEmpty(publishers);
         Utils.checkNotEmpty(subscribers);
         this.storage = storageManager;
@@ -68,11 +63,12 @@ public class QueryService extends PubSubResponder {
      *
      * @param id The query ID of the query.
      * @param query The query to send.
+     * @param queryString The string representation of the query.
      * @return A {@link CompletableFuture} that resolves to the sent {@link PubSubMessage} or null if it could not be sent.
      */
-    public CompletableFuture<PubSubMessage> submit(String id, Query query) {
+    public CompletableFuture<PubSubMessage> submit(String id, Query query, String queryString) {
         log.debug("Submitting query {}", id);
-        PubSubMessage message = new PubSubMessage(id, SerializerDeserializer.toBytes(query));
+        PubSubMessage message = new PubSubMessage(id, SerializerDeserializer.toBytes(query), new Metadata(null, queryString));
         // Publish then store. Publishing might change the message. Store the sent result
         return publish(message).thenComposeAsync(sent -> store(id, sent))
                                .thenApply(sent -> onSubmit(id, sent))

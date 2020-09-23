@@ -8,9 +8,9 @@ package com.yahoo.bullet.rest.controller;
 import com.yahoo.bullet.bql.BQLResult;
 import com.yahoo.bullet.common.BulletError;
 import com.yahoo.bullet.common.SerializerDeserializer;
-import com.yahoo.bullet.parsing.Query;
-import com.yahoo.bullet.parsing.Window;
 import com.yahoo.bullet.pubsub.PubSubMessage;
+import com.yahoo.bullet.query.Query;
+import com.yahoo.bullet.query.Window;
 import com.yahoo.bullet.rest.model.QueryResponse;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
@@ -40,9 +40,11 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
 import static com.yahoo.bullet.TestHelpers.assertOnlyMetricEquals;
+import static com.yahoo.bullet.rest.TestHelpers.assertEqualsBql;
 import static com.yahoo.bullet.rest.TestHelpers.assertEqualsQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getBQLQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getQuery;
+import static com.yahoo.bullet.rest.TestHelpers.getQueryWithWindow;
 import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -89,10 +91,11 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         return HTTPQueryController.STATUS_PREFIX + httpStatus;
     }
 
-    private static void mockValidBQLResult(BQLService mockService, Query mockQuery) {
+    private static void mockValidBQLResult(BQLService mockService, Query mockQuery, String mockBql) {
         BQLResult result = mock(BQLResult.class);
         doReturn(false).when(result).hasErrors();
         doReturn(mockQuery).when(result).getQuery();
+        doReturn(mockBql).when(result).getBql();
         doReturn(result).when(mockService).toQuery(anyString());
     }
 
@@ -110,7 +113,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         doReturn(true).when(statusService).isBackendStatusOK();
         doReturn(false).when(statusService).queryLimitReached();
 
-        mockValidBQLResult(bqlService, getQuery());
+        mockValidBQLResult(bqlService, getQuery(), getBQLQuery());
     }
 
     @Test
@@ -134,20 +137,9 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testSubmitHTTPQueryWithNullWindow() throws Exception {
-        CompletableFuture<String> response = controller.submitHTTPQuery(getBQLQuery());
-        ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
-        verify(handlerService).addHandler(anyString(), argument.capture());
-        argument.getValue().send(new PubSubMessage("", "bar"));
-        Assert.assertEquals(response.get(), "bar");
-        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
-    }
-
-    @Test
     public void testSubmitHTTPQueryWithWindow() throws Exception {
-        Query query = getQuery();
-        query.setWindow(new Window());
-        mockValidBQLResult(bqlService, query);
+        Query query = getQueryWithWindow(new Window(1, Window.Unit.RECORD));
+        mockValidBQLResult(bqlService, query, null);
 
         CompletableFuture<String> response = controller.submitHTTPQuery("query");
         assertJSONEquals(response.get(), QueryError.UNSUPPORTED_QUERY.toString());
@@ -176,13 +168,15 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     public void testSubmitHTTPQuery() throws Exception {
         CompletableFuture<String> response = controller.submitHTTPQuery(getBQLQuery());
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
+        ArgumentCaptor<String> bqlCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<HTTPQueryHandler> argument = ArgumentCaptor.forClass(HTTPQueryHandler.class);
         verify(handlerService).addHandler(anyString(), argument.capture());
-        verify(queryService).submit(anyString(), queryCaptor.capture());
+        verify(queryService).submit(anyString(), queryCaptor.capture(), bqlCaptor.capture());
         argument.getValue().send(new PubSubMessage("", "bar"));
         Assert.assertEquals(response.get(), "bar");
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
         assertEqualsQuery(queryCaptor.getValue());
+        assertEqualsBql(bqlCaptor.getValue());
     }
 
     @Test
@@ -240,7 +234,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testSubmitAsyncQueryWhenCannotPublish() throws Exception {
-        doReturn(CompletableFuture.completedFuture(null)).when(queryService).submit(anyString(), any());
+        doReturn(CompletableFuture.completedFuture(null)).when(queryService).submit(anyString(), any(), anyString());
 
         ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
         Assert.assertNotNull((response));
@@ -249,17 +243,19 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
 
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-        verify(queryService).submit(anyString(), queryCaptor.capture());
+        ArgumentCaptor<String> bqlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(queryService).submit(anyString(), queryCaptor.capture(), bqlCaptor.capture());
         verifyZeroInteractions(handlerService);
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.INTERNAL_SERVER_ERROR), 1L);
         assertEqualsQuery(queryCaptor.getValue());
+        assertEqualsBql(bqlCaptor.getValue());
     }
 
     @Test
     public void testSubmitAsyncQueryWhenResolvingToError() throws Exception {
         CompletableFuture<PubSubMessage> fail = new CompletableFuture<>();
         fail.completeExceptionally(new RuntimeException("Testing"));
-        doReturn(fail).when(queryService).submit(anyString(), any());
+        doReturn(fail).when(queryService).submit(anyString(), any(), anyString());
 
         ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
         Assert.assertNotNull((response));
@@ -268,10 +264,12 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
 
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-        verify(queryService).submit(anyString(), queryCaptor.capture());
+        ArgumentCaptor<String> bqlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(queryService).submit(anyString(), queryCaptor.capture(), bqlCaptor.capture());
         verifyZeroInteractions(handlerService);
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.INTERNAL_SERVER_ERROR), 1L);
         assertEqualsQuery(queryCaptor.getValue());
+        assertEqualsBql(bqlCaptor.getValue());
     }
 
     @Test
@@ -294,7 +292,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
             String id = i.getArgumentAt(0, String.class);
             Query query = i.getArgumentAt(1, Query.class);
             return CompletableFuture.completedFuture(new PubSubMessage(id, SerializerDeserializer.toBytes(query)));
-        }).when(queryService).submit(anyString(), any(Query.class));
+        }).when(queryService).submit(anyString(), any(Query.class), anyString());
 
         long start = System.currentTimeMillis();
         ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
@@ -305,8 +303,10 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
 
         QueryResponse queryResponse = (QueryResponse) response.getBody();
         ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
-        verify(queryService).submit(eq(queryResponse.getId()), queryCaptor.capture());
+        ArgumentCaptor<String> bqlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(queryService).submit(eq(queryResponse.getId()), queryCaptor.capture(), bqlCaptor.capture());
         assertEqualsQuery(queryCaptor.getValue());
+        assertEqualsBql(bqlCaptor.getValue());
 
         Assert.assertTrue(queryResponse.getCreateTime() >= start && queryResponse.getCreateTime() <= end);
         verifyZeroInteractions(handlerService);

@@ -80,9 +80,10 @@ bullet:
     config: 'async_defaults.yaml'
     # The list of responders that extend the com.yahoo.bullet.pubsub.PubSubResponder class. Anything listed here will
     # be instantiated  and anything returning from the Bullet backend will be passed to it
-    responders:
-      # This responder uses the Publisher part of a com.yahoo.bullet.pubsub.PubSub (Kafka, Pulsar, your own, ...) to send results
-      - 'com.yahoo.bullet.pubsub.BulletPubSubResponder'
+    responder:
+      classes:
+        # This responder uses the Publisher part of a com.yahoo.bullet.pubsub.PubSub (Kafka, Pulsar, your own, ...) to send results
+        - 'com.yahoo.bullet.pubsub.BulletPubSubResponder'
 
   # The following configure setting up the metrics collection and reporting in the service. Use this if you want to
   # collect metrics and send them somewhere in a format of your choice. By default, uses the HTTP publishing collector
