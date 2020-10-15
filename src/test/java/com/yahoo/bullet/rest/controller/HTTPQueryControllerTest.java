@@ -364,4 +364,24 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         verifyZeroInteractions(handlerService);
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.INTERNAL_SERVER_ERROR), 1L);
     }
+
+    @Test
+    public void testValidateQueryWithInvalidQuery() {
+        BulletError error = BulletError.makeError("foo", "bar");
+        mockInvalidBQLResult(bqlService, error);
+        ResponseEntity<Object> response = controller.validateQuery("query");
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.UNPROCESSABLE_ENTITY);
+        assertJSONEquals((String) response.getBody(), new QueryError(singletonList(error)).toString());
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.UNPROCESSABLE_ENTITY), 1L);
+    }
+
+    @Test
+    public void testValidateQuery() {
+        ResponseEntity<Object> response = controller.validateQuery("good query");
+        Assert.assertNotNull((response));
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.NO_CONTENT);
+        Assert.assertNull(response.getBody());
+        assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.NO_CONTENT), 1L);
+    }
 }

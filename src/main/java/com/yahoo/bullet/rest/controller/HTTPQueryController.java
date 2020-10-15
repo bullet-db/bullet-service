@@ -45,7 +45,8 @@ public class HTTPQueryController extends MetricController {
 
     static final String STATUS_PREFIX = "api.http.status.code.";
     private static final List<String> STATUSES =
-        toMetric(STATUS_PREFIX, Metric.OK, Metric.CREATED, Metric.BAD_REQUEST, Metric.TOO_MANY_REQUESTS, Metric.ERROR, Metric.UNAVAILABLE);
+        toMetric(STATUS_PREFIX, Metric.OK, Metric.CREATED, Metric.NO_CONTENT, Metric.BAD_REQUEST,
+                 Metric.UNPROCESSABLE_ENTITY, Metric.TOO_MANY_REQUESTS, Metric.ERROR, Metric.UNAVAILABLE);
 
     /**
      * Constructor that takes various services.
@@ -65,6 +66,22 @@ public class HTTPQueryController extends MetricController {
         this.queryService = queryService;
         this.bqlService = bqlService;
         this.statusService = statusService;
+    }
+
+    /**
+     * The method that handles POSTed queries to this endpoint and validates them. Consumes the HTTP request
+     * register and transmit the query to Bullet.
+     *
+     * @param query The String query to submit.
+     * @return A {@link CompletableFuture} representing the eventual result.
+     */
+    @PostMapping(path = "${bullet.endpoint.validate}", consumes = { MediaType.TEXT_PLAIN_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    public ResponseEntity<Object> validateQuery(@RequestBody String query) {
+        BQLResult result = bqlService.toQuery(query);
+        if (result.hasErrors()) {
+            return respondWith(Metric.UNPROCESSABLE_ENTITY, new QueryError(result.getErrors()).toString());
+        }
+        return respondWith(Metric.NO_CONTENT, null);
     }
 
     /**

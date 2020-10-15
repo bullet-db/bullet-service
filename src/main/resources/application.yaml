@@ -99,6 +99,7 @@ bullet:
 
   # The following configure the names of the various renamable public endpoints of the API
   endpoint:
+    validate: '/validate-query'
     http: '/http-query'
     sse: '/sse-query'
     websocket: '/ws-query'
