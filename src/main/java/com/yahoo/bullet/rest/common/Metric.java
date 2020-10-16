@@ -15,8 +15,10 @@ import org.springframework.http.HttpStatus;
 public enum Metric {
     OK(HttpStatus.OK),
     CREATED(HttpStatus.CREATED),
+    NO_CONTENT(HttpStatus.NO_CONTENT),
     BAD_REQUEST(HttpStatus.BAD_REQUEST),
     NOT_FOUND(HttpStatus.NOT_FOUND),
+    UNPROCESSABLE_ENTITY(HttpStatus.UNPROCESSABLE_ENTITY),
     TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS),
     ERROR(HttpStatus.INTERNAL_SERVER_ERROR),
     UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE),

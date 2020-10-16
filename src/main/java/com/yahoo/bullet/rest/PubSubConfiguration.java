@@ -42,6 +42,7 @@ public class PubSubConfiguration {
      * @param publishers The non-empty {@link List} of {@link Publisher} to use.
      * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
      * @param sleep The time to sleep between checking for messages from the pubsub.
+     * @return The created {@link QueryService} instance.
      */
     @Bean
     public QueryService queryService(StorageManager storageManager, HandlerService handlerService,

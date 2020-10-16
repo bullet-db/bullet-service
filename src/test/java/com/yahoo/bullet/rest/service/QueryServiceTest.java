@@ -12,7 +12,6 @@ import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.query.Query;
-import com.yahoo.bullet.rest.PubSubConfiguration;
 import com.yahoo.bullet.rest.TestHelpers.CustomMetadata;
 import com.yahoo.bullet.storage.StorageManager;
 import org.mockito.ArgumentCaptor;
