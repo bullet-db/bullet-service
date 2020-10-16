@@ -223,7 +223,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     public void testSubmitAsyncQueryWithBackendDown() throws Exception {
         doReturn(false).when(statusService).isBackendStatusOK();
         ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
-        Assert.assertNotNull((response));
+        Assert.assertNotNull(response);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.SERVICE_UNAVAILABLE);
         QueryError queryError = (QueryError) response.getBody();
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
@@ -237,7 +237,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         doReturn(CompletableFuture.completedFuture(null)).when(queryService).submit(anyString(), any(), anyString());
 
         ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
-        Assert.assertNotNull((response));
+        Assert.assertNotNull(response);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
         QueryError queryError = (QueryError) response.getBody();
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
@@ -258,7 +258,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         doReturn(fail).when(queryService).submit(anyString(), any(), anyString());
 
         ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
-        Assert.assertNotNull((response));
+        Assert.assertNotNull(response);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
         QueryError queryError = (QueryError) response.getBody();
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
@@ -277,7 +277,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         mockInvalidBQLResult(bqlService, BulletError.makeError("foo", "bar"));
         ResponseEntity<Object> response = controller.submitAsyncQuery("invalid").get();
 
-        Assert.assertNotNull((response));
+        Assert.assertNotNull(response);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
         verifyZeroInteractions(queryService);
         String expected = "{'records':[],'meta':{'errors':[{'error':'foo', 'resolutions': ['bar']}]}}";
@@ -298,7 +298,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         ResponseEntity<Object> response = controller.submitAsyncQuery("query").get();
         long end = System.currentTimeMillis();
 
-        Assert.assertNotNull((response));
+        Assert.assertNotNull(response);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.CREATED);
 
         QueryResponse queryResponse = (QueryResponse) response.getBody();
@@ -317,7 +317,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     public void testDeletingAsyncQuery() throws Exception {
         doReturn(CompletableFuture.completedFuture(null)).when(queryService).kill(anyString());
         ResponseEntity<Object> response = controller.deleteAsyncQuery("id").get();
-        Assert.assertNotNull((response));
+        Assert.assertNotNull(response);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.OK);
         Assert.assertNull((response.getBody()));
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.OK), 1L);
@@ -327,7 +327,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     public void testDeletingAsyncQueryWithBackendDown() throws Exception {
         doReturn(false).when(statusService).isBackendStatusOK();
         ResponseEntity<Object> response = controller.deleteAsyncQuery("id").get();
-        Assert.assertNotNull((response));
+        Assert.assertNotNull(response);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.SERVICE_UNAVAILABLE);
         QueryError queryError = (QueryError) response.getBody();
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
@@ -340,7 +340,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     public void testDeletingAsyncQueryResultingInError() throws Exception {
         doThrow(new RuntimeException("Testing")).when(queryService).kill(anyString());
         ResponseEntity<Object> response = controller.deleteAsyncQuery("id").get();
-        Assert.assertNotNull((response));
+        Assert.assertNotNull(response);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
         QueryError queryError = (QueryError) response.getBody();
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
@@ -356,7 +356,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         doReturn(fail).when(queryService).kill(anyString());
 
         ResponseEntity<Object> response = controller.deleteAsyncQuery("id").get();
-        Assert.assertNotNull((response));
+        Assert.assertNotNull(response);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.INTERNAL_SERVER_ERROR);
         QueryError queryError = (QueryError) response.getBody();
         assertJSONEquals(queryError.toString(), QueryError.SERVICE_UNAVAILABLE.toString());
@@ -370,7 +370,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         BulletError error = BulletError.makeError("foo", "bar");
         mockInvalidBQLResult(bqlService, error);
         ResponseEntity<Object> response = controller.validateQuery("query");
-        Assert.assertNotNull((response));
+        Assert.assertNotNull(response);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.UNPROCESSABLE_ENTITY);
         assertJSONEquals((String) response.getBody(), new QueryError(singletonList(error)).toString());
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.UNPROCESSABLE_ENTITY), 1L);
@@ -379,7 +379,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testValidateQuery() {
         ResponseEntity<Object> response = controller.validateQuery("good query");
-        Assert.assertNotNull((response));
+        Assert.assertNotNull(response);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.NO_CONTENT);
         Assert.assertNull(response.getBody());
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.NO_CONTENT), 1L);
