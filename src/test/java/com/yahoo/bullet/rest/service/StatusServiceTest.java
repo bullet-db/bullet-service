@@ -25,7 +25,7 @@ public class StatusServiceTest {
         QueryService queryService = mock(QueryService.class);
         HandlerService handlerService = mock(HandlerService.class);
         doAnswer(invocationOnMock -> {
-            invocationOnMock.getArgument(1,QueryHandler.class).fail(null);
+            invocationOnMock.getArgument(1, QueryHandler.class).fail(null);
             return null;
         }).when(handlerService).addHandler(anyString(), any());
 

@@ -15,7 +15,6 @@ import com.yahoo.bullet.query.Query;
 import com.yahoo.bullet.rest.common.PublisherRandomPool;
 import com.yahoo.bullet.rest.common.Reader;
 import com.yahoo.bullet.rest.common.Utils;
-import com.yahoo.bullet.storage.StorageConfig;
 import com.yahoo.bullet.storage.StorageManager;
 import lombok.extern.slf4j.Slf4j;
 
