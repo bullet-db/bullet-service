@@ -22,8 +22,8 @@ import org.testng.Assert;
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -50,7 +50,7 @@ public class TestHelpers {
 
     public static Publisher mockPublisher() throws Exception {
         Publisher publisher = mock(Publisher.class);
-        doAnswer(i -> i.getArgumentAt(0, PubSubMessage.class)).when(publisher).send(any());
+        doAnswer(i -> i.getArgument(0, PubSubMessage.class)).when(publisher).send(any());
         return publisher;
     }
 
@@ -63,20 +63,20 @@ public class TestHelpers {
     public static Publisher metadataModifyingPublisher(String extraMetadata) throws Exception {
         Publisher publisher = mock(Publisher.class);
         doAnswer(invocation -> {
-            PubSubMessage message = invocation.getArgumentAt(0, PubSubMessage.class);
+            PubSubMessage message = invocation.getArgument(0, PubSubMessage.class);
             message.setMetadata(new CustomMetadata(extraMetadata, message.getMetadata()));
             return message;
         }).when(publisher).send(any());
         return publisher;
     }
 
-    private static StorageManager<Serializable> storage(boolean canStore) {
-        StorageManager<Serializable> storage = mock(StorageManager.class);
-        doReturn(CompletableFuture.completedFuture(canStore)).when(storage).put(anyString(), any(Serializable.class));
+    private static <T extends Serializable> StorageManager<T> storage(boolean canStore) {
+        StorageManager<T> storage = mock(StorageManager.class);
+        doReturn(CompletableFuture.completedFuture(canStore)).when(storage).put(anyString(), any());
         return storage;
     }
 
-    public static StorageManager<Serializable> emptyStorage() {
+    public static <T extends Serializable> StorageManager<T> emptyStorage() {
         return storage(true);
     }
 
@@ -92,15 +92,15 @@ public class TestHelpers {
         return storage;
     }
 
-    public static StorageManager<Serializable> mockStorage() {
-        StorageManager<Serializable> service = emptyStorage();
+    public static <T extends Serializable> StorageManager<T> mockStorage() {
+        StorageManager<T> service = emptyStorage();
         doReturn(CompletableFuture.completedFuture(null)).when(service).get(anyString());
         doReturn(CompletableFuture.completedFuture(null)).when(service).remove(anyString());
         return service;
     }
 
-    public static StorageManager<Serializable> mockStorage(Serializable data) {
-        StorageManager<Serializable> service = emptyStorage();
+    public static <T extends Serializable> StorageManager<T> mockStorage(Serializable data) {
+        StorageManager<T> service = emptyStorage();
         doReturn(CompletableFuture.completedFuture(data)).when(service).get(anyString());
         doReturn(CompletableFuture.completedFuture(data)).when(service).remove(anyString());
         return service;

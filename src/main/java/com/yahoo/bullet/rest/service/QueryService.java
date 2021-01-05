@@ -45,14 +45,14 @@ public class QueryService extends PubSubResponder {
      * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
      * @param sleep The time to sleep between checking for messages from the pubsub.
      */
-    public QueryService(StorageManager storageManager, List<PubSubResponder> responders, List<Publisher> publishers,
+    public QueryService(StorageManager<PubSubMessage> storageManager, List<PubSubResponder> responders, List<Publisher> publishers,
                         List<Subscriber> subscribers, int sleep) {
         super(null);
         Objects.requireNonNull(storageManager);
         Objects.requireNonNull(responders);
         Utils.checkNotEmpty(publishers);
         Utils.checkNotEmpty(subscribers);
-        this.storage = (StorageManager<PubSubMessage>) storageManager;
+        this.storage = storageManager;
         this.responders = responders;
         this.publishers = new PublisherRandomPool(publishers);
         this.readers = subscribers.stream().map(x -> new Reader(x, this, sleep)).collect(Collectors.toList());

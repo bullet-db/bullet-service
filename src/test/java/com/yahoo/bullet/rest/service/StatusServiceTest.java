@@ -10,9 +10,9 @@ import com.yahoo.bullet.rest.service.StatusService.TickQueryHandler;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -25,7 +25,7 @@ public class StatusServiceTest {
         QueryService queryService = mock(QueryService.class);
         HandlerService handlerService = mock(HandlerService.class);
         doAnswer(invocationOnMock -> {
-            ((QueryHandler) invocationOnMock.getArguments()[1]).fail(null);
+            invocationOnMock.getArgument(1,QueryHandler.class).fail(null);
             return null;
         }).when(handlerService).addHandler(anyString(), any());
 
