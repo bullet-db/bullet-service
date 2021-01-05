@@ -34,8 +34,8 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <bullet.core.version>1.0.0</bullet.core.version>
-        <bullet.bql.version>1.0.0</bullet.bql.version>
+        <bullet.core.version>1.2.0</bullet.core.version>
+        <bullet.bql.version>1.1.0</bullet.bql.version>
         <spring.security.oauth2>2.2.0.RELEASE</spring.security.oauth2>
     </properties>
 
@@ -55,8 +55,8 @@
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.10.19</version>
+            <artifactId>mockito-core</artifactId>
+            <version>3.5.7</version>
             <scope>test</scope>
         </dependency>
         <dependency>

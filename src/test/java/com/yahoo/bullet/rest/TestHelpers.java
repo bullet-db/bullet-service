@@ -70,39 +70,39 @@ public class TestHelpers {
         return publisher;
     }
 
-    private static StorageManager storage(boolean canStore) {
-        StorageManager storage = mock(StorageManager.class);
-        doReturn(CompletableFuture.completedFuture(canStore)).when(storage).putObject(anyString(), any());
+    private static StorageManager<Serializable> storage(boolean canStore) {
+        StorageManager<Serializable> storage = mock(StorageManager.class);
+        doReturn(CompletableFuture.completedFuture(canStore)).when(storage).put(anyString(), any(Serializable.class));
         return storage;
     }
 
-    public static StorageManager emptyStorage() {
+    public static StorageManager<Serializable> emptyStorage() {
         return storage(true);
     }
 
-    public static StorageManager failingStorage() {
+    public static StorageManager<Serializable> failingStorage() {
         return storage(false);
     }
 
-    public static StorageManager unRemovableStorage() {
-        StorageManager storage = emptyStorage();
+    public static StorageManager<Serializable> unRemovableStorage() {
+        StorageManager<Serializable> storage = emptyStorage();
         CompletableFuture<Serializable> mock = new CompletableFuture<>();
         mock.completeExceptionally(new RuntimeException("Testing"));
-        doReturn(mock).when(storage).removeObject("key");
+        doReturn(mock).when(storage).remove("key");
         return storage;
     }
 
-    public static StorageManager mockStorage() {
-        StorageManager service = emptyStorage();
-        doReturn(CompletableFuture.completedFuture(null)).when(service).getObject(anyString());
-        doReturn(CompletableFuture.completedFuture(null)).when(service).removeObject(anyString());
+    public static StorageManager<Serializable> mockStorage() {
+        StorageManager<Serializable> service = emptyStorage();
+        doReturn(CompletableFuture.completedFuture(null)).when(service).get(anyString());
+        doReturn(CompletableFuture.completedFuture(null)).when(service).remove(anyString());
         return service;
     }
 
-    public static StorageManager mockStorage(Serializable data) {
-        StorageManager service = emptyStorage();
-        doReturn(CompletableFuture.completedFuture(data)).when(service).getObject(anyString());
-        doReturn(CompletableFuture.completedFuture(data)).when(service).removeObject(anyString());
+    public static StorageManager<Serializable> mockStorage(Serializable data) {
+        StorageManager<Serializable> service = emptyStorage();
+        doReturn(CompletableFuture.completedFuture(data)).when(service).get(anyString());
+        doReturn(CompletableFuture.completedFuture(data)).when(service).remove(anyString());
         return service;
     }
 
