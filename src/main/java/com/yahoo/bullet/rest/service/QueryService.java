@@ -32,8 +32,6 @@ public class QueryService extends PubSubResponder {
     private List<Reader> readers;
 
     private static final CompletableFuture<PubSubMessage> NONE = CompletableFuture.completedFuture(null);
-    private static final CompletableFuture<Boolean> SUCCESS = CompletableFuture.completedFuture(true);
-    private static final CompletableFuture<Boolean> FAIL = CompletableFuture.completedFuture(false);
 
     /**
      * Constructor that takes various necessary components.
