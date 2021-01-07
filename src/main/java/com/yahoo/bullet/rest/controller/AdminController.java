@@ -40,7 +40,7 @@ public class AdminController extends MetricController {
         this.queryService = queryService;
     }
 
-    @PatchMapping(path = "{bullet.endpoint.replay}")
+    @PatchMapping(path = "${bullet.endpoint.replay}")
     public CompletableFuture<ResponseEntity<Object>> sendReplay() {
         try {
             return queryService.send(UUID.randomUUID().toString(), Metadata.Signal.REPLAY)
