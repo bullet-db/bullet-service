@@ -63,7 +63,11 @@ public class Reader {
                     continue;
                 }
                 log.debug("Received message {}", message);
-                responder.respond(message.getId(), message);
+                try {
+                    responder.respond(message.getId(), message);
+                } catch (Exception e) {
+                    log.error("Unable to respond to message. Continuing...", e);
+                }
                 subscriber.commit(message.getId());
             } catch (Exception e) {
                 // When the reader is closed, this block also catches InterruptedException's from Thread.sleep.

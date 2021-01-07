@@ -28,7 +28,6 @@ public class ReaderTest {
     @Getter
     private static class MockResponder extends PubSubResponder {
         private CompletableFuture<PubSubMessage> sentMessage = new CompletableFuture<>();
-        private CompletableFuture<Boolean> isCompleted = new CompletableFuture<>();
 
         private MockResponder() {
             super(null);
@@ -36,6 +35,25 @@ public class ReaderTest {
 
         @Override
         public void respond(String id, PubSubMessage message) {
+            sentMessage.complete(message);
+        }
+    }
+
+    @Getter
+    private static class MockFailingResponder extends PubSubResponder {
+        private CompletableFuture<Boolean> isFailed = new CompletableFuture<>();
+        private CompletableFuture<PubSubMessage> sentMessage = new CompletableFuture<>();
+
+        private MockFailingResponder() {
+            super(null);
+        }
+
+        @Override
+        public void respond(String id, PubSubMessage message) {
+            if (!isFailed.isDone()) {
+                isFailed.complete(true);
+                throw new RuntimeException("Testing");
+            }
             sentMessage.complete(message);
         }
     }
@@ -113,6 +131,19 @@ public class ReaderTest {
         Subscriber subscriber = new MockSubscriber(mockMessage);
         Reader reader = new Reader(subscriber, responder, 1);
         reader.start();
+        Assert.assertEquals(responder.getSentMessage().get(), mockMessage);
+        reader.close();
+    }
+
+    @Test(timeOut = 10000)
+    public void testContinuesOnExceptionFromResponder() throws Exception {
+        Subscriber subscriber = new MockSubscriber(mockMessage, mockMessage);
+        MockFailingResponder responder = new MockFailingResponder();
+        Reader reader = new Reader(subscriber, responder, 1);
+        reader.start();
+        // It should read the message, thrown the exception and continued reading nothing
+        Assert.assertTrue(responder.getIsFailed().get());
+        // Now it should have read again
         Assert.assertEquals(responder.getSentMessage().get(), mockMessage);
         reader.close();
     }
