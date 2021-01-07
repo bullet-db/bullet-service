@@ -36,6 +36,7 @@ bullet:
     sse: '/sse-query'
     websocket: '/ws-query'
     async: '/async-query'
+    replay: '/replay'
 
 logging:
   level:

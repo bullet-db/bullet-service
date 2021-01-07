@@ -99,11 +99,12 @@ bullet:
 
   # The following configure the names of the various renamable public endpoints of the API
   endpoint:
-    validate: '/validate-query'
-    http: '/http-query'
-    sse: '/sse-query'
-    websocket: '/ws-query'
-    async: '/async-query'
+    validate: '/queries/validate-query'
+    http: '/queries/http-query'
+    sse: '/queries/sse-query'
+    websocket: '/queries/ws-query'
+    async: '/queries/async-query'
+    replay: '/admin/replay'
 
 ####################################################################################################################
 # Spring Boot settings
