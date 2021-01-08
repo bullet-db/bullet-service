@@ -11,16 +11,16 @@ import com.yahoo.bullet.rest.model.WebSocketResponse;
 import com.yahoo.bullet.rest.service.WebSocketService;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests {
     @Mock
@@ -28,7 +28,7 @@ public class WebSocketQueryHandlerTest extends AbstractTestNGSpringContextTests 
 
     @BeforeMethod
     public void setup() {
-        MockitoAnnotations.initMocks(this);
+        openMocks(this);
     }
 
     @Test

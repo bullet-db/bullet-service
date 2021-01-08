@@ -6,6 +6,7 @@
 package com.yahoo.bullet.rest;
 
 import com.yahoo.bullet.common.BulletConfig;
+import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.storage.StorageManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +21,8 @@ public class StorageConfiguration {
      * @return An instance of the particular {@link StorageManager} indicated in the config.
      */
     @Bean
-    public StorageManager storageManager(@Value("${bullet.storage.config}") String config) {
-        return StorageManager.from(new BulletConfig(config));
+    @SuppressWarnings("unchecked")
+    public StorageManager<PubSubMessage> queryStorageManager(@Value("${bullet.storage.config}") String config) {
+        return (StorageManager<PubSubMessage>) StorageManager.from(new BulletConfig(config));
     }
 }

@@ -14,7 +14,7 @@ public class StorageConfigurationTest {
     @Test
     public void testStorageManager() {
         StorageConfiguration configuration = new StorageConfiguration();
-        StorageManager manager = configuration.storageManager("test_storage_defaults.yaml");
+        StorageManager manager = configuration.queryStorageManager("test_storage_defaults.yaml");
         Assert.assertTrue(manager instanceof NullStorageManager);
     }
 }

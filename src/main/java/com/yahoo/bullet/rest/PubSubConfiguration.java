@@ -8,6 +8,7 @@ package com.yahoo.bullet.rest;
 import com.yahoo.bullet.common.BulletConfig;
 import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.PubSubException;
+import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
@@ -36,7 +37,7 @@ public class PubSubConfiguration {
     /**
      * Creates a {@link QueryService} instance from various necessary components.
      *
-     * @param storageManager The non-null {@link StorageManager} to use.
+     * @param queryStorageManager The non-null {@link StorageManager} to use.
      * @param handlerService The {@link HandlerService} to use.
      * @param responderClasses The responders to use for asynchronous queries. May be empty.
      * @param publishers The non-empty {@link List} of {@link Publisher} to use.
@@ -45,7 +46,7 @@ public class PubSubConfiguration {
      * @return The created {@link QueryService} instance.
      */
     @Bean
-    public QueryService queryService(StorageManager storageManager, HandlerService handlerService,
+    public QueryService queryService(StorageManager<PubSubMessage> queryStorageManager, HandlerService handlerService,
                                      ResponderClasses responderClasses, List<Publisher> publishers,
                                      List<Subscriber> subscribers, @Value("${bullet.pubsub.sleep-ms}") int sleep) {
         List<PubSubResponder> responders;
@@ -55,7 +56,7 @@ public class PubSubConfiguration {
             responders = responderClasses.create();
             responders.add(handlerService);
         }
-        return new QueryService(storageManager, responders, publishers, subscribers, sleep);
+        return new QueryService(queryStorageManager, responders, publishers, subscribers, sleep);
     }
 
     /**

@@ -34,14 +34,14 @@ import static com.yahoo.bullet.rest.TestHelpers.mockPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.mockStorage;
 import static com.yahoo.bullet.rest.TestHelpers.unRemovableStorage;
 import static java.util.Collections.singletonList;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class QueryServiceTest {
     private Publisher publisher;
@@ -86,7 +86,6 @@ public class QueryServiceTest {
         QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
         service.close();
         verify(responder).close();
-        verify(storage).close();
     }
 
     @Test
@@ -97,7 +96,7 @@ public class QueryServiceTest {
         PubSubMessage result = service.submit("key", SAMPLE, getBQLQuery()).get();
         PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED, SAMPLE_METADATA);
         assertMessageEquals(result, expected);
-        verify(storage).putObject("key", expected);
+        verify(storage).put("key", expected);
         assertMessageSent(publisher, expected);
     }
 
@@ -132,7 +131,7 @@ public class QueryServiceTest {
         PubSubMessage result = service.submit("key", SAMPLE, SAMPLE_BQL).get();
         Assert.assertNull(result);
         assertMessageSent(publisher, expected);
-        verifyZeroInteractions(storage);
+        verifyNoInteractions(storage);
     }
 
     @Test
@@ -153,7 +152,7 @@ public class QueryServiceTest {
 
         assertMessageEquals(payload, expected);
         assertMessageEquals(kill, new PubSubMessage("key", Metadata.Signal.KILL));
-        verify(storage).putObject("key", expected);
+        verify(storage).put("key", expected);
     }
 
     @Test
@@ -165,7 +164,7 @@ public class QueryServiceTest {
         StorageManager storage = emptyStorage();
         CompletableFuture<Boolean> fail = new CompletableFuture<>();
         fail.completeExceptionally(new RuntimeException("Testing"));
-        doReturn(fail).when(storage).putObject(eq("key"), any());
+        doReturn(fail).when(storage).put(eq("key"), any());
 
         QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
 
@@ -173,7 +172,7 @@ public class QueryServiceTest {
         Assert.assertNull(result);
 
         assertMessageSent(publisher, expected);
-        verify(storage).putObject("key", expected);
+        verify(storage).put("key", expected);
     }
 
     @Test
@@ -184,7 +183,7 @@ public class QueryServiceTest {
         service.kill("key").get();
 
         PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
-        verify(storage).removeObject("key");
+        verify(storage).remove("key");
         assertMessageSent(publisher, expected);
     }
 
@@ -195,7 +194,7 @@ public class QueryServiceTest {
 
         service.send("key", Metadata.Signal.KILL).get();
         PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
-        verifyZeroInteractions(storage);
+        verifyNoInteractions(storage);
         assertMessageSent(publisher, expected);
     }
 
@@ -206,7 +205,7 @@ public class QueryServiceTest {
 
         PubSubMessage expected = new PubSubMessage("key", "test", new Metadata(Metadata.Signal.KILL, new HashMap<>()));
         service.send(expected).get();
-        verifyZeroInteractions(storage);
+        verifyNoInteractions(storage);
         assertMessageSent(publisher, expected);
     }
 
@@ -218,7 +217,7 @@ public class QueryServiceTest {
         service.kill("key").get();
 
         PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
-        verify(storage).removeObject("key");
+        verify(storage).remove("key");
         assertMessageSent(publisher, expected);
     }
 
@@ -231,7 +230,7 @@ public class QueryServiceTest {
         service.kill("key").get();
 
         PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
-        verify(storage).removeObject("key");
+        verify(storage).remove("key");
         assertMessageSent(publisher, expected);
     }
 

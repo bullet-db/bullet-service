@@ -22,8 +22,8 @@ import org.testng.Assert;
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -50,7 +50,7 @@ public class TestHelpers {
 
     public static Publisher mockPublisher() throws Exception {
         Publisher publisher = mock(Publisher.class);
-        doAnswer(i -> i.getArgumentAt(0, PubSubMessage.class)).when(publisher).send(any());
+        doAnswer(i -> i.getArgument(0, PubSubMessage.class)).when(publisher).send(any());
         return publisher;
     }
 
@@ -63,46 +63,46 @@ public class TestHelpers {
     public static Publisher metadataModifyingPublisher(String extraMetadata) throws Exception {
         Publisher publisher = mock(Publisher.class);
         doAnswer(invocation -> {
-            PubSubMessage message = invocation.getArgumentAt(0, PubSubMessage.class);
+            PubSubMessage message = invocation.getArgument(0, PubSubMessage.class);
             message.setMetadata(new CustomMetadata(extraMetadata, message.getMetadata()));
             return message;
         }).when(publisher).send(any());
         return publisher;
     }
 
-    private static StorageManager storage(boolean canStore) {
-        StorageManager storage = mock(StorageManager.class);
-        doReturn(CompletableFuture.completedFuture(canStore)).when(storage).putObject(anyString(), any());
+    private static <T extends Serializable> StorageManager<T> storage(boolean canStore) {
+        StorageManager<T> storage = mock(StorageManager.class);
+        doReturn(CompletableFuture.completedFuture(canStore)).when(storage).put(anyString(), any());
         return storage;
     }
 
-    public static StorageManager emptyStorage() {
+    public static <T extends Serializable> StorageManager<T> emptyStorage() {
         return storage(true);
     }
 
-    public static StorageManager failingStorage() {
+    public static StorageManager<Serializable> failingStorage() {
         return storage(false);
     }
 
-    public static StorageManager unRemovableStorage() {
-        StorageManager storage = emptyStorage();
+    public static StorageManager<Serializable> unRemovableStorage() {
+        StorageManager<Serializable> storage = emptyStorage();
         CompletableFuture<Serializable> mock = new CompletableFuture<>();
         mock.completeExceptionally(new RuntimeException("Testing"));
-        doReturn(mock).when(storage).removeObject("key");
+        doReturn(mock).when(storage).remove("key");
         return storage;
     }
 
-    public static StorageManager mockStorage() {
-        StorageManager service = emptyStorage();
-        doReturn(CompletableFuture.completedFuture(null)).when(service).getObject(anyString());
-        doReturn(CompletableFuture.completedFuture(null)).when(service).removeObject(anyString());
+    public static <T extends Serializable> StorageManager<T> mockStorage() {
+        StorageManager<T> service = emptyStorage();
+        doReturn(CompletableFuture.completedFuture(null)).when(service).get(anyString());
+        doReturn(CompletableFuture.completedFuture(null)).when(service).remove(anyString());
         return service;
     }
 
-    public static StorageManager mockStorage(Serializable data) {
-        StorageManager service = emptyStorage();
-        doReturn(CompletableFuture.completedFuture(data)).when(service).getObject(anyString());
-        doReturn(CompletableFuture.completedFuture(data)).when(service).removeObject(anyString());
+    public static <T extends Serializable> StorageManager<T> mockStorage(Serializable data) {
+        StorageManager<T> service = emptyStorage();
+        doReturn(CompletableFuture.completedFuture(data)).when(service).get(anyString());
+        doReturn(CompletableFuture.completedFuture(data)).when(service).remove(anyString());
         return service;
     }
 

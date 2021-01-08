@@ -26,14 +26,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class QueryService extends PubSubResponder {
-    private StorageManager storage;
+    private StorageManager<PubSubMessage> storage;
     private List<PubSubResponder> responders;
     private PublisherRandomPool publishers;
     private List<Reader> readers;
 
     private static final CompletableFuture<PubSubMessage> NONE = CompletableFuture.completedFuture(null);
-    private static final CompletableFuture<Boolean> SUCCESS = CompletableFuture.completedFuture(true);
-    private static final CompletableFuture<Boolean> FAIL = CompletableFuture.completedFuture(false);
 
     /**
      * Constructor that takes various necessary components.
@@ -44,7 +42,7 @@ public class QueryService extends PubSubResponder {
      * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
      * @param sleep The time to sleep between checking for messages from the pubsub.
      */
-    public QueryService(StorageManager storageManager, List<PubSubResponder> responders, List<Publisher> publishers,
+    public QueryService(StorageManager<PubSubMessage> storageManager, List<PubSubResponder> responders, List<Publisher> publishers,
                         List<Subscriber> subscribers, int sleep) {
         super(null);
         Objects.requireNonNull(storageManager);
@@ -83,7 +81,7 @@ public class QueryService extends PubSubResponder {
      */
     public CompletableFuture<Void> kill(String id) {
         log.debug("Removing metadata for query {} and killing it", id);
-        CompletableFuture<PubSubMessage> removed = storage.removeObject(id);
+        CompletableFuture<PubSubMessage> removed = storage.remove(id);
         return removed.thenAccept(QueryService::onStoredMessageRemove)
                       .exceptionally(e -> onStoredMessageRemoveFail(e, id))
                       .thenAccept(u -> killQuery(id));
@@ -98,7 +96,7 @@ public class QueryService extends PubSubResponder {
     public void respond(String id, PubSubMessage response) {
         log.debug("Received response {} for {}", id, response);
         if (Utils.isDone(response)) {
-            CompletableFuture<PubSubMessage> removed = storage.removeObject(id);
+            CompletableFuture<PubSubMessage> removed = storage.remove(id);
             removed.thenAccept(QueryService::onStoredMessageRemove)
                    .exceptionally(e -> onRespondFail(e, id, response));
         }
@@ -146,7 +144,7 @@ public class QueryService extends PubSubResponder {
             return NONE;
         }
         // TODO: consider sending a kill if an exception happens here. It's technically a leak to the backend
-        return storage.putObject(id, message).thenComposeAsync(result -> sendKillIfNecessary(result, id, message));
+        return storage.put(id, message).thenComposeAsync(result -> sendKillIfNecessary(result, id, message));
     }
 
     private CompletableFuture<PubSubMessage> publish(PubSubMessage message) {

@@ -8,7 +8,7 @@ package com.yahoo.bullet.rest;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.testng.annotations.Test;
 
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 

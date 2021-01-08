@@ -13,13 +13,13 @@ import org.testng.annotations.Test;
 
 import java.util.UUID;
 
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class HandlerServiceTest {
     @Test
@@ -45,7 +45,7 @@ public class HandlerServiceTest {
         HandlerService service = new HandlerService();
 
         Assert.assertFalse(service.failHandler("id"));
-        verifyZeroInteractions(queryHandler);
+        verifyNoInteractions(queryHandler);
         service.getHandlers().put("id", queryHandler);
         Assert.assertTrue(service.failHandler("id"));
         verify(queryHandler).fail();
@@ -76,8 +76,7 @@ public class HandlerServiceTest {
         HandlerService service = new HandlerService();
         service.addHandler("A", queryHandlerA);
         service.addHandler("B", queryHandlerB);
-        verifyZeroInteractions(queryHandlerA);
-        verifyZeroInteractions(queryHandlerB);
+        verifyNoInteractions(queryHandlerA, queryHandlerB);
 
         service.failAllHandlers();
         verify(queryHandlerA).fail();
@@ -121,6 +120,23 @@ public class HandlerServiceTest {
         verify(handler).send(eq(message));
         verifyNoMoreInteractions(handler);
         Assert.assertTrue(service.hasHandler("id"));
+    }
+
+    @Test
+    public void testRespondingToMissingHandlerWithAMessage() {
+        QueryHandler handler = mock(QueryHandler.class);
+        doReturn(false).when(handler).isComplete();
+        HandlerService service = new HandlerService();
+        service.addHandler("id", handler);
+        PubSubMessage message = new PubSubMessage("id", "content");
+        service.respond("id", message);
+        verify(handler, times(2)).isComplete();
+        verify(handler).send(eq(message));
+
+        service.removeHandler("id");
+        service.respond("id", message);
+        verifyNoMoreInteractions(handler);
+        Assert.assertFalse(service.hasHandler("id"));
     }
 
     @Test

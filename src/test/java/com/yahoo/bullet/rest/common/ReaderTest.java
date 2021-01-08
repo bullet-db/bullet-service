@@ -28,7 +28,6 @@ public class ReaderTest {
     @Getter
     private static class MockResponder extends PubSubResponder {
         private CompletableFuture<PubSubMessage> sentMessage = new CompletableFuture<>();
-        private CompletableFuture<Boolean> isCompleted = new CompletableFuture<>();
 
         private MockResponder() {
             super(null);
@@ -36,6 +35,25 @@ public class ReaderTest {
 
         @Override
         public void respond(String id, PubSubMessage message) {
+            sentMessage.complete(message);
+        }
+    }
+
+    @Getter
+    private static class MockFailingResponder extends PubSubResponder {
+        private CompletableFuture<Boolean> isFailed = new CompletableFuture<>();
+        private CompletableFuture<PubSubMessage> sentMessage = new CompletableFuture<>();
+
+        private MockFailingResponder() {
+            super(null);
+        }
+
+        @Override
+        public void respond(String id, PubSubMessage message) {
+            if (!isFailed.isDone()) {
+                isFailed.complete(true);
+                throw new RuntimeException("Testing");
+            }
             sentMessage.complete(message);
         }
     }
@@ -118,20 +136,24 @@ public class ReaderTest {
     }
 
     @Test(timeOut = 10000)
+    public void testContinuesOnExceptionFromResponder() throws Exception {
+        Subscriber subscriber = new MockSubscriber(mockMessage, mockMessage);
+        MockFailingResponder responder = new MockFailingResponder();
+        Reader reader = new Reader(subscriber, responder, 1);
+        reader.start();
+        // It should read the message, thrown the exception and continued reading nothing
+        Assert.assertTrue(responder.getIsFailed().get());
+        // Now it should have read again
+        Assert.assertEquals(responder.getSentMessage().get(), mockMessage);
+        reader.close();
+    }
+
+    @Test(timeOut = 10000)
     public void testSubscriberClosedOnClose() throws Exception {
         MockSubscriber subscriber = new MockSubscriber();
         Reader reader = new Reader(subscriber, responder, 1);
         reader.start();
         reader.close();
-        Assert.assertTrue(subscriber.getIsClosed().get());
-    }
-
-    @Test(timeOut = 10000)
-    public void testSubscriberClosedOnError() throws Exception {
-        // When a runtime exception occurs, the reader shuts down and close is called on the Subscriber.
-        MockFailingSubscriber subscriber = new MockFailingSubscriber();
-        new Reader(subscriber, responder, 1).start();
-
         Assert.assertTrue(subscriber.getIsClosed().get());
     }
 

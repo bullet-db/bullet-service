@@ -39,6 +39,9 @@ public class HandlerService extends PubSubResponder {
     @Override
     public void respond(String id, PubSubMessage message) {
         QueryHandler handler = getHandler(id);
+        if (handler == null) {
+            return;
+        }
         synchronized (handler) {
             if (!handler.isComplete()) {
                 handler.send(message);

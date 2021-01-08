@@ -65,11 +65,13 @@ public class Reader {
                 log.debug("Received message {}", message);
                 responder.respond(message.getId(), message);
                 subscriber.commit(message.getId());
-            } catch (Exception e) {
-                // When the reader is closed, this block also catches InterruptedException's from Thread.sleep.
+            } catch (InterruptedException ie) {
+                // When the reader is closed, this block also catches InterruptedException from Thread.sleep.
                 // If the service is busy reading messages, the while loop will break instead.
-                log.error("Closing reader thread with error", e);
+                log.error("Closing reader thread with error", ie);
                 break;
+            } catch (Exception e) {
+                log.error("Unable to fully process and/or respond to message! Continuing...", e);
             }
         }
         try {
