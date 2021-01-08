@@ -158,15 +158,6 @@ public class ReaderTest {
     }
 
     @Test(timeOut = 10000)
-    public void testSubscriberClosedOnError() throws Exception {
-        // When a runtime exception occurs, the reader shuts down and close is called on the Subscriber.
-        MockFailingSubscriber subscriber = new MockFailingSubscriber();
-        new Reader(subscriber, responder, 1).start();
-
-        Assert.assertTrue(subscriber.getIsClosed().get());
-    }
-
-    @Test(timeOut = 10000)
     public void testEmptyReceiveIgnored() throws Exception {
         Subscriber subscriber = new MockSubscriber(null, mockMessage);
         new Reader(subscriber, responder, 1).start();
