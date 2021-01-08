@@ -6,6 +6,7 @@
 
 package com.yahoo.bullet.rest.common;
 
+import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Subscriber;
@@ -63,17 +64,15 @@ public class Reader {
                     continue;
                 }
                 log.debug("Received message {}", message);
-                try {
-                    responder.respond(message.getId(), message);
-                } catch (Exception e) {
-                    log.error("Unable to respond to message. Continuing...", e);
-                }
+                responder.respond(message.getId(), message);
                 subscriber.commit(message.getId());
-            } catch (Exception e) {
-                // When the reader is closed, this block also catches InterruptedException's from Thread.sleep.
+            } catch (InterruptedException | PubSubException e) {
+                // When the reader is closed, this block also catches InterruptedException from Thread.sleep.
                 // If the service is busy reading messages, the while loop will break instead.
                 log.error("Closing reader thread with error", e);
                 break;
+            } catch (Exception e) {
+                log.error("Unable to fully process and/or respond to message! Continuing...", e);
             }
         }
         try {
