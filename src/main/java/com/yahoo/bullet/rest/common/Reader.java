@@ -6,7 +6,6 @@
 
 package com.yahoo.bullet.rest.common;
 
-import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Subscriber;
