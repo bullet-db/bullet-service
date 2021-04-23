@@ -1,12 +1,15 @@
 language: java
 jdk:
-- oraclejdk8
-dist: trusty
+- openjdk8
+dist: bionic
+before_install:
+- openssl aes-256-cbc -K $encrypted_8f2a81d544cc_key -iv $encrypted_8f2a81d544cc_iv -in travis/pubring.gpg.enc -out travis/pubring.gpg -d
+- openssl aes-256-cbc -K $encrypted_5c292d804727_key -iv $encrypted_5c292d804727_iv -in travis/secring.gpg.enc -out travis/secring.gpg -d
 script:
 - mvn verify
 after_success:
 - mvn coveralls:report
-- test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_BRANCH}" != "master" && mvn deploy --settings travis/settings.xml
+- test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && mvn deploy --settings travis/settings.xml -DskipTests=true -Possrh -Prelease
 cache:
   directories:
   - "~/.m2"
@@ -16,5 +19,7 @@ branches:
   - "/^bullet-service-[0-9]+\\.[0-9]+\\.[0-9]+/"
 env:
   global:
-  - secure: QIYk6xLHlCSnpFRfLq/0w5lhsP1otV5AOhjX+fcxByjTEm2dNjywEpPDJbhgEXrCyiSVDXGlUnV+EcD0BdoT+CQ0eYYWqceSigKq5W/ucNIdL0LIvNENajSns/6DYLOJuLaDDCBYWfZar2nGG3i8v1repYV+OfVTTfGt6Of8+vgL9npXpvRf5mfzYMQijB8AQNat9OSQkAdWxZYamUgSNOj7bxlHI6aW8KuFDIxpMeQGKNiLqacbSsHJl5STVIzyPmt4FKzO8aVnOj0bmwI3ZeaaD+Fny2U0/4/mQ/P/5xwNyjU3WwjE8dcahY5WT4Rc3hu+I96wuqli58ffv1J0Rn0TJhyUyG+KbVw1rezx0POovkeIn6L22v/7dBnux3xSjbDW4adNFWR5U6ZJn9D7xwLaMPuKEhe0B5lZnu+OT6w66ISd4z8UeXjL0Cqh51y+6sY8Sul5jNBsp49mighYmqlIrkMI4HB4bu96PClJBKPatIT8av5HzCwKMK6xZcIl6C1I48rSb4UXiBxoTEQH/mcRcnSxbeWhWquqKOKa3p4VVWN3IVpckGWk3lSC/EmQuhGt6/7kz1Ixl1Gt2cAG7dC/npEXyCMGXYZHAP7TOIEIHWSRpkTAmoLhlgJFwCmAy6yMo8RttZYRtHoD4LDRz7RyR8kKeQT1birfM3apLgg=
-  - secure: jFHWjHfc7BQmwyMQ1fcLSPo/Q26anZFz1uoGNQGoY8R/7xxPWsTbwYdbbYM//V6hym/pW6729mlbd2nNFSC7CsuQEJ+IzNvUVwhV/+zxneEVJhKNEmQMDWldkvJujUiD8VKM8M0lIyfdHK20iingMYzkWS4WZruCrJ1bznecEnM16ikIXrMbq1c8jaQK/ZxlxSwP9eVa7CToa3y8FFPOnPfFk1b1DW5tf4iDv2k/3j+vwXqfwBo+AXrDvjZFPCe2Q7McH8l/iQoelpXrA2nnX8nyoa3WCFSn/B8w/bnwPp0dqwJIv+9R0kVhKfN9KS2jFmJgp/4X2qYITPrgL7Oe+VsJkqXTdciohQFnkxqNkBH1Ri+MxCW6i26oEpzDR4+1mF19CNNmD58TLDBd2LanHJQaIn7Sa832SE4t+LYVnwWZhzo/zsdY77uyCSaIT3sUaObno7C/DRCT+kI4g9cWPvAvYbUh3mrTciI7Xy1Pj7naE34T/dV7lx+sav0iHk52GFG1ZEI/PRDxhbaVk8sUbwYNPjp4ACigZzaIfoMz3qmIKibk+D8cpwxnZlsMc2ZoZ1V6+WxvVoim6WP/fu/fg9pRWhgPBNDLb0bPHs8UhHqokCHx1xuqssIDj+XeLjyfYJLpkRUuI7E7doEkAocBHxE+RBCl2oJqdNx56gaOKg8=
+  - GPG_EXECUTABLE=gpg
+  - secure: CJlmvnB7SiQxradNQjDMzHZc8mdrDo8QCPDL9Tai1HoOploU1d+qb8dE3o/j6OL3mKzr+IX4LlvPr8xUeQv/BEA1A1RQNg3uwt2N2Xw0mK9/2SSWUTYwQhvSyzwi/CpkMyFyF4bIwLmq8u/izMehTqXNGgKuMt6RVVMcMG7ARFw41dUh1lDrf8RNQ7O7jx3xalw/VJ4vTlsUUOLKIv201mhEnoJWeN1G1n8kOFz0Fu20haKilP9C2AHg/76IqffbmZxKQLV3f8gIYBPy5b2GFgVSU64SYasIHBPmf8k50HrdqyEeSdbLl/2+BSAVd11XhgV1H42Q3GKbVo82V4QHd0dHNspx/S6vVjf0G9bwB27/PV/ZiWG5LNnnPe6N7T7DOJ7GcKrkA96JMRfgyTF/7b4gG1MFseMw1Asg8yXagmQWHO2BxmX39O1Dd0IkTme+RX67s9XorHW8YFBxwfJNucfpSb9vU2QPCqlV2FhrRiUhXyQ0WGZqFkkgH1xsatWpQdFEGbORpTpmCBm7aDIzf4ILwTZ/wOf81AXOd5FHtzh6tHgdqRDsc5pNj6RAeZ9/xNxA9nsdGisF+7rt/j5MipHbipQDwXJ1AZszeTOgwrEHqoSSzLmf9eI6muJtRhek7XD7IO1wXwNcKpBT0nNtfr0uKlKbjKzq8arsn5LhWes=
+  - secure: MV8KulePmXs/Fy4t5dOQFjahXPtUfEFUo9W7PCneNTIDUl6OC5ECmlh/Md8QbG5+dmdLLrPJnme31WuJTAjt1pgs3OMO66mpJ5Iv6a00ABKmUTirEfaa5xCwY/u8kQNFChnvIppcYzVUMJYtuNgd8e5+lIFdMXMNXQxXWT/LL51iXTX08g42n56gTBhz/JYJfGGcbo5nE+awnP3rVIxuXuqOzQw8RQ3So61xKNeIsCMLJ7xDAgUp1sEcUvpWSm8o7ck1+qAIuOZIpWA1edNG2J9DGT781cdUZCBHEWYu9w8/IZMKSinr8gIcQkSiDFwiWXKGCE/DUzY9fjEO4QUNOp6TfU9mxfWO1Y35Cdhm2ySegBDq4y90xzbGcmZKEgU1Mw0ORAMCZoNc80tGttzUGeWSobWIg6HQxrha/R0X7sRITrOO9uPJJiZZ6JKUMjsvsBdfO0OOtaFQFtddvTLILYms8NcsMcemObYm73hl0DKCvaIfjBTneTT0Q1QlFKFngJcXtXu0N9z2JgKHRGBhytuu2juGTr2mpRqJGYNY9KXHgvCobphP8rqIbqVfVSPa5JQVTEjfMZ/mMLH4tzAm7QywIBWhrCPlEQCJejr1d16O2dGSQ83RUauIVrUvvpcJzXlfI9Uvs4SaqO5U5ClwKwRGceMCPJRbMtusrxb7bfU=
+  - secure: qTYAx+zRl5wXdLhPGX69KPV8ERkpu5lFrdDD58bX+j6bAbVyvbKiSMoZNopoTw1HK/7/w5XfjbXok4iogKuXC8w/Otj31FnnQ2TPjhopccBJsL1z7jZEd7/YTos1bZbf9GqpyxgrQ9hDji8XKcMqegIm1D7QigyOgtEHOhB1/voaXl7nt3kFg4rtcbfYEv9Ry5/+Xy1kxAIESySLDGZLrWynZyA1fxoQLE3dCuThuwQacxDEffUZGnViwuNkGtLVwlAE2fgTgkU22zbh41kwbgRP9F61VVkMFobobxYKswntpsn5HamMuiIN02UAh8J8viT40lZCtpwESJNKyd5163G8soicT2h2o/oyg5MHzGNIfeeZ+E3p42LIRm6ImrvVx0G+L7fdSYNx3DDwj6fltBBvgfEikeYb4+THB3oNlouSxKeAS/37WqOZC1ww4LmhyG0/8b3Wb5P3TkUyOptU8EF3ATB71Qfs1pj+sO3gu3gIvLX1th/wlLnJJwZ/DmQPQf214Fx1/Pb4ol6L0hQy3GzZeaCjKEXQuPB+ro7myOrfua1FL0mGb89D3WwrTzbTGE0Ne9IV4XFbpscXnLHsBkKUnJ9RfV8Sm0TR8+5ewqVijVXyHdGJzV3lPuRXsTBWXIp6+3EgGblzMClYefqbBjuO8MuAqN3M9r6+AoHC9uk=

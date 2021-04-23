@@ -6,36 +6,52 @@
     <version>1.0.2-SNAPSHOT</version>
     <name>bullet-service</name>
 
+    <description>
+        This is the Web Service for Bullet - a real-time query engine - in Spring Boot.
+    </description>
+    <url>https://github.com/bullet-db/bullet-service</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
     <scm>
+        <url>https://github.com/bullet-db/bullet-service</url>
+        <connection>scm:git:ssh://git@github.com/bullet-db/bullet-service.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/bullet-db/bullet-service.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
-    <distributionManagement>
-        <repository>
-            <id>bintray-bullet-service-repo</id>
-            <url>https://api.bintray.com/maven/yahoo/maven/bullet-service;publish=1</url>
-        </repository>
-    </distributionManagement>
-
-    <repositories>
-        <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray-yahoo-maven</id>
-            <name>bintray</name>
-            <url>http://dl.bintray.com/yahoo/maven</url>
-        </repository>
-    </repositories>
+    <developers>
+        <developer>
+            <name>Bullet Developers</name>
+            <email>bullet-dev@googlegroups.com</email>
+            <organization>Yahoo Inc.</organization>
+            <organizationUrl>https://github.com/bullet-db</organizationUrl>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <bullet.core.version>1.2.1</bullet.core.version>
-        <bullet.bql.version>1.1.1</bullet.bql.version>
+        <bullet.core.version>1.2.2</bullet.core.version>
+        <bullet.bql.version>1.1.2</bullet.bql.version>
         <spring.security.oauth2>2.2.0.RELEASE</spring.security.oauth2>
     </properties>
 
@@ -272,5 +288,50 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>release</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.8</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
 
