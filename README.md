@@ -1,7 +1,9 @@
 # Bullet Service
 The Web-Service layer for Bullet
 
-[![Build Status](https://travis-ci.com/bullet-db/bullet-service.svg?branch=master)](https://travis-ci.com/bullet-db/bullet-service) [![Coverage Status](https://coveralls.io/repos/github/bullet-db/bullet-service/badge.svg?branch=master)](https://coveralls.io/github/bullet-db/bullet-service?branch=master) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.bullet/bullet-service/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.bullet/bullet-service/)
+[![Build Status](https://cd.screwdriver.cd/pipelines/7242/badge)](https://cd.screwdriver.cd/pipelines/7242)
+[![Coverage Status](https://coveralls.io/repos/github/bullet-db/bullet-service/badge.svg?branch=master)](https://coveralls.io/github/bullet-db/bullet-service?branch=master) 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.bullet/bullet-service/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.bullet/bullet-service/)
 
 ## Introduction
 
