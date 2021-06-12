@@ -127,6 +127,18 @@ public class QueryService extends PubSubResponder {
     }
 
     /**
+     * Retrieves the stored {@link PubSubMessage} of a submitted query.
+     *
+     * @param id The non-null ID of the query.
+     * @return A {@link CompletableFuture} that resolves to the stored {@link PubSubMessage} or null if it could not be found.
+     */
+    public CompletableFuture<PubSubMessage> get(String id) {
+        return storage.get(id)
+                      .thenApply(QueryService::onStoredMessageRetrieve)
+                      .exceptionally(e -> onStoredMessageRetrieveFail(e, id));
+    }
+
+    /**
      * Stop all service threads and clear pending requests.
      */
     @PreDestroy
@@ -193,6 +205,17 @@ public class QueryService extends PubSubResponder {
     private static PubSubMessage onSubmitFail(Throwable error, String id) {
         log.error("Failed to submit query {} due to failures in storing or publishing the query", id);
         log.error("Received exception", error);
+        return null;
+    }
+
+    private static PubSubMessage onStoredMessageRetrieve(PubSubMessage message) {
+        log.debug("Retrieved message {} from storage", message);
+        return message;
+    }
+
+    private static PubSubMessage onStoredMessageRetrieveFail(Throwable e, String id) {
+        log.error("Exception while trying to retrieve stored message", e);
+        log.error("Could not retrieve {} from storage", id);
         return null;
     }
 

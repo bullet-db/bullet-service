@@ -263,4 +263,36 @@ public class QueryServiceTest {
         service.respond("key", expected);
         assertMessageResponded(responder, expected);
     }
+
+    @Test
+    public void testRetrievingASentQuery() throws Exception {
+        StorageManager storage = mockStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
+
+        PubSubMessage result = service.submit("key", SAMPLE, getBQLQuery()).get();
+        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED, SAMPLE_METADATA);
+        assertMessageEquals(result, expected);
+        verify(storage).put("key", expected);
+        assertMessageSent(publisher, expected);
+
+        PubSubMessage retrieval = service.get("key").get();
+        verify(storage).get("key");
+        Assert.assertNull(retrieval);
+    }
+
+    @Test
+    public void testErrorWhileRetrievingASentQuery() throws Exception {
+        StorageManager storage = unRemovableStorage();
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, 1);
+
+        PubSubMessage result = service.submit("key", SAMPLE, getBQLQuery()).get();
+        PubSubMessage expected = new PubSubMessage("key", SAMPLE_SERIALIZED, SAMPLE_METADATA);
+        assertMessageEquals(result, expected);
+        verify(storage).put("key", expected);
+        assertMessageSent(publisher, expected);
+
+        PubSubMessage retrieval = service.get("key").get();
+        verify(storage).get("key");
+        Assert.assertNull(retrieval);
+    }
 }
