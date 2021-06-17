@@ -88,6 +88,7 @@ public class TestHelpers {
         StorageManager<Serializable> storage = emptyStorage();
         CompletableFuture<Serializable> mock = new CompletableFuture<>();
         mock.completeExceptionally(new RuntimeException("Testing"));
+        doReturn(mock).when(storage).get("key");
         doReturn(mock).when(storage).remove("key");
         return storage;
     }
