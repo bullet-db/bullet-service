@@ -6,7 +6,9 @@
 package com.yahoo.bullet.rest;
 
 import com.yahoo.bullet.common.BulletConfig;
+import com.yahoo.bullet.pubsub.IdentityPubSubMessageSerDe;
 import com.yahoo.bullet.pubsub.PubSub;
+import com.yahoo.bullet.pubsub.PubSubMessageSerDe;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.rest.common.MockPubSub;
@@ -19,7 +21,8 @@ public class PubSubConfigurationTest {
     @Test
     public void testPubSub() throws Exception {
         PubSubConfiguration configuration = new PubSubConfiguration();
-        PubSub pubSub = configuration.pubSub("test_pubsub_defaults.yaml");
+        BulletConfig config = configuration.pubSubConfig("test_pubsub_defaults.yaml");
+        PubSub pubSub = configuration.pubSub(config);
 
         Assert.assertNotNull(pubSub);
         Assert.assertTrue(pubSub instanceof MockPubSub);
@@ -40,5 +43,14 @@ public class PubSubConfigurationTest {
 
         Assert.assertEquals(mockPubSub.getSubscribersAskedFor().size(), 1);
         Assert.assertEquals(mockPubSub.getSubscribersAskedFor().get(0), Integer.valueOf(1));
+    }
+
+    @Test
+    public void testSerDe() {
+        PubSubConfiguration configuration = new PubSubConfiguration();
+        BulletConfig config = configuration.pubSubConfig("test_pubsub_defaults.yaml");
+
+        PubSubMessageSerDe serDe = configuration.pubSubMessageSendSerDe(config);
+        Assert.assertTrue(serDe instanceof IdentityPubSubMessageSerDe);
     }
 }

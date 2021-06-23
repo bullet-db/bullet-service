@@ -9,6 +9,7 @@ import com.yahoo.bullet.common.BulletConfig;
 import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
+import com.yahoo.bullet.pubsub.PubSubMessageSerDe;
 import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
@@ -42,13 +43,15 @@ public class PubSubConfiguration {
      * @param responderClasses The responders to use for asynchronous queries. May be empty.
      * @param publishers The non-empty {@link List} of {@link Publisher} to use.
      * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
+     * @param pubSubMessageSendSerDe The {@link PubSubMessageSerDe} to use.
      * @param sleep The time to sleep between checking for messages from the pubsub.
      * @return The created {@link QueryService} instance.
      */
     @Bean
     public QueryService queryService(StorageManager<PubSubMessage> queryStorageManager, HandlerService handlerService,
                                      ResponderClasses responderClasses, List<Publisher> publishers,
-                                     List<Subscriber> subscribers, @Value("${bullet.pubsub.sleep-ms}") int sleep) {
+                                     List<Subscriber> subscribers, PubSubMessageSerDe pubSubMessageSendSerDe,
+                                     @Value("${bullet.pubsub.sleep-ms}") int sleep) {
         List<PubSubResponder> responders;
         if (responderClasses == null) {
             responders = Collections.singletonList(handlerService);
@@ -56,19 +59,30 @@ public class PubSubConfiguration {
             responders = responderClasses.create();
             responders.add(handlerService);
         }
-        return new QueryService(queryStorageManager, responders, publishers, subscribers, sleep);
+        return new QueryService(queryStorageManager, responders, publishers, subscribers, pubSubMessageSendSerDe, sleep);
+    }
+
+    /**
+     * Creates a {@link BulletConfig} from a file path.
+     *
+     * @param config The path to the settings file.
+     * @return A {@link BulletConfig}.
+     */
+    @Bean
+    public BulletConfig pubSubConfig(@Value("${bullet.pubsub.config}") String config) {
+        return new BulletConfig(config);
     }
 
     /**
      * Creates a PubSub instance from a provided config.
      *
-     * @param config The String path to the config file.
+     * @param pubSubConfig The {@link BulletConfig} containing settings for configuring the PubSub.
      * @return An instance of the particular {@link PubSub} indicated in the config.
      * @throws PubSubException if there were issues creating the PubSub instance.
      */
     @Bean
-    public PubSub pubSub(@Value("${bullet.pubsub.config}") String config) throws PubSubException {
-        return PubSub.from(new BulletConfig(config));
+    public PubSub pubSub(BulletConfig pubSubConfig) throws PubSubException {
+        return PubSub.from(pubSubConfig);
     }
 
     /**
@@ -95,5 +109,16 @@ public class PubSubConfiguration {
     @Bean
     public List<Subscriber> subscribers(PubSub pubSub, @Value("${bullet.pubsub.subscribers}") int subscribers) throws PubSubException {
         return pubSub.getSubscribers(subscribers);
+    }
+
+    /**
+     * Creates a {@link PubSubMessageSerDe} from a given {@link BulletConfig} to use for sending messages to the PubSub.
+     *
+     * @param pubSubConfig The {@link BulletConfig} containing relevant settings for the {@link PubSubMessageSerDe}.
+     * @return A created {@link PubSubMessageSerDe}.
+     */
+    @Bean
+    public PubSubMessageSerDe pubSubMessageSendSerDe(BulletConfig pubSubConfig) {
+        return PubSubMessageSerDe.from(pubSubConfig);
     }
 }

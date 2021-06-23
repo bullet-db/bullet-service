@@ -5,9 +5,9 @@
  */
 package com.yahoo.bullet.rest.service;
 
-import com.yahoo.bullet.common.SerializerDeserializer;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
+import com.yahoo.bullet.pubsub.PubSubMessageSerDe;
 import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
@@ -30,6 +30,7 @@ public class QueryService extends PubSubResponder {
     private List<PubSubResponder> responders;
     private PublisherRandomPool publishers;
     private List<Reader> readers;
+    private PubSubMessageSerDe sendSerDe;
 
     private static final CompletableFuture<PubSubMessage> NONE = CompletableFuture.completedFuture(null);
 
@@ -40,17 +41,21 @@ public class QueryService extends PubSubResponder {
      * @param responders The non-empty {@link List} of {@link PubSubResponder} to use.
      * @param publishers The non-empty {@link List} of {@link Publisher} to use.
      * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
+     * @param pubSubMessageSendSerDe The {@link PubSubMessageSerDe} to use for sending messages to the PubSub.
      * @param sleep The time to sleep between checking for messages from the pubsub.
      */
-    public QueryService(StorageManager<PubSubMessage> storageManager, List<PubSubResponder> responders, List<Publisher> publishers,
-                        List<Subscriber> subscribers, int sleep) {
+    public QueryService(StorageManager<PubSubMessage> storageManager, List<PubSubResponder> responders,
+                        List<Publisher> publishers, List<Subscriber> subscribers,
+                        PubSubMessageSerDe pubSubMessageSendSerDe, int sleep) {
         super(null);
         Objects.requireNonNull(storageManager);
         Objects.requireNonNull(responders);
+        Objects.requireNonNull(pubSubMessageSendSerDe);
         Utils.checkNotEmpty(publishers);
         Utils.checkNotEmpty(subscribers);
         this.storage = storageManager;
         this.responders = responders;
+        this.sendSerDe = pubSubMessageSendSerDe;
         this.publishers = new PublisherRandomPool(publishers);
         this.readers = subscribers.stream().map(x -> new Reader(x, this, sleep)).collect(Collectors.toList());
         this.readers.forEach(Reader::start);
@@ -66,7 +71,7 @@ public class QueryService extends PubSubResponder {
      */
     public CompletableFuture<PubSubMessage> submit(String id, Query query, String queryString) {
         log.debug("Submitting query {}", id);
-        PubSubMessage message = new PubSubMessage(id, SerializerDeserializer.toBytes(query), new Metadata(null, queryString));
+        PubSubMessage message = sendSerDe.toMessage(id, query, queryString);
         // Publish then store. Publishing might change the message. Store the sent result
         return publish(message).thenComposeAsync(sent -> store(id, sent))
                                .thenApply(sent -> onSubmit(id, sent))
@@ -112,7 +117,7 @@ public class QueryService extends PubSubResponder {
      */
     public CompletableFuture<PubSubMessage> send(String id, Metadata.Signal signal) {
         Objects.requireNonNull(signal);
-        return publish(new PubSubMessage(id, signal));
+        return publish(sendSerDe.toMessage(new PubSubMessage(id, signal)));
     }
 
     /**
@@ -123,7 +128,7 @@ public class QueryService extends PubSubResponder {
      */
     public CompletableFuture<PubSubMessage> send(PubSubMessage message) {
         Objects.requireNonNull(message);
-        return publish(message);
+        return publish(sendSerDe.toMessage(message));
     }
 
     /**
@@ -175,7 +180,7 @@ public class QueryService extends PubSubResponder {
         PubSubMessage message = new PubSubMessage(id, Metadata.Signal.KILL);
         try {
             log.debug("Sending kill signal for {}", id);
-            return publisher.send(message);
+            return publisher.send(sendSerDe.toMessage(message));
         } catch (Exception e) {
             log.error("Could not send message {}", message);
             log.error("Error: ", e);

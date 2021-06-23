@@ -22,6 +22,7 @@ import org.testng.Assert;
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 
+import static com.yahoo.bullet.common.SerializerDeserializer.toBytes;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -109,7 +110,12 @@ public class TestHelpers {
 
     public static void assertMessageEquals(PubSubMessage actual, PubSubMessage expected) {
         Assert.assertEquals(actual, expected);
-        Assert.assertEquals(actual.getContent(), expected.getContent());
+        Serializable actualContent = actual.getContent();
+        Serializable expectedContent = expected.getContent();
+        Assert.assertEquals(actualContent, expectedContent);
+        if (actualContent instanceof Query) {
+            Assert.assertEquals(toBytes(actualContent), toBytes(expectedContent));
+        }
         Metadata actualMetadata = actual.getMetadata();
         Metadata expectedMetadata = expected.getMetadata();
         if (actualMetadata == null || expectedMetadata == null) {
