@@ -51,7 +51,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <bullet.core.version>1.4.0</bullet.core.version>
-        <bullet.bql.version>1.2.1</bullet.bql.version>
+        <bullet.bql.version>1.2.2</bullet.bql.version>
         <spring.security.oauth2>2.2.0.RELEASE</spring.security.oauth2>
     </properties>
 
