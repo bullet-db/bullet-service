@@ -3,6 +3,6 @@ bullet.pubsub.context.name: 'QUERY_SUBMISSION'
 # Path to your PubSub implementation.
 bullet.pubsub.class.name: 'com.yahoo.bullet.pubsub.rest.RESTPubSub'
 # Path to the SerDe for PubSubMessages
-bullet.pubsub.message.serde.class.name: 'com.yahoo.bullet.pubsub.IdentityPubSubMessageSerDe'
+bullet.pubsub.message.serde.class.name: 'com.yahoo.bullet.pubsub.ByteArrayPubSubMessageSerDe'
 # Add settings specific to your PubSub if you are not using the defaults.
 # Add settings specific to your PubSubMessageSerDe if needed.

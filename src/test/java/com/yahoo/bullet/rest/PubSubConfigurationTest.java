@@ -6,7 +6,7 @@
 package com.yahoo.bullet.rest;
 
 import com.yahoo.bullet.common.BulletConfig;
-import com.yahoo.bullet.pubsub.IdentityPubSubMessageSerDe;
+import com.yahoo.bullet.pubsub.ByteArrayPubSubMessageSerDe;
 import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.PubSubMessageSerDe;
 import com.yahoo.bullet.pubsub.Publisher;
@@ -51,6 +51,6 @@ public class PubSubConfigurationTest {
         BulletConfig config = configuration.pubSubConfig("test_pubsub_defaults.yaml");
 
         PubSubMessageSerDe serDe = configuration.pubSubMessageSendSerDe(config);
-        Assert.assertTrue(serDe instanceof IdentityPubSubMessageSerDe);
+        Assert.assertTrue(serDe instanceof ByteArrayPubSubMessageSerDe);
     }
 }
