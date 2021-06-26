@@ -139,7 +139,7 @@ public class QueryService extends PubSubResponder {
      */
     public CompletableFuture<PubSubMessage> get(String id) {
         return storage.get(id)
-                      .thenApply(QueryService::onStoredMessageRetrieve)
+                      .thenApply(this::onStoredMessageRetrieve)
                       .exceptionally(e -> onStoredMessageRetrieveFail(e, id));
     }
 
@@ -207,15 +207,15 @@ public class QueryService extends PubSubResponder {
         }
     }
 
+    private PubSubMessage onStoredMessageRetrieve(PubSubMessage message) {
+        log.debug("Retrieved message {} from storage", message);
+        return sendSerDe.fromMessage(message);
+    }
+
     private static PubSubMessage onSubmitFail(Throwable error, String id) {
         log.error("Failed to submit query {} due to failures in storing or publishing the query", id);
         log.error("Received exception", error);
         return null;
-    }
-
-    private static PubSubMessage onStoredMessageRetrieve(PubSubMessage message) {
-        log.debug("Retrieved message {} from storage", message);
-        return message;
     }
 
     private static PubSubMessage onStoredMessageRetrieveFail(Throwable e, String id) {
