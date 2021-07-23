@@ -61,12 +61,11 @@ public class QueryService extends PubSubResponder implements Metrizable {
     static final String QUERY_RESPONSE_SUCCESS = "query.storage.response.success";
     static final String QUERY_RESPONSE_FAIL = "query.storage.response.fail";
 
-//    private static final List<String> METRICS =
-//        Arrays.asList(QUERY_SUBMIT_SUCCESS, QUERY_SUBMIT_FAIL, QUERY_ADD_SUCCESS, QUERY_ADD_FAIL, QUERY_REMOVE_SUCCESS,
-//                      QUERY_REMOVE_FAIL, QUERY_CLEANUP_SUCCESS, QUERY_CLEANUP_FAIL, QUERY_RETRIEVE_SUCCESS,
-//                      QUERY_RETRIEVE_FAIL, QUERY_KILL_SUCCESS, QUERY_KILL_FAIL, QUERY_RESPONSE_SUCCESS, QUERY_RESPONSE_FAIL);
+    private static final List<String> METRICS =
+        Arrays.asList(QUERY_SUBMIT_SUCCESS, QUERY_SUBMIT_FAIL, QUERY_ADD_SUCCESS, QUERY_ADD_FAIL, QUERY_REMOVE_SUCCESS,
+                      QUERY_REMOVE_FAIL, QUERY_CLEANUP_SUCCESS, QUERY_CLEANUP_FAIL, QUERY_RETRIEVE_SUCCESS,
+                      QUERY_RETRIEVE_FAIL, QUERY_KILL_SUCCESS, QUERY_KILL_FAIL, QUERY_RESPONSE_SUCCESS, QUERY_RESPONSE_FAIL);
 
-    private static final List<String> METRICS = Arrays.asList("foo", "bar");
 
     /**
      * Constructor that takes various necessary components.
