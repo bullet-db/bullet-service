@@ -16,8 +16,8 @@ import com.yahoo.bullet.rest.model.QueryResponse;
 import com.yahoo.bullet.rest.query.HTTPQueryHandler;
 import com.yahoo.bullet.rest.query.QueryError;
 import com.yahoo.bullet.rest.query.SSEQueryHandler;
-import com.yahoo.bullet.rest.service.HandlerService;
 import com.yahoo.bullet.rest.service.BQLService;
+import com.yahoo.bullet.rest.service.HandlerService;
 import com.yahoo.bullet.rest.service.QueryService;
 import com.yahoo.bullet.rest.service.StatusService;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +34,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static com.yahoo.bullet.rest.common.Metrizable.toMetric;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 @RestController @Slf4j
