@@ -5,6 +5,7 @@
  */
 package com.yahoo.bullet.rest.service;
 
+import com.yahoo.bullet.common.metrics.MetricPublisher;
 import com.yahoo.bullet.pubsub.IdentityPubSubMessageSerDe;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
@@ -20,11 +21,14 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static com.yahoo.bullet.TestHelpers.assertNoMetric;
 import static com.yahoo.bullet.rest.TestHelpers.assertMessageEquals;
+import static com.yahoo.bullet.rest.TestHelpers.assertMetricsEqual;
 import static com.yahoo.bullet.rest.TestHelpers.emptyStorage;
 import static com.yahoo.bullet.rest.TestHelpers.failingPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.failingStorage;
@@ -34,8 +38,24 @@ import static com.yahoo.bullet.rest.TestHelpers.metadataModifyingPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.mockPublisher;
 import static com.yahoo.bullet.rest.TestHelpers.mockStorage;
 import static com.yahoo.bullet.rest.TestHelpers.unRemovableStorage;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_ADD_FAIL;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_ADD_SUCCESS;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_CLEANUP_FAIL;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_CLEANUP_SUCCESS;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_KILL_FAIL;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_KILL_SUCCESS;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_REMOVE_FAIL;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_REMOVE_SUCCESS;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_RESPONSE_FAIL;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_RESPONSE_SUCCESS;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_RETRIEVE_FAIL;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_RETRIEVE_SUCCESS;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_SUBMIT_FAIL;
+import static com.yahoo.bullet.rest.service.QueryService.QUERY_SUBMIT_SUCCESS;
 import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.tuple.ImmutablePair.of;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -51,6 +71,7 @@ public class QueryServiceTest {
     private PubSubResponder responder;
     private List<PubSubResponder> responders;
     private PubSubMessageSerDe serDe;
+    private MetricPublisher metricPublisher;
 
     private static final Query SAMPLE = getQuery();
     private static final String SAMPLE_BQL = getBQLQuery();
@@ -81,12 +102,13 @@ public class QueryServiceTest {
         responders = singletonList(responder);
 
         serDe = new IdentityPubSubMessageSerDe(null);
+        metricPublisher = mock(MetricPublisher.class);
     }
 
     @Test
     public void testClose() {
         StorageManager storage = mockStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
         service.close();
         verify(responder).close();
     }
@@ -94,13 +116,14 @@ public class QueryServiceTest {
     @Test
     public void testSubmissionPersistsQuery() throws Exception {
         StorageManager storage = mockStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         PubSubMessage result = service.submit("key", SAMPLE, getBQLQuery()).get();
         PubSubMessage expected = new PubSubMessage("key", SAMPLE, SAMPLE_METADATA);
         assertMessageEquals(result, expected);
         verify(storage).put("key", expected);
         assertMessageSent(publisher, expected);
+        assertMetricsEqual(service, 2, of(QUERY_ADD_SUCCESS, 1), of(QUERY_SUBMIT_SUCCESS, 1));
     }
 
     @Test
@@ -108,7 +131,7 @@ public class QueryServiceTest {
         publisher = metadataModifyingPublisher("testMetadata");
         publishers = singletonList(publisher);
         StorageManager storage = mockStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         PubSubMessage result = service.submit("key", SAMPLE, SAMPLE_BQL).get();
         // We will answer with a CustomMetadata but the original metadata has nothing anyway
@@ -121,6 +144,7 @@ public class QueryServiceTest {
         assertMessageEquals(actual, expected);
         CustomMetadata actualMetadata = (CustomMetadata) actual.getMetadata();
         Assert.assertEquals(actualMetadata.getPayload(), "testMetadata");
+        assertMetricsEqual(service, 2, of(QUERY_ADD_SUCCESS, 1), of(QUERY_SUBMIT_SUCCESS, 1));
     }
 
     @Test
@@ -129,19 +153,20 @@ public class QueryServiceTest {
         publisher = failingPublisher();
         publishers = singletonList(publisher);
         StorageManager storage = mockStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         PubSubMessage result = service.submit("key", SAMPLE, SAMPLE_BQL).get();
         Assert.assertNull(result);
         assertMessageSent(publisher, expected);
         verifyNoInteractions(storage);
+        assertMetricsEqual(service, 1, of(QUERY_SUBMIT_FAIL, 1));
     }
 
     @Test
     public void testSubmissionIsKilledIfPersistingFailed() throws Exception {
         PubSubMessage expected = new PubSubMessage("key", SAMPLE, SAMPLE_METADATA);
         StorageManager storage = failingStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         PubSubMessage result = service.submit("key", SAMPLE, SAMPLE_BQL).get();
         Assert.assertNull(result);
@@ -156,6 +181,7 @@ public class QueryServiceTest {
         assertMessageEquals(payload, expected);
         assertMessageEquals(kill, new PubSubMessage("key", Metadata.Signal.KILL));
         verify(storage).put("key", expected);
+        assertMetricsEqual(service, 2, of(QUERY_ADD_FAIL, 1), of(QUERY_SUBMIT_FAIL, 1));
     }
 
     @Test
@@ -169,108 +195,135 @@ public class QueryServiceTest {
         fail.completeExceptionally(new RuntimeException("Testing"));
         doReturn(fail).when(storage).put(eq("key"), any());
 
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         PubSubMessage result = service.submit("key", SAMPLE, SAMPLE_BQL).get();
         Assert.assertNull(result);
 
         assertMessageSent(publisher, expected);
         verify(storage).put("key", expected);
+        assertMetricsEqual(service, 1, of(QUERY_SUBMIT_FAIL, 1));
     }
 
     @Test
     public void testKillingAnExistingQuery() throws Exception {
         StorageManager storage = mockStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         service.kill("key").get();
 
         PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
         verify(storage).remove("key");
         assertMessageSent(publisher, expected);
+        assertMetricsEqual(service, 2, of(QUERY_REMOVE_SUCCESS, 1), of(QUERY_KILL_SUCCESS, 1));
     }
 
     @Test
     public void testSendingASignal() throws Exception {
         StorageManager storage = mockStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         service.send("key", Metadata.Signal.KILL).get();
         PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
         verifyNoInteractions(storage);
         assertMessageSent(publisher, expected);
+        assertNoMetric(service.getMetricCollector().extractMetrics());
     }
 
     @Test
     public void testSendingAPubSubMessage() throws Exception {
         StorageManager storage = mockStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         PubSubMessage expected = new PubSubMessage("key", "test", new Metadata(Metadata.Signal.KILL, new HashMap<>()));
         service.send(expected).get();
         verifyNoInteractions(storage);
         assertMessageSent(publisher, expected);
+        assertNoMetric(service.getMetricCollector().extractMetrics());
     }
 
     @Test
     public void testFailingToRemoveFromStorageStillKillsAQuery() throws Exception {
         StorageManager storage = unRemovableStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         service.kill("key").get();
 
         PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
         verify(storage).remove("key");
         assertMessageSent(publisher, expected);
+        assertMetricsEqual(service, 2, of(QUERY_REMOVE_FAIL, 1), of(QUERY_KILL_SUCCESS, 1));
     }
 
     @Test
     public void testFailingToSendAKillSignalIsIgnored() throws Exception {
         doThrow(new RuntimeException("Testing")).when(publisher).send(any());
         StorageManager storage = mockStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         service.kill("key").get();
 
         PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.KILL);
         verify(storage).remove("key");
         assertMessageSent(publisher, expected);
+        assertMetricsEqual(service, 2, of(QUERY_REMOVE_SUCCESS, 1), of(QUERY_KILL_FAIL, 1));
     }
 
     @Test
     public void testRespondingToADoneSignal() {
         StorageManager storage = mockStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.COMPLETE);
         service.respond("key", expected);
         assertMessageResponded(responder, expected);
+        assertMetricsEqual(service, 2, of(QUERY_CLEANUP_SUCCESS, 1), of(QUERY_RESPONSE_SUCCESS, 1));
     }
 
     @Test
     public void testErrorWhileRemovingStillResponds() {
         StorageManager storage = unRemovableStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         PubSubMessage expected = new PubSubMessage("key", Metadata.Signal.COMPLETE);
         service.respond("key", expected);
         assertMessageResponded(responder, expected);
+        assertMetricsEqual(service, 2, of(QUERY_CLEANUP_FAIL, 1), of(QUERY_RESPONSE_SUCCESS, 1));
+    }
+
+    @Test
+    public void testErrorWhileResponding() {
+        StorageManager storage = emptyStorage();
+        PubSubResponder mockResponderA = mock(PubSubResponder.class);
+        PubSubResponder mockResponderB = mock(PubSubResponder.class);
+        PubSubResponder mockResponderC = mock(PubSubResponder.class);
+        doThrow(new RuntimeException("Testing")).when(mockResponderB).respond(anyString(), any());
+        responders = Arrays.asList(mockResponderA, mockResponderB, mockResponderC);
+
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
+
+        PubSubMessage expected = new PubSubMessage("key", "test");
+        service.respond("key", expected);
+        assertMessageResponded(mockResponderA, expected);
+        assertMessageResponded(mockResponderC, expected);
+        assertMetricsEqual(service, 2, of(QUERY_RESPONSE_FAIL, 1), of(QUERY_RESPONSE_SUCCESS, 2));
     }
 
     @Test
     public void testRespondingToAnything() {
         StorageManager storage = emptyStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         PubSubMessage expected = new PubSubMessage("key", "test");
         service.respond("key", expected);
         assertMessageResponded(responder, expected);
+        assertMetricsEqual(service, 1, of(QUERY_RESPONSE_SUCCESS, 1));
     }
 
     @Test
     public void testRetrievingASentQuery() throws Exception {
         StorageManager storage = mockStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         PubSubMessage result = service.submit("key", SAMPLE, getBQLQuery()).get();
         PubSubMessage expected = new PubSubMessage("key", SAMPLE, SAMPLE_METADATA);
@@ -281,12 +334,13 @@ public class QueryServiceTest {
         PubSubMessage retrieval = service.get("key").get();
         verify(storage).get("key");
         Assert.assertNull(retrieval);
+        assertMetricsEqual(service, 3, of(QUERY_SUBMIT_SUCCESS, 1), of(QUERY_ADD_SUCCESS, 1), of(QUERY_RETRIEVE_SUCCESS, 1));
     }
 
     @Test
     public void testErrorWhileRetrievingASentQuery() throws Exception {
         StorageManager storage = unRemovableStorage();
-        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, null);
+        QueryService service = new QueryService(storage, responders, publishers, subscribers, serDe, 1, metricPublisher);
 
         PubSubMessage result = service.submit("key", SAMPLE, getBQLQuery()).get();
         PubSubMessage expected = new PubSubMessage("key", SAMPLE, SAMPLE_METADATA);
@@ -297,5 +351,6 @@ public class QueryServiceTest {
         PubSubMessage retrieval = service.get("key").get();
         verify(storage).get("key");
         Assert.assertNull(retrieval);
+        assertMetricsEqual(service, 3, of(QUERY_SUBMIT_SUCCESS, 1), of(QUERY_ADD_SUCCESS, 1), of(QUERY_RETRIEVE_FAIL, 1));
     }
 }

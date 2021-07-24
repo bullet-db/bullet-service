@@ -40,7 +40,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
 import static com.yahoo.bullet.TestHelpers.assertOnlyMetricEquals;
-import static com.yahoo.bullet.rest.TestHelpers.assertEqualsBql;
+import static com.yahoo.bullet.rest.TestHelpers.assertEqualsBQL;
 import static com.yahoo.bullet.rest.TestHelpers.assertEqualsQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getBQLQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getQuery;
@@ -176,7 +176,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         Assert.assertEquals(response.get(), "bar");
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
         assertEqualsQuery(queryCaptor.getValue());
-        assertEqualsBql(bqlCaptor.getValue());
+        assertEqualsBQL(bqlCaptor.getValue());
     }
 
     @Test
@@ -247,7 +247,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         verifyNoInteractions(handlerService);
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.INTERNAL_SERVER_ERROR), 1L);
         assertEqualsQuery(queryCaptor.getValue());
-        assertEqualsBql(bqlCaptor.getValue());
+        assertEqualsBQL(bqlCaptor.getValue());
     }
 
     @Test
@@ -268,7 +268,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         verifyNoInteractions(handlerService);
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.INTERNAL_SERVER_ERROR), 1L);
         assertEqualsQuery(queryCaptor.getValue());
-        assertEqualsBql(bqlCaptor.getValue());
+        assertEqualsBQL(bqlCaptor.getValue());
     }
 
     @Test
@@ -305,7 +305,7 @@ public class HTTPQueryControllerTest extends AbstractTestNGSpringContextTests {
         ArgumentCaptor<String> bqlCaptor = ArgumentCaptor.forClass(String.class);
         verify(queryService).submit(eq(queryResponse.getId()), queryCaptor.capture(), bqlCaptor.capture());
         assertEqualsQuery(queryCaptor.getValue());
-        assertEqualsBql(bqlCaptor.getValue());
+        assertEqualsBQL(bqlCaptor.getValue());
 
         Assert.assertTrue(queryResponse.getCreateTime() >= start && queryResponse.getCreateTime() <= end);
         verifyNoInteractions(handlerService);

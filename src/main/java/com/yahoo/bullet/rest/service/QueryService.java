@@ -22,6 +22,7 @@ import com.yahoo.bullet.storage.StorageManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
 import java.util.Arrays;
@@ -31,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Component
 public class QueryService extends PubSubResponder implements Metrizable {
     private final StorageManager<PubSubMessage> storage;
     private final List<PubSubResponder> responders;
@@ -65,7 +67,6 @@ public class QueryService extends PubSubResponder implements Metrizable {
         Arrays.asList(QUERY_SUBMIT_SUCCESS, QUERY_SUBMIT_FAIL, QUERY_ADD_SUCCESS, QUERY_ADD_FAIL, QUERY_REMOVE_SUCCESS,
                       QUERY_REMOVE_FAIL, QUERY_CLEANUP_SUCCESS, QUERY_CLEANUP_FAIL, QUERY_RETRIEVE_SUCCESS,
                       QUERY_RETRIEVE_FAIL, QUERY_KILL_SUCCESS, QUERY_KILL_FAIL, QUERY_RESPONSE_SUCCESS, QUERY_RESPONSE_FAIL);
-
 
     /**
      * Constructor that takes various necessary components.
@@ -145,12 +146,12 @@ public class QueryService extends PubSubResponder implements Metrizable {
         for (PubSubResponder responder : responders) {
             try {
                 responder.respond(id, response);
+                this.incrementMetric(QUERY_RESPONSE_SUCCESS);
             } catch (Exception e) {
                 log.error("Error while responding for {} using {}", id, responder);
                 this.incrementMetric(QUERY_RESPONSE_FAIL);
             }
         }
-        this.incrementMetric(QUERY_RESPONSE_SUCCESS);
     }
 
     /**

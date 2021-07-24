@@ -15,13 +15,17 @@ import com.yahoo.bullet.query.Query;
 import com.yahoo.bullet.query.Window;
 import com.yahoo.bullet.query.aggregations.AggregationType;
 import com.yahoo.bullet.query.aggregations.Raw;
+import com.yahoo.bullet.rest.common.Metrizable;
 import com.yahoo.bullet.storage.StorageManager;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
 import org.testng.Assert;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import static com.yahoo.bullet.TestHelpers.assertMetricEquals;
 import static com.yahoo.bullet.common.SerializerDeserializer.toBytes;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -158,7 +162,17 @@ public class TestHelpers {
         Assert.assertNull(actual.getPostAggregations());
     }
 
-    public static void assertEqualsBql(String actual) {
+    public static void assertEqualsBQL(String actual) {
         Assert.assertEquals(actual, SAMPLE_QUERY_BQL);
+    }
+
+    @SafeVarargs
+    public static void assertMetricsEqual(Metrizable object, int size, Pair<String, Number>... expecteds) {
+        Map<String, Number> metrics = object.getMetricCollector().extractMetrics();
+        for (Pair<String, Number> expected : expecteds) {
+            assertMetricEquals(metrics, expected.getLeft(), expected.getRight().longValue());
+        }
+        long totalNonZero = metrics.values().stream().map(Number::intValue).filter(i -> i != 0).count();
+        Assert.assertEquals(totalNonZero, size, "Expected to only have " + size + " non-zero metrics. Found " + totalNonZero + " counts");
     }
 }
