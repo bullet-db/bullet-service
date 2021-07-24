@@ -60,8 +60,8 @@ public class QueryService extends PubSubResponder implements Metrizable {
     static final String QUERY_RETRIEVE_FAIL = "query.storage.retrieve.fail";
     static final String QUERY_KILL_SUCCESS = "query.pubsub.kill.success";
     static final String QUERY_KILL_FAIL = "query.pubsub.kill.fail";
-    static final String QUERY_RESPONSE_SUCCESS = "query.storage.response.success";
-    static final String QUERY_RESPONSE_FAIL = "query.storage.response.fail";
+    static final String QUERY_RESPONSE_SUCCESS = "query.pubsub.response.success";
+    static final String QUERY_RESPONSE_FAIL = "query.pubsub.response.fail";
 
     private static final List<String> METRICS =
         Arrays.asList(QUERY_SUBMIT_SUCCESS, QUERY_SUBMIT_FAIL, QUERY_ADD_SUCCESS, QUERY_ADD_FAIL, QUERY_REMOVE_SUCCESS,
