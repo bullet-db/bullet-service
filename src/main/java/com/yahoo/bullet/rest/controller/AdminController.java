@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static com.yahoo.bullet.rest.common.Metrizable.toMetric;
+import static com.yahoo.bullet.rest.common.MetricManager.toMetric;
 
 @RestController @Slf4j
 public class AdminController extends MetricController {

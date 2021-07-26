@@ -34,7 +34,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static com.yahoo.bullet.rest.common.Metrizable.toMetric;
+import static com.yahoo.bullet.rest.common.MetricManager.toMetric;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 @RestController @Slf4j

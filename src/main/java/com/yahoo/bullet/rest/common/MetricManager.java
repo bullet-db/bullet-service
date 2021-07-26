@@ -7,12 +7,14 @@ package com.yahoo.bullet.rest.common;
 
 import com.yahoo.bullet.common.metrics.MetricCollector;
 import com.yahoo.bullet.common.metrics.MetricPublisher;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public interface Metrizable {
+public interface MetricManager {
     /**
      * Returns true if metrics should be enabled.
      *
@@ -66,6 +68,6 @@ public interface Metrizable {
      * @return A {@link List} of String metrics with the prefix added to each.
      */
     static List<String> toMetric(String prefix, Metric... metrics) {
-        return Arrays.stream(metrics).map(Objects::toString).map(prefix::concat).collect(Collectors.toList());
+        return Arrays.stream(metrics).map(Objects::toString).map(prefix::concat).collect(Collectors.toCollection(ArrayList::new));
     }
 }

@@ -15,7 +15,7 @@ import com.yahoo.bullet.query.Query;
 import com.yahoo.bullet.query.Window;
 import com.yahoo.bullet.query.aggregations.AggregationType;
 import com.yahoo.bullet.query.aggregations.Raw;
-import com.yahoo.bullet.rest.common.Metrizable;
+import com.yahoo.bullet.rest.common.MetricManager;
 import com.yahoo.bullet.storage.StorageManager;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.Pair;
@@ -167,7 +167,7 @@ public class TestHelpers {
     }
 
     @SafeVarargs
-    public static void assertMetricsEqual(Metrizable object, int size, Pair<String, Number>... expecteds) {
+    public static void assertMetricsEqual(MetricManager object, int size, Pair<String, Number>... expecteds) {
         Map<String, Number> metrics = object.getMetricCollector().extractMetrics();
         for (Pair<String, Number> expected : expecteds) {
             assertMetricEquals(metrics, expected.getLeft(), expected.getRight().longValue());

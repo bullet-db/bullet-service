@@ -7,12 +7,12 @@ package com.yahoo.bullet.rest.controller;
 
 import com.yahoo.bullet.common.metrics.MetricCollector;
 import com.yahoo.bullet.common.metrics.MetricPublisher;
-import com.yahoo.bullet.rest.common.Metrizable;
+import com.yahoo.bullet.rest.common.MetricManager;
 import lombok.Getter;
 import org.springframework.scheduling.annotation.Scheduled;
 
 @Getter
-public abstract class MetricController implements Metrizable {
+public abstract class MetricController implements MetricManager {
     private final boolean metricEnabled;
     private final MetricPublisher metricPublisher;
     private final MetricCollector metricCollector;

@@ -25,7 +25,7 @@ import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
-import static com.yahoo.bullet.rest.common.Metrizable.toMetric;
+import static com.yahoo.bullet.rest.common.MetricManager.toMetric;
 
 @Controller @Slf4j
 public class WebSocketController extends MetricController {

@@ -14,7 +14,7 @@ import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.query.Query;
-import com.yahoo.bullet.rest.common.Metrizable;
+import com.yahoo.bullet.rest.common.MetricManager;
 import com.yahoo.bullet.rest.common.PublisherRandomPool;
 import com.yahoo.bullet.rest.common.Reader;
 import com.yahoo.bullet.rest.common.Utils;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class QueryService extends PubSubResponder implements Metrizable {
+public class QueryService extends PubSubResponder implements MetricManager {
     private final StorageManager<PubSubMessage> storage;
     private final List<PubSubResponder> responders;
     private final PublisherRandomPool publishers;
