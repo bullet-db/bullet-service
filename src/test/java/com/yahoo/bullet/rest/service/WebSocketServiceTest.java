@@ -17,7 +17,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static com.yahoo.bullet.rest.TestHelpers.assertEqualsBql;
+import static com.yahoo.bullet.rest.TestHelpers.assertEqualsBQL;
 import static com.yahoo.bullet.rest.TestHelpers.assertEqualsQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getBQLQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getQuery;
@@ -93,7 +93,7 @@ public class WebSocketServiceTest {
         verify(handlerService).addHandler(eq(queryID), handlerCaptor.capture());
 
         assertEqualsQuery(queryCaptor.getValue());
-        assertEqualsBql(bqlCaptor.getValue());
+        assertEqualsBQL(bqlCaptor.getValue());
         Assert.assertSame(handlerCaptor.getValue(), handler);
         Assert.assertTrue(webSocketService.getSessionIDMap().containsKey(sessionID));
     }

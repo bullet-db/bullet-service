@@ -5,6 +5,8 @@
  */
 package com.yahoo.bullet.rest.service;
 
+import com.yahoo.bullet.common.metrics.MetricCollector;
+import com.yahoo.bullet.common.metrics.MetricPublisher;
 import com.yahoo.bullet.pubsub.Metadata;
 import com.yahoo.bullet.pubsub.PubSubMessage;
 import com.yahoo.bullet.pubsub.PubSubMessageSerDe;
@@ -12,27 +14,59 @@ import com.yahoo.bullet.pubsub.PubSubResponder;
 import com.yahoo.bullet.pubsub.Publisher;
 import com.yahoo.bullet.pubsub.Subscriber;
 import com.yahoo.bullet.query.Query;
+import com.yahoo.bullet.rest.common.MetricManager;
 import com.yahoo.bullet.rest.common.PublisherRandomPool;
 import com.yahoo.bullet.rest.common.Reader;
 import com.yahoo.bullet.rest.common.Utils;
 import com.yahoo.bullet.storage.StorageManager;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class QueryService extends PubSubResponder {
-    private StorageManager<PubSubMessage> storage;
-    private List<PubSubResponder> responders;
-    private PublisherRandomPool publishers;
-    private List<Reader> readers;
-    private PubSubMessageSerDe sendSerDe;
+@Component
+public class QueryService extends PubSubResponder implements MetricManager {
+    private final StorageManager<PubSubMessage> storage;
+    private final List<PubSubResponder> responders;
+    private final PublisherRandomPool publishers;
+    private final List<Reader> readers;
+    private final PubSubMessageSerDe sendSerDe;
+    @Getter
+    private final boolean metricEnabled;
+    @Getter
+    private final MetricPublisher metricPublisher;
+    @Getter
+    private final MetricCollector metricCollector;
 
     private static final CompletableFuture<PubSubMessage> NONE = CompletableFuture.completedFuture(null);
+
+    static final String QUERY_SUBMIT_SUCCESS = "query.pubsub.submit.success";
+    static final String QUERY_SUBMIT_FAIL = "query.pubsub.submit.fail";
+    static final String QUERY_ADD_SUCCESS = "query.storage.add.success";
+    static final String QUERY_ADD_FAIL = "query.storage.add.fail";
+    static final String QUERY_REMOVE_SUCCESS = "query.storage.remove.success";
+    static final String QUERY_REMOVE_FAIL = "query.storage.remove.fail";
+    static final String QUERY_CLEANUP_SUCCESS = "query.storage.cleanup.success";
+    static final String QUERY_CLEANUP_FAIL = "query.storage.cleanup.fail";
+    static final String QUERY_RETRIEVE_SUCCESS = "query.storage.retrieve.success";
+    static final String QUERY_RETRIEVE_FAIL = "query.storage.retrieve.fail";
+    static final String QUERY_KILL_SUCCESS = "query.pubsub.kill.success";
+    static final String QUERY_KILL_FAIL = "query.pubsub.kill.fail";
+    static final String QUERY_RESPONSE_SUCCESS = "query.pubsub.response.success";
+    static final String QUERY_RESPONSE_FAIL = "query.pubsub.response.fail";
+
+    private static final List<String> METRICS =
+        Arrays.asList(QUERY_SUBMIT_SUCCESS, QUERY_SUBMIT_FAIL, QUERY_ADD_SUCCESS, QUERY_ADD_FAIL, QUERY_REMOVE_SUCCESS,
+                      QUERY_REMOVE_FAIL, QUERY_CLEANUP_SUCCESS, QUERY_CLEANUP_FAIL, QUERY_RETRIEVE_SUCCESS,
+                      QUERY_RETRIEVE_FAIL, QUERY_KILL_SUCCESS, QUERY_KILL_FAIL, QUERY_RESPONSE_SUCCESS, QUERY_RESPONSE_FAIL);
 
     /**
      * Constructor that takes various necessary components.
@@ -43,16 +77,20 @@ public class QueryService extends PubSubResponder {
      * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
      * @param pubSubMessageSendSerDe The {@link PubSubMessageSerDe} to use for sending messages to the PubSub.
      * @param sleep The time to sleep between checking for messages from the pubsub.
+     * @param metricPublisher The optional {@link MetricPublisher} to use to report metrics. Can be null.
      */
     public QueryService(StorageManager<PubSubMessage> storageManager, List<PubSubResponder> responders,
                         List<Publisher> publishers, List<Subscriber> subscribers,
-                        PubSubMessageSerDe pubSubMessageSendSerDe, int sleep) {
+                        PubSubMessageSerDe pubSubMessageSendSerDe, int sleep, MetricPublisher metricPublisher) {
         super(null);
         Objects.requireNonNull(storageManager);
         Objects.requireNonNull(responders);
         Objects.requireNonNull(pubSubMessageSendSerDe);
         Utils.checkNotEmpty(publishers);
         Utils.checkNotEmpty(subscribers);
+        this.metricEnabled = metricPublisher != null;
+        this.metricPublisher = metricPublisher;
+        this.metricCollector = new MetricCollector(METRICS);
         this.storage = storageManager;
         this.responders = responders;
         this.sendSerDe = pubSubMessageSendSerDe;
@@ -87,7 +125,7 @@ public class QueryService extends PubSubResponder {
     public CompletableFuture<Void> kill(String id) {
         log.debug("Removing metadata for query {} and killing it", id);
         CompletableFuture<PubSubMessage> removed = storage.remove(id);
-        return removed.thenAccept(QueryService::onStoredMessageRemove)
+        return removed.thenAccept(this::onStoredMessageRemove)
                       .exceptionally(e -> onStoredMessageRemoveFail(e, id))
                       .thenAccept(u -> killQuery(id));
     }
@@ -102,10 +140,18 @@ public class QueryService extends PubSubResponder {
         log.debug("Received response {} for {}", id, response);
         if (Utils.isDone(response)) {
             CompletableFuture<PubSubMessage> removed = storage.remove(id);
-            removed.thenAccept(QueryService::onStoredMessageRemove)
-                   .exceptionally(e -> onRespondFail(e, id, response));
+            removed.thenAccept(this::onStoredMessageRemoveForResponseSuccess)
+                   .exceptionally(e -> onStoredMessageRemoveForResponseFail(e, id, response));
         }
-        responders.forEach(responder -> responder.respond(id, response));
+        for (PubSubResponder responder : responders) {
+            try {
+                responder.respond(id, response);
+                this.incrementMetric(QUERY_RESPONSE_SUCCESS);
+            } catch (Exception e) {
+                log.error("Error while responding for {} using {}", id, responder);
+                this.incrementMetric(QUERY_RESPONSE_FAIL);
+            }
+        }
     }
 
     /**
@@ -144,6 +190,16 @@ public class QueryService extends PubSubResponder {
     }
 
     /**
+     * Fires and forgets the metrics using the publisher.
+     */
+    @Scheduled(fixedDelayString = "${bullet.metric.publish.interval.ms}")
+    public void publishMetrics() {
+        if (metricEnabled) {
+            metricPublisher.fire(metricCollector.extractMetrics());
+        }
+    }
+
+    /**
      * Stop all service threads and clear pending requests.
      */
     @PreDestroy
@@ -161,7 +217,7 @@ public class QueryService extends PubSubResponder {
             return NONE;
         }
         // TODO: consider sending a kill if an exception happens here. It's technically a leak to the backend
-        return storage.put(id, message).thenComposeAsync(result -> sendKillIfNecessary(result, id, message));
+        return storage.put(id, message).thenComposeAsync(result -> onStore(result, id, message));
     }
 
     private CompletableFuture<PubSubMessage> publish(PubSubMessage message) {
@@ -180,63 +236,82 @@ public class QueryService extends PubSubResponder {
         PubSubMessage message = new PubSubMessage(id, Metadata.Signal.KILL);
         try {
             log.debug("Sending kill signal for {}", id);
-            return publisher.send(sendSerDe.toMessage(message));
+            PubSubMessage sent = publisher.send(sendSerDe.toMessage(message));
+            this.incrementMetric(QUERY_KILL_SUCCESS);
+            return sent;
         } catch (Exception e) {
             log.error("Could not send message {}", message);
             log.error("Error: ", e);
+            this.incrementMetric(QUERY_KILL_FAIL);
             return null;
         }
     }
 
-    private CompletableFuture<PubSubMessage> sendKillIfNecessary(Boolean status, String id, PubSubMessage message) {
+    private CompletableFuture<PubSubMessage> onStore(Boolean status, String id, PubSubMessage message) {
         if (!status) {
             log.error("Error while trying to store query after submitting. Sending a kill for it...");
             log.error("Sending a kill signal for {}", id);
+            this.incrementMetric(QUERY_ADD_FAIL);
             return send(id, Metadata.Signal.KILL).thenApply(d -> null);
         }
+        this.incrementMetric(QUERY_ADD_SUCCESS);
         return CompletableFuture.completedFuture(message);
     }
 
     private PubSubMessage onSubmit(String id, PubSubMessage message) {
         if (message != null) {
             log.debug("Successfully submitted message for {}", id);
+            this.incrementMetric(QUERY_SUBMIT_SUCCESS);
             return message;
         } else {
             log.error("Could not submit message for {}", id);
+            this.incrementMetric(QUERY_SUBMIT_FAIL);
             return null;
         }
     }
 
+    private PubSubMessage onSubmitFail(Throwable error, String id) {
+        log.error("Failed to submit query {} due to failures in storing or publishing the query", id);
+        log.error("Received exception", error);
+        this.incrementMetric(QUERY_SUBMIT_FAIL);
+        return null;
+    }
+
     private PubSubMessage onStoredMessageRetrieve(PubSubMessage message) {
         log.debug("Retrieved message {} from storage", message);
+        this.incrementMetric(QUERY_RETRIEVE_SUCCESS);
         return sendSerDe.fromMessage(message);
     }
 
-    private static PubSubMessage onSubmitFail(Throwable error, String id) {
-        log.error("Failed to submit query {} due to failures in storing or publishing the query", id);
-        log.error("Received exception", error);
-        return null;
-    }
-
-    private static PubSubMessage onStoredMessageRetrieveFail(Throwable e, String id) {
+    private PubSubMessage onStoredMessageRetrieveFail(Throwable e, String id) {
         log.error("Exception while trying to retrieve stored message", e);
         log.error("Could not retrieve {} from storage", id);
+        this.incrementMetric(QUERY_RETRIEVE_FAIL);
         return null;
     }
 
-    private static void onStoredMessageRemove(PubSubMessage message) {
+    private void onStoredMessageRemove(PubSubMessage message) {
         log.debug("Removed message {} from storage", message);
+        this.incrementMetric(QUERY_REMOVE_SUCCESS);
     }
 
     private Void onStoredMessageRemoveFail(Throwable e, String id) {
         log.error("Exception while trying to remove stored message", e);
         log.error("Could not remove {} from storage", id);
+        this.incrementMetric(QUERY_REMOVE_FAIL);
         return null;
     }
 
-    private Void onRespondFail(Throwable e, String id, PubSubMessage response) {
+    private Void onStoredMessageRemoveForResponseSuccess(PubSubMessage message) {
+        log.debug("Removed message {} from storage for response", message);
+        this.incrementMetric(QUERY_CLEANUP_SUCCESS);
+        return null;
+    }
+
+    private Void onStoredMessageRemoveForResponseFail(Throwable e, String id, PubSubMessage response) {
         log.error("Exception while trying to remove stored message", e);
         log.error("Could not remove {} from storage upon receiving {}", id, response);
+        this.incrementMetric(QUERY_CLEANUP_FAIL);
         return null;
     }
 }

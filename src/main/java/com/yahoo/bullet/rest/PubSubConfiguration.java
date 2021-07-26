@@ -6,6 +6,7 @@
 package com.yahoo.bullet.rest;
 
 import com.yahoo.bullet.common.BulletConfig;
+import com.yahoo.bullet.common.metrics.MetricPublisher;
 import com.yahoo.bullet.pubsub.PubSub;
 import com.yahoo.bullet.pubsub.PubSubException;
 import com.yahoo.bullet.pubsub.PubSubMessage;
@@ -45,13 +46,15 @@ public class PubSubConfiguration {
      * @param subscribers The non-empty {@link List} of {@link Subscriber} to use.
      * @param pubSubMessageSendSerDe The {@link PubSubMessageSerDe} to use.
      * @param sleep The time to sleep between checking for messages from the pubsub.
+     * @param metricPublisher The optional {@link MetricPublisher} to use to report metrics.
      * @return The created {@link QueryService} instance.
      */
     @Bean
     public QueryService queryService(StorageManager<PubSubMessage> queryStorageManager, HandlerService handlerService,
                                      ResponderClasses responderClasses, List<Publisher> publishers,
                                      List<Subscriber> subscribers, PubSubMessageSerDe pubSubMessageSendSerDe,
-                                     @Value("${bullet.pubsub.sleep-ms}") int sleep) {
+                                     @Value("${bullet.pubsub.sleep-ms}") int sleep,
+                                     MetricPublisher metricPublisher) {
         List<PubSubResponder> responders;
         if (responderClasses == null) {
             responders = Collections.singletonList(handlerService);
@@ -59,7 +62,7 @@ public class PubSubConfiguration {
             responders = responderClasses.create();
             responders.add(handlerService);
         }
-        return new QueryService(queryStorageManager, responders, publishers, subscribers, pubSubMessageSendSerDe, sleep);
+        return new QueryService(queryStorageManager, responders, publishers, subscribers, pubSubMessageSendSerDe, sleep, metricPublisher);
     }
 
     /**

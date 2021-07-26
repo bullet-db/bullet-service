@@ -23,7 +23,7 @@ import org.testng.annotations.Test;
 import static com.yahoo.bullet.TestHelpers.assertJSONEquals;
 import static com.yahoo.bullet.TestHelpers.assertNoMetric;
 import static com.yahoo.bullet.TestHelpers.assertOnlyMetricEquals;
-import static com.yahoo.bullet.rest.TestHelpers.assertEqualsBql;
+import static com.yahoo.bullet.rest.TestHelpers.assertEqualsBQL;
 import static com.yahoo.bullet.rest.TestHelpers.assertEqualsQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getInvalidBQLQuery;
 import static com.yahoo.bullet.rest.TestHelpers.getQueryBuilder;
@@ -106,7 +106,7 @@ public class WebSocketControllerTest {
 
         assertOnlyMetricEquals(controller.getMetricCollector(), metric(HttpStatus.CREATED), 1L);
         assertEqualsQuery(argument.getValue());
-        assertEqualsBql(bqlCaptor.getValue());
+        assertEqualsBQL(bqlCaptor.getValue());
     }
 
     @Test
