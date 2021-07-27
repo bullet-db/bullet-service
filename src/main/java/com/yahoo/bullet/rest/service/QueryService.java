@@ -279,6 +279,9 @@ public class QueryService extends PubSubResponder implements MetricManager {
 
     private PubSubMessage onStoredMessageRetrieve(PubSubMessage message) {
         log.debug("Retrieved message {} from storage", message);
+        if (message == null) {
+            return null;
+        }
         this.incrementMetric(QUERY_RETRIEVE_SUCCESS);
         return sendSerDe.fromMessage(message);
     }
@@ -292,7 +295,9 @@ public class QueryService extends PubSubResponder implements MetricManager {
 
     private void onStoredMessageRemove(PubSubMessage message) {
         log.debug("Removed message {} from storage", message);
-        this.incrementMetric(QUERY_REMOVE_SUCCESS);
+        if (message != null) {
+            this.incrementMetric(QUERY_REMOVE_SUCCESS);
+        }
     }
 
     private Void onStoredMessageRemoveFail(Throwable e, String id) {
@@ -304,7 +309,9 @@ public class QueryService extends PubSubResponder implements MetricManager {
 
     private Void onStoredMessageRemoveForResponseSuccess(PubSubMessage message) {
         log.debug("Removed message {} from storage for response", message);
-        this.incrementMetric(QUERY_CLEANUP_SUCCESS);
+        if (message != null) {
+            this.incrementMetric(QUERY_CLEANUP_SUCCESS);
+        }
         return null;
     }
 
