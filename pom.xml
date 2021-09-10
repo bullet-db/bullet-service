@@ -81,12 +81,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.4</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.yahoo.bullet</groupId>
             <artifactId>bullet-core</artifactId>
             <version>${bullet.core.version}</version>
@@ -114,6 +108,12 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.12</version>
+        </dependency>
+        <!-- Adding this with scope test masks the Bullet Core transitive dependency so adding it explicitly as compile time -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.4</version>
         </dependency>
         <dependency>
             <groupId>com.yahoo.bullet</groupId>
