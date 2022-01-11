@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yahoo.bullet</groupId>
     <artifactId>bullet-service</artifactId>
-    <version>1.4.3-SNAPSHOT</version>
+    <version>1.4.3</version>
     <name>bullet-service</name>
 
     <description>
@@ -33,7 +33,7 @@
         <url>https://github.com/bullet-db/bullet-service</url>
         <connection>scm:git:ssh://git@github.com/bullet-db/bullet-service.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/bullet-db/bullet-service.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>bullet-service-1.4.3</tag>
     </scm>
 
     <developers>
